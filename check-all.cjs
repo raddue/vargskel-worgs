@@ -42,6 +42,11 @@ Object.entries(required).forEach(([key, fields]) => {
   });
 });
 
+C.mechs.forEach(m => {
+  if (m.hpNow == null) return;
+  if (typeof m.hp !== "number" || typeof m.hpNow !== "number" || m.hpNow < 0 || m.hpNow > m.hp)
+    problems.push(`mech ${m.id}: hpNow ${JSON.stringify(m.hpNow)} needs hp as a number and 0 <= hpNow <= hp`);
+});
 const loc = ids("locations"), fac = ids("factions"), pilot = ids("pilots"), mech = ids("mechs"), op = ids("ops");
 
 C.locations.forEach(l => {

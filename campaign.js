@@ -50,15 +50,15 @@ window.CAMPAIGN = {
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
     { id: "patch-kit", name: "PATCH KIT", frame: "GMS EVEREST", pilot: "patch", glyph: "▰◢",
-      state: "STRUCTURE 1 · REPAIR PENDING", missing: "REPAIR PLATFORM" },
+      state: "STRUCTURE 1 · REPAIR PENDING", hp: 6, hpNow: 4, eva: 8, spd: 5, tech: "+1", edef: 9 },
     { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", glyph: "▰▱",
       state: "OPERATIONAL", hp: 6, eva: 10, spd: 5, tech: "+0", edef: 8,
       loadout: "Main: Pistol · Flex: Shotgun · Heavy: Thermal Lance",
       systems: "Jericho Deployable Cover, Comp/Con-Class Assistant Unit, EVA Module, Expanded Compartment" },
     { id: "latchkey", name: "LATCHKEY", frame: "SSC BLACK WITCH", pilot: "latch", glyph: "◈▰",
-      state: "OPERATIONAL", missing: "FIELD CONTROL" },
-    { id: "doorstop", name: "DOORSTOP", frame: "GMS DRAKE", pilot: "bulwark", glyph: "▰▱",
-      state: "OPERATIONAL", missing: "DEFENDER" }
+      state: "OPERATIONAL", hp: 10, eva: 9, spd: 5, tech: "+2", edef: 10 },
+    { id: "doorstop", name: "DOORSTOP", frame: "GMS DRAKE", pilot: "bulwark", size: 2, glyph: "▰▱",
+      state: "OPERATIONAL", hp: 14, eva: 6, spd: 4, tech: "+0", edef: 12 }
   ],
 
   ops: [
