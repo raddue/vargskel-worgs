@@ -22,6 +22,26 @@ const dupes = key => {
 
 ["locations", "factions", "pilots", "mechs", "ops", "threads", "events"].forEach(dupes);
 
+/* Ids become markup and sort keys, and the fields the page reads without a guard
+   must exist: a numeric id or a missing array used to blank the whole archive
+   while this checker still printed "ok". */
+const required = {
+  locations: ["name", "kind", "x", "y"],
+  factions: ["name", "standing"],
+  pilots: ["name", "role", "status"],
+  mechs: ["name", "frame", "state", "glyph"],
+  ops: ["title", "type", "status", "loc", "outcome", "date"],
+  threads: ["op", "text", "status"],
+  events: ["date", "title", "note"],
+};
+Object.entries(required).forEach(([key, fields]) => {
+  C[key].forEach(x => {
+    if (typeof x.id !== "string" || !x.id) problems.push(`${key}: id must be a non-empty string, got ${JSON.stringify(x.id)}`);
+    fields.forEach(f => { if (x[f] == null || x[f] === "") problems.push(`${key} ${x.id}: missing ${f}`); });
+    if (key === "ops") ["crew", "mechs"].forEach(a => { if (!Array.isArray(x[a])) problems.push(`op ${x.id}: ${a} must be an array`); });
+  });
+});
+
 const loc = ids("locations"), fac = ids("factions"), pilot = ids("pilots"), mech = ids("mechs"), op = ids("ops");
 
 C.locations.forEach(l => {
@@ -36,12 +56,17 @@ C.mechs.forEach(m => {
     if (p && p.mech !== m.id) problems.push(`mech ${m.id} -> pilot ${m.pilot} but that pilot's mech is ${p.mech}`);
   }
 });
-C.pilots.forEach(p => { if (p.mech) have(mech, "mechs", p.mech, `pilot ${p.id}.mech`); });
+C.pilots.forEach(p => {
+  if (!p.mech) return;
+  have(mech, "mechs", p.mech, `pilot ${p.id}.mech`);
+  const m = C.mechs.find(x => x.id === p.mech);
+  if (m && m.pilot !== p.id) problems.push(`pilot ${p.id} -> mech ${p.mech} but that mech's pilot is ${m.pilot}`);
+});
 C.ops.forEach(o => {
   have(loc, "locations", o.loc, `op ${o.id}.loc`);
   if (o.client) have(fac, "factions", o.client, `op ${o.id}.client`);
-  o.crew.forEach(id => have(pilot, "pilots", id, `op ${o.id}.crew`));
-  o.mechs.forEach(id => have(mech, "mechs", id, `op ${o.id}.mechs`));
+  (o.crew || []).forEach(id => have(pilot, "pilots", id, `op ${o.id}.crew`));
+  (o.mechs || []).forEach(id => have(mech, "mechs", id, `op ${o.id}.mechs`));
   if (o.type === "PLANNED" && o.status !== "UNBRIEFED") problems.push(`op ${o.id}: planned op should be UNBRIEFED`);
 });
 C.threads.forEach(t => have(op, "ops", t.op, `thread ${t.id}.op`));
