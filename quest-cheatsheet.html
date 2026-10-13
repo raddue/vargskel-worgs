@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Granite Security Solutions | GM Prep — Tarn Arc</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* Page-local: controls only. Everything else comes from style.css so this page
+   cannot drift from the dashboard's look. */
+.nav a:hover,.nav a:focus-visible{color:var(--cyan)}
+.wrap{padding:0 28px;max-width:1440px;margin:auto}
+h3{font:12px var(--mono);letter-spacing:.1em;margin:0 0 10px;color:var(--cyan)}
+.note{display:block;font:10px var(--mono);color:var(--muted);letter-spacing:.1em;margin:0 0 6px}
+textarea{width:100%;min-height:64px;box-sizing:border-box;background:var(--panel2);color:var(--text);
+  border:1px solid var(--line);font:12px/1.5 var(--mono);padding:9px 10px;resize:vertical}
+textarea:focus{outline:1px solid var(--cyan)}
+.checklist{list-style:none;margin:0;padding:0}
+.checklist li{margin:0 0 14px}
+.tick{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.tick input{appearance:none;width:15px;height:15px;flex:0 0 15px;margin:3px 0 0;border:1px solid var(--line);
+  background:var(--panel2);cursor:pointer;position:relative}
+.tick input:checked{background:var(--cyan);border-color:var(--cyan)}
+.tick input:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;
+  border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.tick input:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
+.tick span{font-size:14px}
+.tick input:checked+span{color:var(--muted);text-decoration:line-through}
+.q{border-left:2px solid var(--line);padding-left:11px;color:#e7b49d;font-size:14px;margin:8px 0 0}
+.btn{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font:10px var(--mono);
+  letter-spacing:.1em;padding:6px 9px;cursor:pointer}
+.btn:hover{color:var(--text);border-color:var(--cyan)}
+.gap{border:1px solid var(--rust);background:rgba(209,123,89,.07)}
+.gap .tag{color:var(--rust)}
+.two{display:flex;gap:18px;align-items:flex-start}
+.two>*{flex:1;min-width:0}
+@media(max-width:900px){.two{flex-direction:column}}
+</style>
+</head>
+<body>
+<noscript><p class="wrap" style="color:#d17b59;font:13px/1.5 ui-monospace,monospace">This sheet renders from plain HTML; the tick marks and note fields need JavaScript. The scene text itself reads fine without it.</p></noscript>
+
+<div class="topline wrap">
+  <span>GSS // GM PREP COPY</span>
+  <span id="save-state">NOT CREW-FACING · KEEP OUT OF THE ARCHIVE</span>
+</div>
+
+<div class="wrap brandrow">
+  <div class="brand">
+    <div class="mark"><span>G</span></div>
+    <div>
+      <div class="brand-name">TARN ARC</div>
+      <div class="brand-sub">GM CHEAT SHEET · OP 006</div>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="#spine">SPINE</a>
+    <a href="#scene1">SCENE 1</a>
+    <a href="#scene2">SCENE 2</a>
+    <a href="#rules">RULES</a>
+    <a href="#threads">THREADS</a>
+    <a href="#filing">FILING</a>
+  </div>
+  <div class="status"><span class="pill">TICKS <b id="tick-count">00 / 00</b></span></div>
+</div>
+
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <div class="eyebrow">GM PREP / ARC 1 / FIRST TWO SCENES</div>
+    <h1>TARN<br>ARC</h1>
+    <p>The first two scenes of the expansion arc, derived from what <em>campaign.js</em> already holds.
+       Nothing here contradicts filed continuity — it only extends it.</p>
+    <div class="hero-meta">
+      <div>SOURCE OF TRUTH <strong>campaign.js</strong></div>
+      <div>SCENES <strong>02</strong></div>
+      <div>DEPLOYMENT <strong>OP 006</strong></div>
+      <div>CHECKLIST <strong id="tick-count-2">00 / 00</strong></div>
+    </div>
+  </div>
+  <div class="hero-art">
+    <div class="mech-silhouette" aria-hidden="true"><span>◢</span></div>
+    <div class="art-caption">UNVISITED // TARN</div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="section-head">
+    <h2>SESSION CONTROLS</h2>
+    <span><button class="btn" id="reset" type="button">CLEAR ALL TICKS &amp; NOTES</button></span>
+  </div>
+  <div class="card"><div class="card-pad muted" style="font-size:13px">
+    Ticks and notes save to this browser as you work, and survive a reload. They are per-browser and
+    per-machine — nothing is written back into <code>campaign.js</code>. Filing happens in the FILING
+    section at the end of the session.
+  </div></div>
+
+  <div class="section-head" id="spine"><h2>THE SPINE</h2><span>THREE LINES</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="cs-spine-1" data-k>
+        <span>The Leandric States Alliance calls in the favour from op <b>002</b>, terms unspecified (<b>t7</b>).</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-spine-2" data-k>
+        <span>They want Tarn surveyed quietly, and want it not to be them who did it. Tarn is unvisited,
+        unclaimed, outside all three faction zones.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-spine-3" data-k>
+        <span>The wreck-strippers Granite traded fire with at Cairn Drift (<b>t4</b>, op <b>005</b>) are already
+        on station. That is the conflict, not the planet.</span></label></li>
+    </ul>
+    <div class="tag" style="margin-top:6px">DEFAULT READ OF THE MYSTERY</div>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">The depot wafer from op <b>001</b> was routed
+    through Tarn before it reached Nov Elysia (<b>t2</b>). The survey camp that went dark was tracking that
+    routing and got noticed. Swap freely if you already have something better.</p>
+  </div></div>
+
+  <div class="section-head" id="scene1"><h2>SCENE 1 · TERMS UNSPECIFIED</h2><span>NEGOTIATION · NO MECHS</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>WHERE</th><td>Kessen Relay (Leandric territory)</td></tr>
+        <tr><th>WHEN</th><td>5016U · D0xx, dock-side, no deployment</td></tr>
+        <tr><th>FRAMING</th><td>Negotiation. Hardsuits at most — same shape as op <b>002</b></td></tr>
+        <tr><th>GOAL</th><td>Get the contract, and get the terms <em>in writing</em></td></tr>
+        <tr><th>EXIT WHEN</th><td>The crew accepts, refuses, or pushes for the real reason</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px">BEATS</h3>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="cs-s1b1" data-k>
+        <span><b>1 · The summons.</b> A Leandric factor, <b>ONDRA VESH</b>, books a booth and does not offer a
+        drink. She opens with the favour, plainly.</span></label>
+        <div class="q">"You owe the Alliance a favour. Terms were never specified. I am here to specify them."</div></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s1b2" data-k>
+        <span><b>2 · The ask.</b> Survey Tarn. Recover the camp's logs. Do not file the contract with Union.
+        Leandric cannot be seen surveying a planet they have no claim to.</span></label>
+        <div class="q">Read them — <b>SPOT</b> / <b>READ A SITUATION</b>: Vesh is not lying, but she is holding
+        one thing back. Strong hit: the tell is that she already knows someone else is on Tarn.<br>
+        Push her — <b>CHARM</b> or <b>LEAD OR INSPIRE</b>: she admits the rival presence, and prices the
+        admission — the favour is now discharged either way.</div></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s1b3" data-k>
+        <span><b>3 · The catch.</b> She offers the survey as full payment. It is not a fair trade and she says
+        so plainly.</span></label>
+        <div class="q">"You owe one favour. This is one job. I am not obliged to make it a good job."<br>
+        <b>GET A HOLD OF SOMETHING</b> / <b>HACK OR FIX</b> if they read her datapad or the contract metadata
+        before signing — the transfer logs match the depot data from op <b>001</b>. First pull toward <b>t2</b>.</div></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s1b4" data-k>
+        <span><b>4 · Sign or walk.</b> Signing: Vesh hands over a survey beacon code and a heading, and leaves.
+        Refusing: she discharges the favour anyway, and notes Union has a standing salvage bounty on Cairn
+        Drift — the crew's next payday is the people who shot at them.</span></label></li>
+    </ul>
+
+    <div class="two" style="margin-top:18px">
+      <div>
+        <h3>BRANCHES</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="cs-s1br1" data-k>
+            <span><b>They ask for support</b> — fuel and a berth at Kessen. Nothing else; she will not commit
+            Leandric hulls to a job she denies running.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-s1br2" data-k>
+            <span><b>They ask who else is interested</b> — she deflects. Strong roll: she names Union's salvage
+            registry, not the strippers. True, just incomplete.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-s1br3" data-k>
+            <span><b>They go hostile</b> — she is not a combatant. Two tier-1 <b>ASSAULT</b> mechs on the dock
+            (Comp/Con). This burns op <b>002</b>'s goodwill and closes Leandric supply for the arc.</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3>TABLE NOTES</h3>
+        <label class="note" for="cs-s1note">WHAT ACTUALLY HAPPENED</label>
+        <textarea id="cs-s1note" data-k rows="9" placeholder="Who spoke, what Vesh conceded, whether the favour discharged…"></textarea>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section-head" id="scene2"><h2>SCENE 2 · TARN APPROACH</h2><span>FIRST CONTACT · MECHS HOT</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>WHERE</th><td>Tarn orbit &rarr; the survey camp on the surface</td></tr>
+        <tr><th>WHEN</th><td>Same day; transit handled in a line or two</td></tr>
+        <tr><th>FRAMING</th><td>First contact. Mechs are hot but not committed</td></tr>
+        <tr><th>GOAL</th><td>Get the camp logs before the rival crew does</td></tr>
+        <tr><th>EXIT WHEN</th><td>The logs are recovered, destroyed, or traded away</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:20px">BEATS</h3>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="cs-s2b1" data-k>
+        <span><b>1 · Arrival.</b> Tarn is quiet and wrong-shaped: a survey camp with its lights on and its
+        beacon off. The Leandric beacon code is stale by eleven days.</span></label>
+        <div class="q"><b>GET A HOLD OF SOMETHING</b> / <b>HACK OR FIX</b>: the logs are half-wiped, but the
+        wipe is recent and interrupted — whoever did it was still here when it started.<br>
+        <b>ACT UNSEEN OR UNHEARD</b>: the rival crew's landing scars are on the wrong side of the ridge,
+        deliberately out of sight of the camp's approach.</div></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s2b2" data-k>
+        <span><b>2 · The other crew.</b> <b>ASHGRAVE RECOVERY</b>, out of Cairn Drift — the same hulls that were
+        stripping the wreck under Granite's guns in op <b>005</b>. Their foreman, <b>ORRIN BLUNT</b>, treats it
+        as a business dispute and opens with a split offer.</span></label>
+        <div class="q">"Half the camp each. You take the logs, we take the hulls. Nobody has to be stupid today."<br>
+        <b>CHARM</b> / <b>SPOT</b>: Blunt is honest about the offer and about holding a Union salvage claim.
+        He is lying about one thing — he was paid to get here <em>first</em>, not to get the logs.<br>
+        <b>LEAD OR INSPIRE</b>: he can be moved to a real split if Granite trades the claim rather than the
+        salvage. Closes op <b>006</b> without a shot and answers <b>t4</b>.<br>
+        <b>TAKE SOMEONE OUT</b> / <b>GET A HOLD OF SOMETHING</b>: the payment he is hiding is a Union
+        delegee's — the thread that pulls <b>t1</b> and <b>t2</b> together.</div></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s2b3" data-k>
+        <span><b>3 · The fight, if it comes.</b> Blunt's crew is a screening force, not a garrison. Sitrep below.</span></label></li>
+
+      <li><label class="tick"><input type="checkbox" id="cs-s2b4" data-k>
+        <span><b>4 · The logs.</b> Whatever the outcome, they hold the routing record from <b>t2</b>: Tarn relayed
+        the depot wafer's transfer. They also hold a partial roster of who requested it — one name is a Union
+        delegee, which is why Blunt was paid to beat Granite here.</span></label></li>
+    </ul>
+
+    <h3 style="margin-top:18px">SITREP · IF IT COMES TO GUNS</h3>
+    <table class="operation-table">
+      <tbody>
+        <tr><th>OBJECTIVE</th><td>Camp console (the logs). Both sides want it intact</td></tr>
+        <tr><th>TERRAIN</th><td>Ridge line between the approaches; wrecked survey hulls = hard cover, difficult terrain</td></tr>
+        <tr><th>OPFOR</th><td>3&times; tier-1 ASSAULT, 1&times; tier-1 SUPPORT on the ridge. Statblocks from Comp/Con</td></tr>
+        <tr><th>REINFORCEMENTS</th><td>1&times; tier-1 RONIN on round 3 if Ashgrave's console attempt fails</td></tr>
+        <tr><th>WHAT FLIPS IT</th><td>Killing the Support drops the ridge's accuracy edge. Blunt withdraws at 1 Structure</td></tr>
+        <tr><th>WRECKS</th><td>Difficult terrain and hard cover, do not block line of sight, and apply to pilots inside</td></tr>
+      </tbody>
+    </table>
+
+    <div class="two" style="margin-top:18px">
+      <div>
+        <h3>RUNNING IT</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="cs-s2r1" data-k>
+            <span>Decide before the session whether Blunt can be talked down — it changes whether scene 2 is a
+            parley or a firefight.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-s2r2" data-k>
+            <span>Keep the camp console reachable from both sides of the ridge; the objective is the tension, not
+            the shooting.</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3>TABLE NOTES</h3>
+        <label class="note" for="cs-s2note">WHAT ACTUALLY HAPPENED</label>
+        <textarea id="cs-s2note" data-k rows="9" placeholder="Who reached the console, Blunt's fate, what the logs said out loud…"></textarea>
+        <label class="note" style="margin-top:10px" for="cs-s2rounds">ROUNDS / STRUCTURE BURNED</label>
+        <textarea id="cs-s2rounds" data-k rows="2" placeholder="rounds: — mechs that took Structure: —"></textarea>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section-head" id="rules"><h2>RULES CALLS</h2><span>VERIFIED · NOT RECALLED</span></div>
+  <div class="card"><div class="card-pad">
+    <div class="tag">THE HACKING ONE, RESOLVED</div>
+    <p style="margin:10px 0 14px;font-size:14px">The table claim was that hacking something that is not an Elite
+    leaves it <b>EXPOSED</b>. That is a real interaction, not a house rule:</p>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="cs-r1" data-k>
+        <span><b>INVADE</b> is a Tech Attack against a target in Sensors + line of sight. On a success the target
+        takes <b>+2 Heat</b>, and you then pick an Invade option. <b>FRAGMENT SIGNAL</b> is always available:
+        Impaired + Slowed until the end of the target's next turn.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-r2" data-k>
+        <span><b>Standard NPCs have 1 Stress.</b> A frame with 1 Stress that exceeds its Heatcap does <em>not</em>
+        roll on the Stress table — <b>it just becomes EXPOSED</b> until it clears it with Stabilise.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-r3" data-k>
+        <span><b>Elites and Ultras have more Stress</b>, so they roll the table instead and can shrug it off.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-r4" data-k>
+        <span><b>EXPOSED (mechs only):</b> all non-Burn damage taken is <b>doubled before any reductions</b> —
+        which is why it applies before Armour. Cleared by Stabilise.</span></label></li>
+    </ul>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">The play: stack Invades on a standard frame until its
+    Heatcap trips, then shoot it while it is doubled.</p>
+
+    <div class="two" style="margin-top:18px">
+      <div>
+        <h3>SAY THESE OUT LOUD</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="cs-r5" data-k>
+            <span><b>NPC Invades are simplified:</b> Fragment Signal is <b>+2 Heat and Impaired only — no
+            Slowed</b>, and other Invade options do only what they say. NPCs use <b>Systems</b> as their tech
+            stat.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-r6" data-k>
+            <span><b>Grunts are destroyed by any Heat</b> that is not their own. Do not let Ashgrave's grunts eat
+            a hack and keep acting.</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3>STRUCTURE &amp; STRESS</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="cs-r7" data-k>
+            <span><b>STRUCTURE</b> — at 0 HP reset to full and roll 1d6 per Structure missing, take the lowest.
+            5–6 Glancing Blow (Impaired) · 2–4 System Trauma (lose a weapon or system) · 1 Direct Hit
+            (3+ Structure: Stunned · 2: HULL check or destroyed · 1: destroyed). 0 Structure = destroyed.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-r8" data-k>
+            <span><b>STRESS</b> — 5–6 Emergency Shunt (Impaired) · 2–4 Destabilised Power Plant (EXPOSED) ·
+            1 Meltdown.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="cs-r9" data-k>
+            <span><b>NPCs deal fixed damage and cannot normally crit</b>, and cannot Brace, Bolster, Overcharge
+            or Self-Destruct unless a template says so.</span></label></li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section-head" id="threads"><h2>THREAD LEDGER</h2><span>TICK WHEN MOVED</span></div>
+  <div class="card"><div class="card-pad">
+    <table class="threads-table">
+      <thead><tr><th>#</th><th>THREAD</th><th>BEFORE</th><th>AFTER SCENE 1</th><th>AFTER SCENE 2</th><th>DONE</th></tr></thead>
+      <tbody>
+        <tr><td>t7</td><td>Favour owed, terms unspecified</td><td>OPEN</td><td>discharged, or re-negotiated</td><td>—</td>
+          <td><input type="checkbox" id="cs-t7" data-k></td></tr>
+        <tr><td>t4</td><td>Who else was stripping the wreck</td><td>OPEN</td><td>—</td><td>answered: ASHGRAVE RECOVERY, paid by a Union delegee</td>
+          <td><input type="checkbox" id="cs-t4" data-k></td></tr>
+        <tr><td>t2</td><td>Transfer logs retained</td><td>OPEN</td><td>surfaced on Vesh's datapad</td><td>recovered — routing ran through Tarn</td>
+          <td><input type="checkbox" id="cs-t2" data-k></td></tr>
+        <tr><td>t1</td><td>Who wanted the data wafer</td><td>OPEN</td><td>—</td><td>partial: a Union delegee's name in the roster</td>
+          <td><input type="checkbox" id="cs-t1" data-k></td></tr>
+        <tr><td>t3</td><td>Depot security noticed Granite?</td><td>ESCALATING</td><td>—</td><td>escalate if the crew files with Union</td>
+          <td><input type="checkbox" id="cs-t3" data-k></td></tr>
+        <tr><td>t5</td><td>Informant's last message unread</td><td>OPEN</td><td>optional hook — the survey camp's origin</td><td>—</td>
+          <td><input type="checkbox" id="cs-t5" data-k></td></tr>
+        <tr><td>t6</td><td>Elite pilot KILNWARDEN escaped</td><td>OPEN</td><td>—</td><td>hold for later in the arc</td>
+          <td><input type="checkbox" id="cs-t6" data-k></td></tr>
+      </tbody>
+    </table>
+    <label class="note" style="margin-top:12px" for="cs-tnote">NEW THREADS SEEDED</label>
+    <textarea id="cs-tnote" data-k rows="3" placeholder="Anything the crew did that needs its own thread id…"></textarea>
+  </div></div>
+
+  <div class="section-head" id="filing"><h2>FILING IT AFTERWARD</h2><span>BEFORE YOU COMMIT</span></div>
+  <div class="card"><div class="card-pad">
+    <p class="muted" style="font-size:13px"><code>campaign.js</code> is the only file to edit, and
+    <code>node check-all.cjs</code> fails on any id that does not resolve — run it before committing.</p>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="cs-f1" data-k>
+        <span><b>op 006</b> — set <code>title</code>, <code>type</code> (NEGOTIATION for a parley, MECH BATTLE for
+        the fight), <code>status</code>, a real <code>date</code>, <code>crew</code> and <code>mechs</code> to the
+        pilot and frame ids who deployed, <code>rounds</code> if it was a fight, and a one-line
+        <code>outcome</code> in the same clipped register as the others.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-f2" data-k>
+        <span><b>threads</b> — change <code>status</code> on the ids above, and add a row for anything new,
+        linked <code>op: "006"</code>.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-f3" data-k>
+        <span><b>events</b> — add one row: <code>date</code>, <code>title</code>, <code>op: "006"</code>,
+        <code>note</code> with the consequence.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-f4" data-k>
+        <span>No scene-1 row unless something actually happened at Kessen — a brief that cost nothing is not a
+        deployment. Fold it into op 006's <code>outcome</code>.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="cs-f5" data-k>
+        <span><code>node check-all.cjs</code> passes, then commit.</span></label></li>
+    </ul>
+  </div></div>
+
+  <div class="card gap"><div class="card-pad">
+    <div class="tag">GAP TO FIX BEFORE SCENE 1</div>
+    <p style="margin:10px 0 0;font-size:13px">Triggers are filed for <b>frisky</b> and <b>dusty</b> only. patch,
+    latch, wren and bulwark have triggers printed in the archive's roster but not in the data, so any check you
+    call against them has no number attached. Fill those four in first — a data edit, not a code change.</p>
+  </div></div>
+
+  <div class="footer">
+    <span>GRANITE SECURITY SOLUTIONS / GM PREP COPY</span>
+    <span>TARN ARC · OP 006 · SAMPLE DATA</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='gss-quest-cheatsheet-v1';
+  var items=[].slice.call(document.querySelectorAll('[data-k]'));
+  var boxes=items.filter(function(el){return el.type==='checkbox';});
+  var ok=true;
+  try{ localStorage.setItem('__probe','1'); localStorage.removeItem('__probe'); }catch(e){ ok=false; }
+  function counts(){
+    var n=boxes.filter(function(el){return el.checked;}).length;
+    var s=('0'+n).slice(-2)+' / '+('0'+boxes.length).slice(-2);
+    var a=document.getElementById('tick-count'), b=document.getElementById('tick-count-2');
+    if(a) a.textContent=s; if(b) b.textContent=s;
+  }
+  function save(){
+    if(!ok) return;
+    var d={};
+    items.forEach(function(el){ d[el.id]= el.type==='checkbox' ? el.checked : el.value; });
+    try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){}
+  }
+  function load(){
+    if(!ok) return;
+    var d={};
+    try{ d=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ d={}; }
+    items.forEach(function(el){
+      var v=d[el.id]; if(v===undefined) return;
+      if(el.type==='checkbox') el.checked=!!v; else el.value=v;
+    });
+  }
+  items.forEach(function(el){
+    el.addEventListener('change',function(){ save(); counts(); });
+    el.addEventListener('input',save);
+  });
+  var r=document.getElementById('reset');
+  if(r) r.addEventListener('click',function(){
+    if(!confirm('Clear every tick and note on this sheet?')) return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    items.forEach(function(el){ if(el.type==='checkbox') el.checked=false; else el.value=''; });
+    counts();
+  });
+  if(!ok){
+    var st=document.getElementById('save-state');
+    if(st) st.textContent='TICKS WILL NOT PERSIST · LOCAL STORAGE UNAVAILABLE';
+  }
+  load(); counts();
+})();
+</script>
+</body>
+</html>
