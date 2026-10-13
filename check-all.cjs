@@ -28,8 +28,8 @@ const dupes = key => {
 const required = {
   locations: ["name", "kind", "x", "y"],
   factions: ["name", "standing"],
-  pilots: ["name", "role", "status"],
-  mechs: ["name", "frame", "state", "glyph"],
+  pilots: ["name", "background", "status"],
+  mechs: ["name", "frame", "role", "state", "glyph"],
   ops: ["title", "type", "status", "loc", "outcome", "date"],
   threads: ["op", "text", "status"],
   events: ["date", "title", "note"],

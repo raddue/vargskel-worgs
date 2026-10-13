@@ -30,34 +30,34 @@ window.CAMPAIGN = {
   ],
 
   pilots: [
-    { id: "frisky", name: "HUGH “FRISKY” JANUS", role: "PILOT · LL0 · HACKER", status: "ACTIVE", mech: "sweet-cheeks",
+    { id: "frisky", name: "HUGH “FRISKY” JANUS", background: "PILOT · LL0 · HACKER", status: "ACTIVE", mech: "sweet-cheeks",
       triggers: "Act Unseen or Unheard, Get a Hold of Something, Hack or Fix, Lead or Inspire",
       talents: "Hacker 1, Leader 1, Spotter 1",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, Omnihook, Personal Drone" },
-    { id: "patch",  name: "MARA “PATCH” VENN",   role: "PILOT · LL0 · FIELD MECHANIC", status: "ACTIVE", mech: "patch-kit" },
-    { id: "dusty",  name: "HANSEN “DUSTY” MCGRAW", role: "PILOT · LL0 · OUTLAW", status: "ACTIVE", mech: "tombstone",
+    { id: "patch",  name: "MARA “PATCH” VENN",   background: "PILOT · LL0 · FIELD MECHANIC", status: "ACTIVE", mech: "patch-kit" },
+    { id: "dusty",  name: "HANSEN “DUSTY” MCGRAW", background: "PILOT · LL0 · OUTLAW", status: "ACTIVE", mech: "tombstone",
       triggers: "Charm, Spot, Survive, Take Someone Out",
       talents: "Bonded I, Gunslinger I, Vanguard I",
       gear: "Mobility Hardsuit, heavy and medium signature weapons, Wilderness Survival Kit, Antiphoton Visor, Smart Scope" },
-    { id: "latch",  name: "IDO “LATCH” KESTREL", role: "PILOT · LL0 · RECON / SCOUT", status: "ACTIVE", mech: "latchkey" },
-    { id: "wren",   name: "SERA “WREN” QUILL",   role: "PILOT · LL0 · SIGNALS / COMMS", status: "ACTIVE" },
-    { id: "bulwark", name: "DEV “BULWARK” ARROYO", role: "PILOT · LL0 · SECURITY / HEAVY SUPPORT", status: "ACTIVE", mech: "doorstop" }
+    { id: "latch",  name: "IDO “LATCH” KESTREL", background: "PILOT · LL0 · RECON / SCOUT", status: "ACTIVE", mech: "latchkey" },
+    { id: "wren",   name: "SERA “WREN” QUILL",   background: "PILOT · LL0 · SIGNALS / COMMS", status: "ACTIVE" },
+    { id: "bulwark", name: "DEV “BULWARK” ARROYO", background: "PILOT · LL0 · SECURITY / HEAVY SUPPORT", status: "ACTIVE", mech: "doorstop" }
   ],
 
   mechs: [
-    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "frisky", glyph: "◢▰◣",
+    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "frisky", role: "ECM & C3", glyph: "◢▰◣",
       state: "OPERATIONAL", hp: 12, eva: 8, spd: 4, tech: "+3", edef: 12,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
-    { id: "patch-kit", name: "PATCH KIT", frame: "GMS EVEREST", pilot: "patch", glyph: "▰◢",
+    { id: "patch-kit", name: "PATCH KIT", frame: "GMS EVEREST", pilot: "patch", role: "REPAIR & RECOVERY", glyph: "▰◢",
       state: "STRUCTURE 1 · REPAIR PENDING", hp: 6, hpNow: 4, eva: 8, spd: 5, tech: "+1", edef: 9 },
-    { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", glyph: "▰▱",
+    { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "FIRE SUPPORT & BOARDING", glyph: "▰▱",
       state: "OPERATIONAL", hp: 6, eva: 10, spd: 5, tech: "+0", edef: 8,
       loadout: "Main: Pistol · Flex: Shotgun · Heavy: Thermal Lance",
       systems: "Jericho Deployable Cover, Comp/Con-Class Assistant Unit, EVA Module, Expanded Compartment" },
-    { id: "latchkey", name: "LATCHKEY", frame: "SSC BLACK WITCH", pilot: "latch", glyph: "◈▰",
+    { id: "latchkey", name: "LATCHKEY", frame: "SSC BLACK WITCH", pilot: "latch", role: "EW & AREA DENIAL", glyph: "◈▰",
       state: "OPERATIONAL", hp: 10, eva: 9, spd: 5, tech: "+2", edef: 10 },
-    { id: "doorstop", name: "DOORSTOP", frame: "GMS DRAKE", pilot: "bulwark", size: 2, glyph: "▰▱",
+    { id: "doorstop", name: "DOORSTOP", frame: "GMS DRAKE", pilot: "bulwark", role: "BREACH & HOLD", size: 2, glyph: "▰▱",
       state: "OPERATIONAL", hp: 14, eva: 6, spd: 4, tech: "+0", edef: 12 }
   ],
 
