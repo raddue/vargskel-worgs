@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Granite Security Solutions | GM Prep — Solstice Rain · M1 The Drop</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* Page-local: controls only. Everything else comes from style.css. */
+.nav a:hover,.nav a:focus-visible{color:var(--cyan)}
+.wrap{padding:0 28px;max-width:1440px;margin:auto}
+h3{font:12px var(--mono);letter-spacing:.1em;margin:0 0 10px;color:var(--cyan)}
+.note{display:block;font:10px var(--mono);color:var(--muted);letter-spacing:.1em;margin:0 0 6px}
+textarea{width:100%;min-height:64px;box-sizing:border-box;background:var(--panel2);color:var(--text);
+  border:1px solid var(--line);font:12px/1.5 var(--mono);padding:9px 10px;resize:vertical}
+textarea:focus{outline:1px solid var(--cyan)}
+.checklist{list-style:none;margin:0;padding:0}
+.checklist li{margin:0 0 14px}
+.tick{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.tick input{appearance:none;width:15px;height:15px;flex:0 0 15px;margin:3px 0 0;border:1px solid var(--line);
+  background:var(--panel2);cursor:pointer;position:relative}
+.tick input:checked{background:var(--cyan);border-color:var(--cyan)}
+.tick input:checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;
+  border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.tick input:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
+.tick span{font-size:14px}
+.tick input:checked+span{color:var(--muted);text-decoration:line-through}
+.q{border-left:2px solid var(--line);padding-left:11px;color:#e7b49d;font-size:14px;margin:8px 0 0}
+.btn{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font:10px var(--mono);
+  letter-spacing:.1em;padding:6px 9px;cursor:pointer}
+.btn:hover{color:var(--text);border-color:var(--cyan)}
+.two{display:flex;gap:18px;align-items:flex-start}
+.two>*{flex:1;min-width:0}
+@media(max-width:900px){.two{flex-direction:column}}
+.forces th{text-align:left;color:var(--muted);font:10px var(--mono);letter-spacing:.08em;padding:0 8px 6px 0;border-bottom:1px solid var(--line)}
+.forces td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top;font:13px/1.55 var(--sans)}
+.opfor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.opfor-grid article{background:var(--panel2);border:1px solid var(--line);padding:14px;min-width:0}
+.opfor-grid h3{margin-bottom:5px}
+.opfor-grid p{font:12px/1.5 var(--sans);margin:7px 0 0}
+.opfor-grid .stats{font:11px/1.6 var(--mono);color:var(--lime)}
+.opfor-grid .skills{font:11px/1.6 var(--mono);color:var(--muted)}
+</style>
+</head>
+<body>
+<noscript><p class="wrap" style="color:#d17b59;font:13px/1.5 ui-monospace,monospace">This sheet renders from plain HTML; the tick marks and note fields need JavaScript. The mission text itself reads fine without it.</p></noscript>
+
+<div class="topline wrap">
+  <span>GSS // GM PREP COPY</span>
+  <span id="save-state">NOT CREW-FACING · KEEP OUT OF THE ARCHIVE</span>
+</div>
+
+<div class="wrap brandrow">
+  <div class="brand">
+    <div class="mark"><span>G</span></div>
+    <div>
+      <div class="brand-name">SOLSTICE RAIN</div>
+      <div class="brand-sub">GM CHEAT SHEET · MISSION 1 · THE DROP</div>
+    </div>
+  </div>
+  <div class="nav">
+    <a href="#brief">BRIEF</a>
+    <a href="solstice-rain-c1.html">COMBAT 1</a>
+    <a href="#beat1">BEAT 1</a>
+    <a href="solstice-rain-c2.html">COMBAT 2</a>
+    <a href="#beat2">BEAT 2</a>
+    <a href="solstice-rain-c3.html">COMBAT 3</a>
+    <a href="#downtime">DOWNTIME</a>
+    <a href="#opfor">OPFOR</a>
+    <a href="#rules">RULES</a>
+  </div>
+  <div class="status"><span class="pill">TICKS <b id="tick-count">00 / 00</b></span></div>
+</div>
+
+<div class="wrap"><section class="hero" id="top">
+  <div class="hero-copy">
+    <div class="eyebrow">GM PREP / OPERATION: SOLSTICE RAIN / MISSION 1</div>
+    <h1>THE<br>DROP</h1>
+    <p>Dropship shot down over Nov Elysia. Cut off, comms jammed, and a city under siege —
+       get to FOB Saber, or the whole timetable slips. Three combats, two beats, one downtime.</p>
+    <div class="hero-meta">
+      <div>SOURCE <strong>Operation: Solstice Rain</strong></div>
+      <div>COMBATS <strong>03</strong></div>
+      <div>SETTING <strong>Nov Elysia · Cressidium</strong></div>
+      <div>CHECKLIST <strong id="tick-count-2">00 / 00</strong></div>
+    </div>
+  </div>
+  <div class="hero-art">
+    <div class="mech-silhouette" aria-hidden="true"><span>◢</span></div>
+    <div class="art-caption">NOV ELYSIA // CRESSIDIUM</div>
+  </div>
+</section></div>
+
+<div class="wrap">
+  <div class="section-head">
+    <h2>SESSION CONTROLS</h2>
+    <span><button class="btn" id="reset" type="button">CLEAR ALL TICKS &amp; NOTES</button></span>
+  </div>
+  <!-- GM note: ticks/notes save per-browser in localStorage, never back into campaign.js. -->
+
+  <div class="section-head" id="brief"><h2>THE BRIEF</h2><span>READ IT, THEN DROP THEM</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <div class="tag">TUNED FOR 5 PCS · SOFTENED</div>
+    <table class="operation-table">
+      <tbody>
+        <tr><th>SHIP</th><td>UNS <b>Rio Grande</b>, in orbit. Strike wings are exoatmospheric only; the ship itself
+          is lightly armed. There is <b>no orbital or air support</b> once the PCs touch down.</td></tr>
+        <tr><th>VIPS</th><td><b>Captain Farris</b> and Ambassador <b>Bannerjee</b>, both missing in the central
+          district after the talks were hit. Secure then extract them.</td></tr>
+        <tr><th>FOB</th><td><b>Forward Operating Base Saber</b> — the Amanta Motors factory pressed into service
+          in Nov Elysia's industrial district. Rendezvous there.</td></tr>
+        <tr><th>ENEMY</th><td><b>Vestan Sovereignty</b> (VSAF) — "roundheads", the aggressors. The <b>LSA</b>
+          (Leandric States Alliance) soldiers are friendlies, not hostiles.</td></tr>
+        <tr><th>COMMS</th><td>City-wide jamming blanks all local comms and patches sensors. The assigned
+          <b>omnihook</b> still reaches the Rio Grande over omninet, if someone tunes it.</td></tr>
+        <tr><th>ROE</th><td>Do not engage unless fired upon. Priority is getting people home.</td></tr>
+      </tbody>
+    </table>
+    <ul class="checklist" style="margin-top:18px">
+      <li><label class="tick"><input type="checkbox" id="sr-b1" data-k>
+        <span><b>The drop.</b> Dropship <b>Kingfisher 2-2</b> is hit by a beam weapon, engines out, crashes into
+        <b>Kirmani Plaza</b> — far off the intended zone. <i>Pilots dead; PCs survive, mechs intact.</i></span></label>
+        <div class="q">"Shit! Starboard engine's blown, stabilizers aren't responding! Mayday, mayday, this is
+        Kingfisher 2-2!"</div></li>
+      <li><label class="tick"><input type="checkbox" id="sr-b2" data-k>
+        <span><b>First objective: survive.</b> Barely oriented, gunfire cracks overhead — enemy squads are closing
+        on the crash site from all sides.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-b3" data-k>
+        <span><b>Pre-combat prep:</b> systems can't be pre-deployed (mines, turrets) before combat — that's part of
+        their cost. If a player wants to, offer it as a Reserve or a narrative-challenge reward instead.</span></label></li>
+    </ul>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">Give them a beat to get their bearings, take the dead
+    pilots' dog tags, and form a plan. Then drop the first fight on them.</p>
+  </div></div>
+
+  <div class="section-head" id="c1"><h2>COMBAT 1 · IT'S NOT THE FALL THAT KILLS YOU…</h2><span>HOLDOUT · p.272 · SEPARATE SHEET</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>OBJECTIVE</th><td>Hold the crash site for <b>four rounds</b> <span style="color:var(--rust);font:10px var(--mono)">TUNED · book 6</span>, or destroy all enemies.</td></tr>
+        <tr><th>ENEMIES</th><td>2× Assault, 1× Bastion, 1× Hive + reinforcements (Bombard / Priest only).</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><a class="btn" href="solstice-rain-c1.html">OPEN COMBAT 1 SHEET →</a></p>
+  </div></div>
+
+  <div class="section-head" id="beat1"><h2>BEAT 1 · ON THE MOVE IN A MILITARY MANNER</h2><span>THE BUS · NARRATIVE</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>FRAMING</th><td>Between combats = a rest (Lancer p. 82) plus a narrative challenge. Nov Elysia: ash
+          haze, abandoned cars, looping civil-defense loops, glass crunching under the mechs.</td></tr>
+        <tr><th>HOOK</th><td>A stalled bus full of civilians, ringed by <b>LSA</b> soldiers trying to patch the engine.
+          They throw hands up fast — "Don't shoot! There are civilians on board!"</td></tr>
+        <tr><th>ASK</th><td>Escort them to a nearby shelter. Run it as an <b>extended skill challenge</b> (three
+          stages) or as <b>COMBAT 2</b> below — the skill route is for groups low on time or beat up.</td></tr>
+      </tbody>
+    </table>
+    <h3 style="margin-top:18px">SKILL CHALLENGE · NEED 2 OF 3 STAGES</h3>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="sr-b1-1" data-k>
+        <span><b>1 · Repair the bus.</b> Bring pilot triggers and mech skills into play.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-b1-2" data-k>
+        <span><b>2 · Scout a safe route ahead.</b></span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-b1-3" data-k>
+        <span><b>3 · Provide an escort.</b></span></label></li>
+    </ul>
+  </div></div>
+
+  <div class="section-head" id="c2"><h2>COMBAT 2 · LOOK BOTH WAYS</h2><span>ESCORT · p.269 · SEPARATE SHEET</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>OBJECTIVE</th><td>Escort the <b>bus</b> (SIZE 2, HP 20) to the Extraction Zone by <b>round 8</b>.</td></tr>
+        <tr><th>ENEMIES</th><td>Archer, Barricade, Engineer, Seeder + reinforcements (Sentinels, Cataphracts).</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><a class="btn" href="solstice-rain-c2.html">OPEN COMBAT 2 SHEET →</a></p>
+  </div></div>
+
+  <div class="section-head" id="beat2"><h2>BEAT 2 · BROKEN SKY</h2><span>THE MISSILE BATTERY</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>FRAMING</th><td>Another rest, then out into the rain. They're now within reach of the original drop
+          point — and they see <i>why</i> this mission has been so hard.</td></tr>
+        <tr><th>SCENE</th><td>A train depot on the most direct route to FOB Saber. A missile-launcher mech perched on a
+          train car tracks an inbound Union dropship, fires, and downs it. Smoke rises in the distance.</td></tr>
+        <tr><th>STAKES</th><td>Sovereignty mobile missile batteries lock down the FOB Saber approach. Until this one is
+          dead, no reinforcement can touch down near the base without being shot down.</td></tr>
+      </tbody>
+    </table>
+    <ul class="checklist" style="margin-top:18px">
+      <li><label class="tick"><input type="checkbox" id="sr-b2-1" data-k>
+        <span>There are other mechs at the depot, arrayed defensively. Clearing the battery is the point of the next
+        combat — <b>COMBAT 3: DOWNPOUR</b>.</span></label></li>
+    </ul>
+  </div></div>
+
+  <div class="section-head" id="c3"><h2>COMBAT 3 · DOWNPOUR</h2><span>KILL THE RAINMAKER · SEPARATE SHEET</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <table class="operation-table">
+      <tbody>
+        <tr><th>OBJECTIVE</th><td>Eliminate the <b>Rainmaker</b> (and the rest of the quarter) to clear the FOB Saber approach.</td></tr>
+        <tr><th>ENEMIES</th><td>Hive, Rainmaker, Sentinel (+Archer at 4 PCs, +Ronin at 5). Templates stripped.</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><a class="btn" href="solstice-rain-c3.html">OPEN COMBAT 3 SHEET →</a></p>
+  </div></div>
+
+  <div class="section-head" id="downtime"><h2>DOWNTIME · FOB SABER</h2><span>FULL REPAIR · LL1</span></div>
+  <div class="card patrol"><div class="card-pad">
+    <p style="font-size:14px">Sunset, factory gates. IFF handshakes, targeting warnings clear. Sergeant
+    <b>Garcia</b> waves them over; <b>Vonna Mayhew</b> (chief engineer) runs the repair bay. The Amanta Motors
+    factory is the only <b>schedule-1 printer</b> on-planet — and it's running hot.</p>
+    <ul class="checklist" style="margin-top:14px">
+      <li><label class="tick"><input type="checkbox" id="sr-d-1" data-k>
+        <span><b>FULL REPAIR</b> + level up to <b>LL1</b>: a license rank of choice, +1 mech skill, a talent rank, and
+        first point of <b>GRIT</b> (+1). They can overhaul mechs entirely here (any GMS gear — other frames still need
+        license rank 2).</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-d-2" data-k>
+        <span><b>EXOTIC GEAR</b>: 1st Lt. Kim authorizes advanced gear printed for the team. Each PC may install up to
+        <b>two</b> Exotic Gear pieces at a time (see below).</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-d-3" data-k>
+        <span><b>Downtime action each</b> (Lancer p. 53–55) + roll or choose from the FOB Saber encounter table.</span></label></li>
+    </ul>
+
+    <h3 style="margin-top:20px">EXOTIC GEAR ON OFFER <span style="color:var(--muted);font:10px var(--mono)"> · install/remove only at FULL REPAIR · own any number, mount max 2</span></h3>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="sr-e-1" data-k>
+        <span><b>XC-BR Battle Rifle</b> — Main Rifle, AP, Overkill, [R10][1d6 kinetic]. Crit: target gains LOCK ON; also
+        attack LOCK ON targets at RANGE 15.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-e-2" data-k>
+        <span><b>ADJUTANT-Class Comp/Con</b> — 3 SP, AI, Unique. Gain AI tag + ACTIVE ASSIST (1/scene free quick action,
+        not an attack, no saves). Load one talent rank you qualify for but don't have.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-e-3" data-k>
+        <span><b>Pattern-C Advanced Charges</b> — 3 SP, Limited 3, Unique. Smart Grenade (Grenade R5 Blast1) or Lurker
+        Mine (selective detonation).</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-e-4" data-k>
+        <span><b>XC-DPM Predator Nexus</b> — Main Nexus, Accurate, Smart, [R10][1d6 kinetic]. Ignores INVISIBLE.</span></label></li>
+    </ul>
+
+    <h3 style="margin-top:20px">RESERVES (D20) <span style="color:var(--muted);font:10px var(--mono)"> · or use core reserves p.50–52</span></h3>
+    <div class="two">
+      <ul class="checklist">
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-1" data-k><span><b>1–2 Up-Armoring</b> — +1 ARMOR next mission (max 4); start next combat with +5 OVERSHIELD.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-2" data-k><span><b>3–4 Hot-Load Ammunition</b> — next hit can't be reduced; target HULL save or PRONE.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-3" data-k><span><b>5–6 Recon Drone</b> — start of each combat, SCAN one hostile in Range 50 (no LOS).</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-4" data-k><span><b>7–8 Sniper Team</b> — each LOCK ON you take also deals 2 AP kinetic, rest of scene.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-5" data-k><span><b>9–10 Looking-Glass Overlay</b> — 1/scene: ignore soft cover, ignore INVISIBLE within R3.</span></label></li>
+      </ul>
+      <ul class="checklist">
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-6" data-k><span><b>11–12 Leg Enhancements</b> — ignore difficult terrain this mission; once, shrug a hostile SLOW/IMMOBILIZE.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-7" data-k><span><b>13–14 High-Mobility Pack</b> — 1 combat: movement counts as flying; deploy last, anywhere.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-8" data-k><span><b>15–16 Golden Ticket</b> — one more EXOTIC GEAR from the list above.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-9" data-k><span><b>17–18 Personal Touch</b> — free CUSTOM PAINT JOB this mission; +1 ACC to mech skill checks/saves for one combat.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-r-10" data-k><span><b>19–20 Return to Sender</b> — 1/mission BLAST 2 (3d6 explosive, AGI half) as quick action; terrain takes 30 AP. One PC only.</span></label></li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top:20px">FOB SABER ENCOUNTERS (D20) <span style="color:var(--muted);font:10px var(--mono)"> · one per PC, or pick</span></h3>
+    <div class="two">
+      <ul class="checklist">
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-1" data-k><span><b>1–2</b> Triage into the mix — draft them as extra hands on a bleeding soldier.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-2" data-k><span><b>3–4</b> Roof lookout — "got a light?" The city in light-amplified green.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-3" data-k><span><b>5–6</b> Makeshift cafeteria — frozen food, local stew, <i>plenty of coffee</i>.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-4" data-k><span><b>7–8</b> <b>Vonna Mayhew</b> in the bay — lets them pitch in on their own repair.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-5" data-k><span><b>9–10</b> <b>Private Regas</b>, wired on stims, starstruck — "you're really Union, huh?"</span></label></li>
+      </ul>
+      <ul class="checklist">
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-6" data-k><span><b>11–12</b> Explosion rolls the base — scramble, then an all-clear. No sign of the enemy.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-7" data-k><span><b>13–14</b> <b>Naia Reynaud</b>, one arm down — spec ops with a beam weapon, "one just vanished."</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-8" data-k><span><b>15–16</b> Civilian shelter, <b>Zoe</b> — blankets, painkillers, bottled water.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-9" data-k><span><b>17–18</b> LSA soldiers need an "impartial third party" on whose partner is cutest.</span></label></li>
+        <li style="margin:0 0 10px"><label class="tick"><input type="checkbox" id="sr-f-10" data-k><span><b>19–20</b> A cat. It has taken a liking to you.</span></label></li>
+      </ul>
+    </div>
+  </div></div>
+
+  <div class="section-head" id="opfor"><h2>OPFOR · TIER 1</h2><span>CORE BOOK p.288–319 · GM REFERENCE</span></div>
+  <div class="card"><div class="card-pad">
+    <p class="muted" style="font-size:13px;margin:0 0 16px">All cards are Tier 1: default 1 Structure / 1 Stress. Stats: HP, armor, evasion, E-defense, speed, size, heat cap, save target, sensors. Skills: Hull, Agility, Systems, Engineering. Damage types and effects are summarized for table use; consult the core book for full system wording. Optional systems listed only when this mission names them; the tuned run skips several of those enemies and all templates.</p>
+    <div class="opfor-grid">
+      <article><h3>ASSAULT</h3><div class="stats">HP 15 · ARM 1 · EVA 8 · E-DEF 8 · SPD 4 · SIZE 1 · HEAT 8 · SAVE 10 · SENS 8</div><div class="skills">HULL +1 · AGI +1 · SYS +1 · ENG +1</div>
+        <p><b>Heavy Assault Rifle</b> +1, R10, 6 kinetic, Reliable 2; <b>Combat Knife</b> +1, Threat 1, 4 kinetic. <b>Hunker Down</b> 1/round: on being hit, resist that attack's damage.</p><p><b>Rank Discipline</b> (optional): +1 accuracy on attacks, checks, saves while adjacent to allied mech.</p></article>
+      <article><h3>BASTION</h3><div class="stats">HP 10 · ARM 3 · EVA 8 · E-DEF 8 · SPD 4 · SIZE 2 · HEAT 8 · SAVE 8 · SENS 5</div><div class="skills">HULL +2 · AGI -3 · SYS +0 · ENG +2</div>
+        <p><b>Rotary Grenade Launcher</b> +1, R8 Blast 1, 4 explosive, Arcing/Loading; <b>Heavy Assault Shield</b> +1, Threat 1, 3 kinetic, Knockback 1. <b>Friendly Interdiction</b> protocol: self and adjacent ally resist one visible character's damage. <b>Guardian:</b> adjacent allies use Bastion as hard cover.</p><p><b>Deathcounter</b> (optional): first ranged/melee hit each round deals 0 damage.</p></article>
+      <article><h3>HIVE</h3><div class="stats">HP 20 · ARM 0 · EVA 8 · E-DEF 10 · SPD 5 · SIZE 1 · HEAT 8 · SAVE 12 · SENS 10</div><div class="skills">HULL -1 · AGI +0 · SYS +2 · ENG +1</div>
+        <p><b>Hunter-Killer Nexus</b> +2, R8, 3 energy, Smart/Seeking. <b>Drone Barrage</b> quick tech +2: target chooses Immobilized + Impaired until next turn ends, or moves 5 spaces as Hive chooses. <b>Razor Swarms</b> quick, Recharge 4+: Blast 1 within Sensors; allies get soft cover, hostiles entering or starting there take 2 burn.</p><p><b>Electro-Nanite Cloud</b> (C1 optional): hostile within R3 takes 2 burn at turn start; +1 difficulty to Systems checks/saves and tech attacks until outside. <b>Driving Swarm</b> (C3 optional): swarm burn forces Systems save or Hive moves target 4. <b>Seeker Cloud</b> (C3 optional): +1, R5, 3 kinetic, Smart, +1 accuracy; damaged target gets Lock On.</p></article>
+      <article><h3>SUPPORT</h3><div class="stats">HP 15 · ARM 1 · EVA 8 · E-DEF 8 · SPD 4 · SIZE 2 · HEAT 8 · SAVE 10 · SENS 10</div><div class="skills">HULL +1 · AGI -2 · SYS +0 · ENG +2</div>
+        <p><b>Sealant Gun</b> quick, R5/LOS: ally clears all Burn but Slowed until next turn ends; hostile Agility save or Slowed, and Blast 1 around it becomes difficult terrain. <b>Restock Drone</b> quick, Recharge 5+: Size ½, HP 5, EVA/E-DEF 10; ally moving through/adjacent heals 5. <b>Nano-Repair Cloud:</b> adjacent allies roll saves/checks twice, keep higher.</p><p><b>Latch Drone</b> (optional): full, Recharge 6+, R3; Size ½, HP 5, EVA/E-DEF 10; attached target heals 5 each turn and gets +1 accuracy to attacks/checks/saves. Targetable.</p></article>
+      <article><h3>BOMBARD</h3><div class="stats">HP 10 · ARM 0 · EVA 7 · E-DEF 12 · SPD 2 · SIZE 1 · HEAT 8 · SAVE 11 · SENS 15</div><div class="skills">HULL +0 · AGI -1 · SYS +1 · ENG +2</div>
+        <p><b>Bombard Cannon</b> superheavy +2, +1 accuracy, R25 Blast 2, 5 explosive, Arcing/Ordnance. <b>Cluster Munitions:</b> +2 damage per target beyond first. <b>Earthshaker Shells</b> free on cannon shot, Recharge 6+: Hull save or Prone within Burst 3 of impact; creates two Size 1 hard-cover segments. <b>Siege Armor:</b> resist attacks from beyond R3.</p><p><b>High-Impact Shells</b> (optional): cannon hit knocks target 3 spaces away.</p></article>
+      <article><h3>PRIEST</h3><div class="stats">HP 10 · ARM 0 · EVA 10 · E-DEF 12 · SPD 5 · SIZE ½ · HEAT 10 · SAVE 11 · SENS 10</div><div class="skills">HULL -1 · AGI -1 · SYS +2 · ENG +2</div>
+        <p><b>Abjure</b> quick tech +2, Sensors: target takes 2 heat each time it attacks until next turn ends. <b>Hardened Target:</b> +1 accuracy on Systems saves; tech attacks against Priest get +1 difficulty. <b>Investiture</b> quick, R5: ally mech/vehicle gets +1 accuracy on attacks and may use Priest's Systems while linked; shared Jammed/Impaired/Stunned. <b>Dispersal Shield</b> quick, Recharge 5+: ally within Sensors resists damage and heat from next 1d3 hits.</p><p><b>Empowered Shield</b> (optional): Dispersal Shield also grants 5 Overshield.</p></article>
+      <article><h3>PYRO</h3><div class="stats">HP 10 · ARM 3 · EVA 8 · E-DEF 8 · SPD 2 · SIZE 1 · HEAT 12 · SAVE 10 · SENS 8</div><div class="skills">HULL +1 · AGI -1 · SYS -1 · ENG +3</div>
+        <p><b>Flamethrower</b> +1, Cone 5, 3 burn (self takes 4 heat); doubles burn to targets already burning. <b>Explosive Vent</b> full: clear own heat; adjacent targets Agility save or take heat equal to half cleared and fall Prone. <b>Insulated:</b> immune to burn. <b>Firebreak Shield:</b> creates 4-high wall within LOS, soft cover and 4+ on d6 miss chance while in effect.</p><p><b>Explosive Jet</b> (optional): quick, Recharge 5+; Burst 2 enemies Hull save or pushed out and Prone, then Pyro flies 5 and lands.</p></article>
+      <article><h3>RONIN</h3><div class="stats">HP 18 · ARM 0 · EVA 10 · E-DEF 7 · SPD 5 · SIZE 1 · HEAT 7 · SAVE 10 · SENS 10</div><div class="skills">HULL +1 · AGI +2 · SYS -1 · ENG -1</div>
+        <p><b>Carbon Fiber Sword</b> +2, +1 accuracy, Threat 2, 6; critical +1d6. <b>Rebound</b> 1/round: on ranged damage, roll d6; 4+ resist and attacker repeats attack against self.</p><p><b>Chaff Launchers</b> (optional): Boost grants soft cover until next turn starts.</p></article>
+      <article><h3>ARCHER</h3><div class="stats">HP 16 · ARM 0 · EVA 8 · E-DEF 8 · SPD 5 · SIZE 1 · HEAT 8 · SAVE 11 · SENS 15</div><div class="skills">HULL -1 · AGI +2 · SYS +2 · ENG -1</div>
+        <p><b>Light Machine Gun</b> +2, R10, 5, Reliable 3. <b>Suppress</b> quick, R10/LOS: target Impaired; moving triggers Archer's single-weapon reaction attack. <b>Superior Sentinel:</b> +1 accuracy on reaction attacks.</p><p><b>Hail of Fire</b> (C2 optional): quick, Recharge 4+, R10; target Immobilized + Impaired until next turn ends (or Archer is Stunned/Jammed), unless it accepts a reaction shot. <b>Impending Threat</b> (C3 optional): 1/round, visible R10 enemy moves/acts; cancel it or allow Archer immediate weapon attack.</p></article>
+      <article><h3>BARRICADE</h3><div class="stats">HP 12 · ARM 1 · EVA 6 · E-DEF 9 · SPD 3 · SIZE 2 · HEAT 10 · SAVE 12 · SENS 15</div><div class="skills">HULL +0 · AGI -2 · SYS +1 · ENG +3</div>
+        <p><b>Graviton Lance</b> +1, +1 accuracy, R10, 2; hit Slows until next turn ends. <b>Mobile Printer</b> protocol, Recharge 5+: adjacent Size 2 cube, HP 20/EVA 5, hard cover. <b>Shock Plating:</b> resists kinetic damage. <b>Bulwark Mods:</b> ignores difficult and dangerous terrain.</p><p><b>Drag Down</b> (optional): quick tech +1, +1 accuracy, Sensors; on hit target takes 2 AP per space voluntarily moved until next turn ends.</p></article>
+      <article><h3>ENGINEER</h3><div class="stats">HP 20 · ARM 0 · EVA 7 · E-DEF 10 · SPD 3 · SIZE 1 · HEAT 10 · SAVE 10 · SENS 15</div><div class="skills">HULL -1 · AGI -1 · SYS +1 · ENG +3</div>
+        <p><b>Flak Cannon</b> +1, R15, 3 kinetic, Smart; +2 accuracy vs flying. <b>Deployable Turret</b> quick: adjacent Size ½ drone, HP 5/EVA 10/E-DEF 10; on Engineer's turn attacks nearest hostile within R10 at +1 for 4 kinetic; up to six, disabled on Engineer's destruction. <b>Engineer's Mark</b> quick, Recharge 6+: direct turrets at chosen target until next turn ends.</p><p><b>Mobile Turrets</b> (optional): move all turrets up to 3 at start of turn.</p></article>
+      <article><h3>SEEDER</h3><div class="stats">HP 12 · ARM 2 · EVA 7 · E-DEF 10 · SPD 4 · SIZE 1 · HEAT 10 · SAVE 12 · SENS 15</div><div class="skills">HULL +0 · AGI +0 · SYS +2 · ENG +0</div>
+        <p><b>Lay Mines</b> quick 1/turn, R3: invisible mines trigger on hostile crossing, Blast 1 affects all. Stun (Engineering save or Stunned), Explosive (8 explosive, Agility half), Sealant (Hull save or Immobilized then Slowed), Shock (Systems save or Jammed then Impaired). <b>Grav-Grenade Launcher</b> +2, R8 Blast 1, 2 explosive, Arcing/Knockback 1.</p><p><b>Grav Spike</b> (optional): quick, R5/LOS, Systems save or attached; detonate as protocol for 4 explosive AP and pull 3.</p></article>
+      <article><h3>SENTINEL</h3><div class="stats">HP 16 · ARM 1 · EVA 8 · E-DEF 8 · SPD 5 · SIZE 1 · HEAT 8 · SAVE 10 · SENS 10</div><div class="skills">HULL +2 · AGI +1 · SYS +1 · ENG +1</div>
+        <p><b>Combat Shotgun</b> +1, R5/Threat 3, 6 kinetic; <b>Retractable Sword</b> +2, Threat 1, 4 kinetic. <b>Eye of Midnight</b> quick: Slowed, but Overwatch 1/turn rather than 1/round until deactivated. <b>Guardian:</b> adjacent allies use Sentinel as hard cover.</p><p><b>Impaler</b> (C2 optional): Overwatch hit forces Hull save or Immobilized + Jammed until next turn ends. <b>Punisher Ammunition</b> (C3 optional): Overwatch damage Slows until next turn ends.</p></article>
+      <article><h3>CATAPHRACT</h3><div class="stats">HP 15 · ARM 0 · EVA 10 · E-DEF 8 · SPD 8 · SIZE 1 · HEAT 6 · SAVE 12 · SENS 5</div><div class="skills">HULL +1 · AGI +1 · SYS +0 · ENG +0</div>
+        <p><b>Ram Cannon</b> +0, +1 accuracy, R5/Threat 2, 5 kinetic. <b>Trample:</b> pass through occupied spaces, 1/turn deal 2 kinetic. <b>Impale</b> full, Recharge 6+: move 8 straight; passed/adjacent target Hull save (+1 accuracy) or grapple and drag to end. <b>Point-Defense Shield:</b> resist nearest hostile's damage unless tied.</p><p><b>Electrified Lasso</b> (optional): quick 1/round, R5/LOS; Hull save or pulled toward Cataphract, grappled if adjacent.</p></article>
+      <article><h3>SPECTER</h3><div class="stats">HP 10 · ARM 0 · EVA 10 · E-DEF 8 · SPD 4 · SIZE 1 · HEAT 7 · SAVE 10 · SENS 5</div><div class="skills">HULL -2 · AGI +3 · SYS +1 · ENG +0</div>
+        <p><b>Monowire Sword</b> +2, Threat 3, 5 kinetic. <b>Prowl</b> quick: move Speed without reactions, then Hidden. <b>Tactical Cloak:</b> permanently Invisible. <b>Hunt:</b> +5 melee damage if target has no adjacent characters.</p><p><b>Weakness Analyzer</b> (optional): attack from Hidden gains +1 accuracy; critical +1d6. Cut from tuned C3.</p></article>
+      <article><h3>RAINMAKER</h3><div class="stats">HP 10 · ARM 1 · EVA 8 · E-DEF 8 · SPD 3 · SIZE 1 · HEAT 8 · SAVE 10 · SENS 15</div><div class="skills">HULL +0 · AGI +0 · SYS +2 · ENG +0</div>
+        <p><b>Missile Pods</b> +2, R20, 4 explosive, Arcing/Reliable 2/Knockback 1; attacks 1–3 characters. <b>Javelin Rockets</b> quick: mark 3 nonadjacent visible spaces in R20; first hostile crossing/starting each takes 5 explosive before next turn. <b>Huntsman:</b> weapons vs Lock On gain Smart/Seeking/AP.</p><p><b>Hades Missiles</b> (optional): quick, Recharge 5+; Blast 3 starting within R20, 4 energy damage + 2 heat, Agility save half; no LOS needed, possible route required.</p></article>
+      <article><h3>GRUNT</h3><p>Template · p.327. HP 1, cannot regain HP; successful saves prevent all damage. Never above 1 Structure/Stress; immediately destroyed by heat from outside its own systems. Cannot combine with Veteran, Squad, Elite, Ultra. Otherwise uses its class attacks and stats.</p></article>
+      <article><h3>VETERAN</h3><p>Template · p.332. +1 Structure and +1 Stress (total 2/2); choose one mech skill for +1 accuracy on checks and saves; choose one Veteran trait per tier (one at T1). <b>Lightning Reflexes:</b> heavy/superheavy attack misses automatically on d6 5+. Cut from tuned C3.</p></article>
+      <article><h3>ELITE</h3><p>Template · p.326. +1 Structure and +1 Stress (total 2/2); two separate turns each round; choose one extra optional class system. Cannot combine with Grunt or Ultra. Cut from tuned C3.</p></article>
+      <article><h3>COMMANDER</h3><p>Template · p.326. +1 Structure and +1 Stress (total 2/2); <b>Voice of Authority</b> 1/round: allied failed attack/check/save rerolled if Commander not Jammed; choose one Commander trait, inactive while Jammed. <b>Quick March:</b> 1/round protocol lets visible ally Boost. Cut from tuned C3.</p></article>
+    </div>
+  </div></div>
+
+  <div class="section-head" id="rules"><h2>RULES CALLS</h2><span>REFERENCE · CUT FROM THE TUNED RUN</span></div>
+  <div class="card"><div class="card-pad">
+    <p class="muted" style="font-size:13px;margin:0 0 14px">Templates and Invisible/Hidden are stripped out of the tuned 5-PC loadout above — kept here to dial M1's challenge back up, or save for Mission 2.</p>
+    <div class="two">
+      <div>
+        <h3>TEMPLATES</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="sr-rl-1" data-k>
+            <span><b>ELITE</b> — takes <b>two turns each round</b>; more Structure/Stress.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="sr-rl-2" data-k>
+            <span><b>VETERAN</b> — more Structure/Stress + optional traits (e.g. LIGHTNING REFLEXES, HADES MISSILES).</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="sr-rl-3" data-k>
+            <span><b>COMMANDER</b> — VOICE OF AUTHORITY (ally rerolls), QUICK MARCH (reposition, LOS only), more S/S.</span></label></li>
+        </ul>
+      </div>
+      <div>
+        <h3>INVISIBLE &amp; HIDDEN</h3>
+        <ul class="checklist">
+          <li><label class="tick"><input type="checkbox" id="sr-rl-4" data-k>
+            <span><b>INVISIBLE</b> — penalty against all attacks (ranged/melee/tech), <i>not</i> saves. RELIABLE still deals its
+            damage on a miss.</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="sr-rl-5" data-k>
+            <span><b>HIDDEN</b> (from cover or INVISIBLE) — can't be targeted directly; still catchable in areas (mortars, grenades).</span></label></li>
+          <li><label class="tick"><input type="checkbox" id="sr-rl-6" data-k>
+            <span><b>EXOTIC GEAR tag</b> — permanent, doesn't raise LL or count as license; reprintable if destroyed; mount
+            max 2; install/remove at FULL REPAIR.</span></label></li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- FILING checklist (dev note, hidden from UI)
+  <div class="section-head" id="filing"><h2>FILING IT AFTERWARD</h2><span>BEFORE YOU COMMIT</span></div>
+  <div class="card"><div class="card-pad">
+    <p class="muted" style="font-size:13px"><code>campaign.js</code> is the only file to edit, and
+    <code>node check-all.cjs</code> fails on any id that does not resolve — run it before committing.
+    <b>Heads-up:</b> the faction and location names in <code>campaign.js</code> are still sample data — when The Drop
+    really flies, rename <code>vestan</code> to the Vestan Sovereignty and tidy the placeholder names while you're in there.</p>
+    <ul class="checklist">
+      <li><label class="tick"><input type="checkbox" id="sr-fi-1" data-k>
+        <span><b>op 006</b> — re-file as <b>THE DROP</b>: <code>title</code>, <code>type</code> (MECH BATTLE), <code>status</code>,
+        real <code>date</code>, the deploying <code>crew</code> and <code>mechs</code>, <code>rounds</code> if fought, and a
+        one-line <code>outcome</code>.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-fi-2" data-k>
+        <span><b>events</b> — one row per actual deployment (crash, the bus, the battery) with <code>date</code>,
+        <code>title</code>, <code>op: "006"</code>, <code>note</code>. A brief that cost nothing is not a deployment.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-fi-3" data-k>
+        <span><b>threads</b> — seed, at minimum: <i>who shot Kingfisher 2-2</i>, and <i>the bus's fate</i> if it was lost.
+        Mark any of the old sample threads resolved or drop them.</span></label></li>
+      <li><label class="tick"><input type="checkbox" id="sr-fi-4" data-k>
+        <span><code>node check-all.cjs</code> passes, then commit.</span></label></li>
+    </ul>
+  </div></div>
+
+  -->
+
+  <div class="footer">
+    <span>GRANITE SECURITY SOLUTIONS / GM PREP COPY</span>
+    <span>SOLSTICE RAIN · MISSION 1 · THE DROP</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY='gss-solstice-rain-m1-v1';
+  var items=[].slice.call(document.querySelectorAll('[data-k]'));
+  var boxes=items.filter(function(el){return el.type==='checkbox';});
+  var ok=true;
+  try{ localStorage.setItem('__probe','1'); localStorage.removeItem('__probe'); }catch(e){ ok=false; }
+  function counts(){
+    var n=boxes.filter(function(el){return el.checked;}).length;
+    var s=('0'+n).slice(-2)+' / '+('0'+boxes.length).slice(-2);
+    var a=document.getElementById('tick-count'), b=document.getElementById('tick-count-2');
+    if(a) a.textContent=s; if(b) b.textContent=s;
+  }
+  function save(){
+    if(!ok) return;
+    var d={};
+    items.forEach(function(el){ d[el.id]= el.type==='checkbox' ? el.checked : el.value; });
+    try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){}
+  }
+  function load(){
+    if(!ok) return;
+    var d={};
+    try{ d=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ d={}; }
+    items.forEach(function(el){
+      var v=d[el.id]; if(v===undefined) return;
+      if(el.type==='checkbox') el.checked=!!v; else el.value=v;
+    });
+  }
+  items.forEach(function(el){
+    el.addEventListener('change',function(){ save(); counts(); });
+    el.addEventListener('input',save);
+  });
+  var r=document.getElementById('reset');
+  if(r) r.addEventListener('click',function(){
+    if(!confirm('Clear every tick and note on this sheet?')) return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    items.forEach(function(el){ if(el.type==='checkbox') el.checked=false; else el.value=''; });
+    counts();
+  });
+  if(!ok){
+    var st=document.getElementById('save-state');
+    if(st) st.textContent='TICKS WILL NOT PERSIST · LOCAL STORAGE UNAVAILABLE';
+  }
+  function migrate(){
+    if(!ok) return;
+    var old={}; try{ old=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ return; }
+    var plan={ 'gss-solstice-rain-c1-v1':/^sr-c1/, 'gss-solstice-rain-c2-v1':/^sr-c2/, 'gss-solstice-rain-c3-v1':/^sr-c3/ };
+    Object.keys(plan).forEach(function(k){
+      if(localStorage.getItem(k)!=null) return;
+      var d={};
+      Object.keys(old).forEach(function(id){ if(plan[k].test(id)) d[id]=old[id]; });
+      if(Object.keys(d).length){ try{ localStorage.setItem(k,JSON.stringify(d)); }catch(e){} }
+    });
+  }
+  migrate(); load(); counts();
+})();
+</script>
+</body>
+</html>

@@ -30,7 +30,7 @@ window.CAMPAIGN = {
   ],
 
   pilots: [
-    { id: "frisky", name: "HUGH “FRISKY” JANUS", background: "PILOT · LL0 · HACKER", status: "ACTIVE", mech: "sweet-cheeks",
+    { id: "frisky", name: "HUGH “FRISKY” JANUS", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks",
       triggers: "Act Unseen or Unheard, Get a Hold of Something, Hack or Fix, Lead or Inspire",
       talents: "Hacker 1, Leader 1, Spotter 1",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, Omnihook, Personal Drone" },
@@ -45,13 +45,13 @@ window.CAMPAIGN = {
   ],
 
   mechs: [
-    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "frisky", role: "ECM & C3", glyph: "◢▰◣",
+    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "frisky", role: "ECM & C3", glyph: "◢▰◣", img: "assets/sweet-cheeks.png",
       state: "OPERATIONAL", hp: 12, eva: 8, spd: 4, tech: "+3", edef: 12,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
     { id: "patch-kit", name: "PATCH KIT", frame: "GMS EVEREST", pilot: "patch", role: "REPAIR & RECOVERY", glyph: "▰◢",
       state: "STRUCTURE 1 · REPAIR PENDING", hp: 6, hpNow: 4, eva: 8, spd: 5, tech: "+1", edef: 9 },
-    { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "FIRE SUPPORT & BOARDING", glyph: "▰▱",
+    { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "FIRE SUPPORT & BOARDING", glyph: "▰▱", img: "assets/tombstone.png",
       state: "OPERATIONAL", hp: 6, eva: 10, spd: 5, tech: "+0", edef: 8,
       loadout: "Main: Pistol · Flex: Shotgun · Heavy: Thermal Lance",
       systems: "Jericho Deployable Cover, Comp/Con-Class Assistant Unit, EVA Module, Expanded Compartment" },
