@@ -2,6 +2,17 @@
 
 **Mode: continuation.** Three combat pages and persistent NPC trackers were requested and the layout was decided, but implementation has not begun. This creates the repo's `docs/handoffs/` convention.
 
+> **Status 2026-10-14: DONE and superseded.** The split below shipped in `252b343`
+> (`solstice-rain-c1/c2/c3.html`, `combat-tracker.js`, `combat-page.css`);
+> `check-opfor.cjs` was updated for it and passes. Everything after this note is the
+> original plan, kept as the record of why the pages are shaped this way. Two defects
+> found while verifying it are fixed: `a2a04bf` (CLEAR SHEET blanked HP and unticked
+> STRUCT/STRESS instead of restoring HTML defaults) and `ca115c7` (`index.html` readiness
+> table forced a 584px-wide document at a 390px viewport). Layout verified in headless
+> chromium at 390px and 1440px: no page-level overflow on `index.html`, `solstice-rain-m1.html`
+> or the three combat pages. Still open: `quest-cheatsheet.html` measures 406px at a 390px
+> viewport (its `.threads-table` is 360px wide), left alone deliberately.
+
 ## Goal and next action
 
 Split the three Mission 1 combat scenarios from `solstice-rain-m1.html` into one focused page per combat. Put the relevant Tier 1 NPC cards inside each page, with editable current HP and heat, Structure/Stress checkboxes, duplicate-unit labels, and browser-persistent tracking. Keep the main page's briefing, narrative beats, downtime, filing, and links to the combat pages.
@@ -11,6 +22,7 @@ First inspect `solstice-rain-m1.html` and `check-opfor.cjs`, then map each scena
 ## State snapshot
 
 - Repo: `/mnt/coding/Coding/granite-campaign-site`, branch `main`, HEAD `7ce23c4` (2026-10-12). Working tree dirty: modified `campaign.js`, `index.html`, `style.css`; untracked `.pi/`, `assets/`, `check-opfor.cjs`, `solstice-rain-m1.html`. None committed here. Do not reset or overwrite these changes.
+  *(Superseded: all of that is now committed; HEAD is `ca115c7` and the tree is clean apart from untracked `.pi/`. No remote is configured — this repo is local-only.)*
 - `solstice-rain-m1.html` already contains complete M1 GM sheet, three combats, OPFOR Tier 1 cards for 16 classes and four template summaries, and localStorage-backed ticks/notes under key `gss-solstice-rain-m1-v1`.
 - `check-opfor.cjs` currently asserts that all 16 class cards and four template headings live on the main page. It must be updated for the split, not left broken.
 - Existing verification: `node check-opfor.cjs`, `node check-all.cjs`, `git diff --check`, and HTML ID uniqueness passed before the new request. No browser layout check yet.
@@ -41,3 +53,4 @@ First inspect `solstice-rain-m1.html` and `check-opfor.cjs`, then map each scena
 - `check-opfor.cjs` holds the current 16-class/four-template inventory check.
 - `style.css` supplies shared theme; `campaign.js` is separate campaign data.
 - Current task #4 in todo was clarifying layout/tracking; user answered both. Next session should mark clarification done and start implementation.
+  *(Superseded: implemented in `252b343`. Both fixed bugs are recorded in the machine-local grudgebook under `granite-campaign-site`; query `combat-tracker.js`, `index.html` or `style.css` before editing them.)*
