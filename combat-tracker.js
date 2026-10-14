@@ -50,7 +50,11 @@
   if (r) r.addEventListener('click', function () {
     if (!confirm('Clear every tick, tracker and note on this sheet?')) return;
     try { localStorage.removeItem(KEY); } catch (e) {}
-    items.forEach(function (el) { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
+    // Restore each control's HTML default, not blank: struct/stress start checked
+    // and HP starts full, so clearing the sheet must not read as "all lost".
+    items.forEach(function (el) {
+      if (el.type === 'checkbox') el.checked = el.defaultChecked; else el.value = el.defaultValue;
+    });
     counts();
   });
 
