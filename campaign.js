@@ -39,7 +39,7 @@ window.CAMPAIGN = {
       gear: "Mobility Hardsuit, Heavy Signature, Medium Signature, Wilderness Survival Kit, Antiphoton Visor, Smart Scope" },
     { id: "sten", name: "STEN “HAMMER” VARGSKEL", background: "PILOT · LL0 · MECHANIC", status: "ACTIVE", mech: "skaldr", img: "assets/sten.png",
       triggers: "Assault (+2), Hack or Fix (+2), Survive (+2), Threaten (+2)",
-      talents: "Bonded 1, Grease Monkey 1, Ace 1",
+      talents: "Bonded 1, Grease Monkey 1, Duelist 1",
       gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Tertiary Arm, Corrective, Dataplating" },
     { id: "guillaume", name: "GUILLAUME “TIZONA” ARAGONEAU", background: "PILOT · LL0 · COLONIST", status: "ACTIVE", mech: "xxxg-01h", img: "assets/tizona.png",
       triggers: "Act Unseen or Unheard (+2), Survive (+2), Take Someone Out (+2), Word on the Street (+2)",
@@ -75,8 +75,8 @@ window.CAMPAIGN = {
     { id: "skaldr", name: "SKALDR", frame: "GMS EVEREST", pilot: "sten", role: "SKIRMISHER", glyph: "▰", state: "OPERATIONAL", size: 1,
       hull: 2, agi: 0, sys: 0, eng: 0, hp: 16, structure: 4, stress: 4, armor: 0, heat: 6, repair: 6,
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
-      loadout: "Main: Tactical Melee Weapon · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Machine Gun",
-      systems: "Stable Structure, Type-3 Projected Shield, Expanded Compartment, Personalizations" },
+      loadout: "Main: Tactical Melee Weapon · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade",
+      systems: "Stable Structure, Type-3 Projected Shield, Personalizations, Custom Paint Job" },
     { id: "tbh-4-mech", name: "TBH", frame: "UNASSIGNED", pilot: "tbh-4", role: "TBD", glyph: "?", state: "NOT ASSIGNED" }
   ],
 
