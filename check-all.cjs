@@ -42,6 +42,19 @@ Object.entries(required).forEach(([key, fields]) => {
   });
 });
 
+const tombstone = C.mechs.find(m => m.id === "tombstone");
+if (!tombstone || Object.entries({ hp: 10, structure: 4, stress: 4, armor: 0, repair: 5, heat: 6, hull: 0, agi: 2, sys: 0, eng: 0, spd: 5, eva: 10, edef: 8, sens: 10, save: 10, attackBonus: 0, limitedBonus: 0 }).some(([k,v]) => tombstone[k] !== v)) problems.push('Tombstone stats do not match supplied stat block');
+if (C.pilots.length !== 6 || C.mechs.length !== 5 || C.ops.length !== 1 || C.events.length || C.threads.length) problems.push('campaign starter should have six pilots, five mechs, one Solstice Rain operation, and no historical events/threads');
+if (!C.pilots.some(p => p.name === "RURIK VARGSKEL" && p.img === "assets/rurik_vargskel.png") || !fs.existsSync(__dirname + "/assets/rurik_vargskel.png") || !C.pilots.some(p => p.id === "sten" && p.name === "STEN VARGSKEL" && !p.mech && !p.img && !p.triggers && !p.talents && !p.gear) || !C.pilots.some(p => p.name === "HANSEN “DUSTY” MCGRAW") || C.pilots.filter(p => p.name === "TBH").length !== 3) problems.push('starter roster must keep Rurik, Sten without assigned build/mech, Dusty, and three TBH pilots');
+if (!C.mechs.some(m => m.name === "SWEET CHEEKS") || !C.mechs.some(m => m.name === "TOMBSTONE") || C.mechs.some(m => m.pilot === "sten") || C.mechs.filter(m => m.name === "TBH").length !== 3) problems.push('starter roster must keep Sweet Cheeks and Tombstone, three TBH mechs, and no Sten assignment');
+const sr = C.ops[0];
+if (!sr || sr.title !== "SOLSTICE RAIN" || sr.loc !== "elysia" || !sr.summary) problems.push('only operation should be SOLSTICE RAIN at Nov Elysia with an overview');
+if (!sr || !sr.mission || !sr.mission.href || !fs.existsSync(__dirname + "/" + sr.mission.href)) problems.push('Solstice Rain must link to an existing current-mission page');
+else if (/href="(?:gm|solstice-rain-m1)\.html"/.test(fs.readFileSync(__dirname + "/" + sr.mission.href, "utf8"))) problems.push(`${sr.mission.href}: crew briefing must not link to GM pages`);
+const gm = fs.existsSync(__dirname + "/gm.html") ? fs.readFileSync(__dirname + "/gm.html", "utf8") : "";
+for (const href of ["solstice-rain-m1.html", "solstice-rain-c1.html", "solstice-rain-c2.html", "solstice-rain-c3.html", "quest-cheatsheet.html"])
+  if (!gm.includes(`href="${href}"`)) problems.push(`gm.html: missing ${href} link`);
+
 C.mechs.forEach(m => {
   if (m.hpNow == null) return;
   if (typeof m.hp !== "number" || typeof m.hpNow !== "number" || m.hpNow < 0 || m.hpNow > m.hp)
@@ -81,7 +94,19 @@ C.factions.forEach(f => {
 });
 
 if (problems.length) {
-  console.error("campaign.js: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
+}
+const page = fs.readFileSync(__dirname + "/index.html", "utf8");
+if (!page.includes('id="record-detail"')) problems.push('index.html: in-place record detail pane missing');
+if (!page.includes('data-detail-host="pilot"') || !page.includes('data-detail-host="mech"')) problems.push('index.html: roster detail hosts missing');
+if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
+if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
+if (!page.includes('showAtRecord') || !page.includes('toggleRecord')) problems.push('index.html: in-place, toggleable roster selection handler missing');
+if (!page.includes('CURRENT MISSION')) problems.push('index.html: operation card does not render the current-mission link');
+if (!page.includes('showUnit')) problems.push('index.html: unit-level location details missing');
+if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
+
+if (problems.length) {
+  console.error("campaign.js/index.html: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
   process.exit(1);
 }
-console.log(`campaign.js ok: ${C.locations.length} locations, ${C.pilots.length} pilots, ${C.mechs.length} mechs, ${C.ops.length} ops, ${C.threads.length} threads, ${C.events.length} events, ${C.factions.length} factions`);
+console.log(`campaign.js/index.html ok: ${C.locations.length} locations, ${C.pilots.length} pilots, ${C.mechs.length} mechs, ${C.ops.length} ops, ${C.threads.length} threads, ${C.events.length} events, ${C.factions.length} factions`);

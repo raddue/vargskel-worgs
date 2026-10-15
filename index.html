@@ -3,29 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Granite Security Solutions | Field Archive</title>
+<title>Vargskel Worgs | Field Archive</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <noscript><p style="max-width:1440px;margin:24px auto;padding:0 28px;color:#d17b59;font:13px/1.5 ui-monospace,monospace">This archive renders from <code>campaign.js</code> in the browser. JavaScript is off, so only this notice shows. The records themselves are plain data in <code>campaign.js</code>.</p></noscript>
 <div class="shell">
-  <div class="topline"><span>GSS // INTERNAL FIELD ARCHIVE</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
+  <div class="topline"><span>VW // INTERNAL FIELD ARCHIVE</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
   <header class="brandrow">
-    <div class="brand"><div class="mark"><span>G</span></div><div><div class="brand-name">GRANITE SECURITY SOLUTIONS</div><div class="brand-sub">INDEPENDENT CONTRACT OPERATIONS</div></div></div>
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">INDEPENDENT CONTRACT OPERATIONS</div></div></div>
     <nav class="nav"><a href="#overview">OVERVIEW</a><a href="#missions">MISSIONS</a><a href="#crew">PILOTS</a><a href="#mechs">MECHS</a><a href="#intel">INTEL</a></nav>
     <div class="status">● CREW STATUS: ACTIVE</div>
   </header>
   <main>
     <section class="hero" id="overview">
-      <div class="hero-copy"><div class="eyebrow">UNIT DOSSIER / GSS-01</div><h1>FIELD<br>CHRONICLE</h1><p id="hero-tagline">Operational record of contracts, deployments, and assigned personnel.</p><div class="hero-meta" id="hero-meta"></div></div>
-      <div class="hero-art"><img class="hero-mech-img" src="assets/sweet-cheeks.png" alt="Sweet Cheeks — GMS Chomolungma"><div class="art-caption">SWEET CHEEKS // GMS CHOMOLUNGMA</div></div>
+      <div class="hero-copy"><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>FIELD<br>CHRONICLE</h1><p id="hero-tagline">Operational record of contracts, deployments, and assigned personnel.</p><div class="hero-meta" id="hero-meta"></div></div>
+      <div class="hero-art"><img class="hero-mech-img" src="assets/vargskel_worgs_patch_transparent.png" alt="Vargskel Worgs unit patch"></div>
     </section>
     <section><div class="section-head"><h2>SORTIE READINESS</h2><span id="ready-count"></span></div><div class="card patrol"><div class="card-pad" id="readiness" tabindex="0" role="region" aria-label="Sortie readiness, scrollable"></div></div></section>
-    <section aria-label="Company statistics"><div class="section-head"><h2>COMPANY RECORD</h2><span>ROLLING SUMMARY · SAMPLE DATA</span></div><div class="stats" id="stats"></div></section>
+    <section aria-label="Company statistics"><div class="section-head"><h2>COMPANY RECORD</h2><span>ROLLING SUMMARY</span></div><div class="stats" id="stats"></div></section>
     <div class="columns">
       <div class="primary">
         <section id="holomap"></section>
-        <section id="missions"><div class="section-head"><h2>RECENT OPERATIONS</h2><span id="ops-count"></span></div>
+        <section id="missions"><div class="section-head"><h2>OPERATIONS</h2><span id="ops-count"></span></div>
           <div id="ops"></div>
           <article class="card"><div class="card-pad"><div class="tag">BETWEEN DEPLOYMENTS · DOWNTIME</div><h3 class="mission-title">CREW & LOGISTICS</h3><div class="muted">Repairs, resupply, contacts, and crew developments go here between operations. No active brief filed.</div></div></article>
         </section>
@@ -35,13 +35,11 @@
       <aside class="aside">
         <section><div class="section-head"><h2>LOOSE THREADS</h2><span>OPEN THREADS</span></div><div class="card patrol"><div class="card-pad"><table class="threads-table"><thead><tr><th>THREAD</th><th>SEEDED</th><th>STATUS</th></tr></thead><tbody id="threads-body"></tbody></table></div></div></section>
         <section><div class="section-head"><h2>DEEDS & DISPATCHES</h2><span>LOG</span></div><div class="card"><div class="card-pad"><ol class="timeline" id="timeline"></ol></div></div></section>
-        <section id="intel"><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS · SAMPLE</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
-        <section><div class="section-head"><h2>IMAGE LOG</h2><span>FIELD MEDIA</span></div><div class="photo-grid"><div class="photo">MECH PHOTO<br>ADD IMAGE</div><div class="photo">CREW PHOTO<br>ADD IMAGE</div><div class="photo">MAP / SCENE<br>ADD IMAGE</div></div></section>
-        <section style="margin-top:22px"><div class="card"><div class="card-pad"><div class="tag">ARCHIVE NOTE</div><p class="muted" style="margin-bottom:0">Sample names, mission, faction details, and dates are placeholders for layout. Replace them with your group’s records before sharing outside the crew.</p></div></div></section>
+        <section id="intel"><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
       </aside>
     </div>
   </main>
-  <footer class="footer"><span>GRANITE SECURITY SOLUTIONS / FIELD ARCHIVE</span><span>LOCAL MOCKUP · PUBLIC RELEASE NOT CONFIGURED</span></footer>
+  <footer class="footer"><span>VARGSKEL WORGS / FIELD ARCHIVE</span><span>LOCAL MOCKUP · PUBLIC RELEASE NOT CONFIGURED</span></footer>
 </div>
 <script src="campaign.js"></script>
 <script>
@@ -70,19 +68,32 @@ const hpNow=m=>m.hpNow==null?m.hp:m.hpNow;
 const msize=m=>m.size==null?1:m.size;
 const opPill=o=>pill(o.status,/COMPLETED/.test(o.status)?"lime":"rust");
 const threadPill=t=>pill(t.status,t.status==="ESCALATING"?"rust":"lime");
-const mark=(k,v)=>document.querySelectorAll(".holo-svg .node,.holo-svg .mk").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));
-const panel=()=>el("holo-detail");
-function showLoc(id){const l=L[id];if(!l||!panel())return;const here=ops.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id);
+const mark=(k,v)=>document.querySelectorAll(".holo-svg .node").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));
+const panel=()=>el("record-detail");
+const animatePane=()=>{const p=panel();p.classList.remove("pane-in");void p.offsetWidth;p.classList.add("pane-in")};
+const showAtRecord=(host,id)=>{
+ const card=document.querySelector(`#${host==="pilot"?"crew-list":"mech-list"} [data-${host}="${CSS.escape(id)}"]`),slot=card&&card.querySelector(`[data-detail-host="${host}"]`);
+ if(!slot)return false;
+ slot.append(panel());show(host,id);animatePane();panel().focus({preventScroll:true});return true;
+};
+const toggleRecord=(host,id)=>{
+ const card=document.querySelector(`#${host==="pilot"?"crew-list":"mech-list"} [data-${host}="${CSS.escape(id)}"]`);
+ if(card&&panel().parentElement===card.querySelector(`[data-detail-host="${host}"]`)){panel().classList.add("pane-out");setTimeout(()=>{if(!panel().classList.contains("pane-out"))return;el("holo-detail").append(panel());panel().classList.remove("pane-out","pane-in")},120);return true}
+ return showAtRecord(host,id);
+};
+const showAtMap=(kind,id)=>{el("holo-detail").append(panel());show(kind,id);animatePane()};
+function showUnit(id){const l=L[id];if(!l||!panel())return;const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id);
  mark("loc",id);
- panel().innerHTML=`<div class="tag">${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`+table(
-  th("STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION",F[l.faction]?esc(F[l.faction].name):"")+th("ORBITS",l.parent?locBtn(l.parent):"")+
-  th("SATELLITES",sats.map(x=>locBtn(x.id)).join(""))+th("OPERATIONS",here.map(opLink).join("<br>")||"None filed")+
-  th("CHASSIS HERE",Object.keys(M).filter(k=>stationed(k)===id).map(mechBtn).join("")||"None"))}
+ panel().innerHTML=`<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`+table(
+  th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th("IN ORBIT",l.parent?locBtn(l.parent):"None")+
+  th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
+  th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))}
 function showMech(id){const m=M[id];if(!m||!panel())return;const mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id),nf="NOT FILED";
  mark("mech",id);
  panel().innerHTML=`<div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h3 class="mission-title">${esc(m.name)}</h3>`+table(
   th("PILOT",pilotBtn(m.pilot))+th("STATE",esc(m.state))+th("STATIONED",at?locBtn(at):"")+
-  th("HP · EVA · SPD",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.eva)} · ${esc(m.spd)}`:nf)+th("TECH · E-DEF",m.tech!=null&&m.tech!==""?`${esc(m.tech)} · ${esc(m.edef)}`:nf)+
+  th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:nf)+th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+
+  th("HEAT · REPAIR",`${esc(m.heat??"—")} · ${esc(m.repair??"—")}`)+th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+th("REPAIR",m.repair??"—")+th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva)} · ${esc(m.spd)} · ${esc(m.edef)} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech)} · ${esc(m.limitedBonus??"—")}`)+
   th("LOADOUT",esc(m.loadout||""))+th("SYSTEMS",esc(m.systems||""))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last?esc(last.outcome):""))}
 function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(id).reverse();
@@ -91,34 +102,37 @@ function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",p.mech?mechBtn(p.mech):"None assigned")+
   th("TRIGGERS",esc(p.triggers||""))+th("TALENTS",esc(p.talents||""))+th("GEAR",esc(p.gear||""))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}
-function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):showLoc(id)}
+function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):showUnit(id)}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot]");if(!t)return;
- const k=t.dataset.mech?"mech":t.dataset.pilot?"pilot":"loc",v=t.dataset.mech||t.dataset.pilot||t.dataset.loc,inside=!!t.closest("#holo-detail");
- show(k,v);
- if(inside&&panel()){const back=panel().querySelector(`[data-${k}="${CSS.escape(v)}"]`);(back||panel()).focus()}
- el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+ const k=t.dataset.mech?"mech":t.dataset.pilot?"pilot":"loc",v=t.dataset.mech||t.dataset.pilot||t.dataset.loc;
+ if(t.closest("#record-detail")){show(k,v);return}
+ if(t.matches("article[data-pilot],article[data-mech]")){toggleRecord(t.dataset.pilot?"pilot":"mech",v);return}
+ if(k==="mech"||k==="pilot")return;
+ showAtMap(k,v);
+ if(t.closest(".holo-svg"))el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 const latest=filed[0];
 if(el("hero-tagline")&&C.meta&&C.meta.tagline)el("hero-tagline").textContent=C.meta.tagline;
-if(el("hero-meta")&&latest)el("hero-meta").innerHTML=`<div>CURRENT AREA<strong>${esc(L[latest.loc].name)}</strong></div><div>OPEN CONTRACTS<strong>${String(filed.length-filed.filter(o=>/COMPLETED/.test(o.status)).length).padStart(2,"0")}</strong></div><div>LAST DEPLOYMENT<strong>OPERATION ${esc(latest.id)}</strong></div>`+(C.meta&&C.meta.updated?`<div>LAST UPDATE<strong>${esc(C.meta.updated)}</strong></div>`:"");
+const upcoming=ops.filter(o=>o.type==="PLANNED").pop();
+if(el("hero-meta")&&(latest||upcoming))el("hero-meta").innerHTML=(latest?`<div>CURRENT AREA<strong>${esc(L[latest.loc].name)}</strong></div><div>OPEN CONTRACTS<strong>${String(filed.length-filed.filter(o=>/COMPLETED/.test(o.status)).length).padStart(2,"0")}</strong></div><div>LAST DEPLOYMENT<strong>OPERATION ${esc(latest.id)}</strong></div>`:`<div>HEADING<strong>${esc(L[upcoming.loc].name)}</strong></div><div>NEXT DEPLOYMENT<strong>OP ${esc(upcoming.id)} · ${esc(upcoming.title)}</strong></div>`)+(C.meta&&C.meta.updated?`<div>LAST UPDATE<strong>${esc(C.meta.updated)}</strong></div>`:"");
 if(el("stats"))el("stats").innerHTML=[["MISSIONS",filed.length],["COMPLETED",filed.filter(o=>/COMPLETED/.test(o.status)).length],["ACTIVE PILOTS",C.pilots.filter(p=>p.status==="ACTIVE").length],["KNOWN FACTIONS",C.factions.length]].map(([k,v])=>`<div class="stat"><label>${k}</label><strong>${String(v).padStart(2,"0")}</strong></div>`).join("");
 if(el("readiness")){const open=C.threads.filter(t=>t.status!=="CLOSED").length;
  el("ready-count").textContent=`${C.mechs.length} CHASSIS · ${open} OPEN THREADS`;
- el("readiness").innerHTML=`<table class="threads-table"><thead><tr><th>CHASSIS</th><th>PILOT</th><th>ROLE</th><th>HULL</th><th>STATUS</th></tr></thead><tbody>`+C.mechs.map(m=>{const p=P[m.pilot],nw=p?p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").replace(/\s+/g," ").trim().split(" "):[];return `<tr><td>${esc(m.name)}</td><td>${p?esc(nw[0].charAt(0)+". "+nw[nw.length-1]):"UNASSIGNED"}</td><td class="muted">${esc(m.role||"")}</td><td>${m.hp!=null&&m.hp!==""?`<span class="hp-pips">${"\u25b0".repeat(Math.max(0,Math.round(hpNow(m)/2)))}${"\u25b1".repeat(Math.max(0,Math.round(m.hp/2)-Math.round(hpNow(m)/2)))} ${hpNow(m)}/${m.hp}</span>`:'<span class="muted">\u2014</span>'}</td><td>${mechPill(m)}</td></tr>`}).join("")+"</tbody></table>"+
+ el("readiness").innerHTML=`<table class="threads-table"><thead><tr><th>CHASSIS</th><th>PILOT</th><th>ROLE</th><th>HULL</th><th>STATUS</th></tr></thead><tbody>`+C.mechs.map(m=>{const p=P[m.pilot],nw=p?p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").replace(/\s+/g," ").trim().split(" "):[];return `<tr><td>${esc(m.name)}</td><td>${p?esc(nw.length>1?nw[0].charAt(0)+". "+nw[nw.length-1]:nw[0]):"UNASSIGNED"}</td><td class="muted">${esc(m.role||"")}</td><td>${m.hp!=null&&m.hp!==""?`<span class="hp-pips">${"\u25b0".repeat(Math.max(0,Math.round(hpNow(m)/2)))}${"\u25b1".repeat(Math.max(0,Math.round(m.hp/2)-Math.round(hpNow(m)/2)))} ${hpNow(m)}/${m.hp}</span>`:'<span class="muted">\u2014</span>'}</td><td>${mechPill(m)}</td></tr>`}).join("")+"</tbody></table>"+
   (()=>{const next=C.ops.filter(o=>o.type==="PLANNED").sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}))[0];return next?`<div class="tag" style="display:block;margin-top:14px">NEXT OP</div><div style="font:13px var(--mono);margin-top:5px">OP ${esc(next.id)} · ${esc(next.title)}</div><div class="muted" style="font:10px var(--mono);margin-top:4px">${esc(L[next.loc].name)} · ${L[next.loc].visited?"VISITED":"UNVISITED"} · ${esc(next.outcome)}</div>`:`<div class="tag" style="display:block;margin-top:14px">NEXT OP</div><div class="muted" style="font:10px var(--mono);margin-top:5px">NO BRIEF FILED</div>`})()}
-if(el("ops")){el("ops-count").textContent=`MISSION ARCHIVE / ${String(C.ops.length).padStart(3,"0")} RECORDS · SAMPLE`;
+if(el("ops")){el("ops-count").textContent=`MISSION ARCHIVE / ${String(C.ops.length).padStart(3,"0")} RECORDS`;
  el("ops").innerHTML=ops.map(o=>{const l=L[o.loc],par=l.parent?L[l.parent]:null,open=threadsOf(o.id);
  return `<details class="card patrol" id="op-${esc(o.id)}"><summary class="card-pad"><div class="mission-row"><div><div class="tag"><span class="op-caret" aria-hidden="true"></span>OPERATION ${esc(o.id)} · ${esc(o.type)}</div><h3 class="mission-title">${esc(o.title)}</h3><div class="muted">CLIENT: ${o.client?esc(F[o.client].name.toUpperCase()):"NONE"} · AREA: ${esc(l.name)}${par?" ("+esc(par.name)+")":""}</div></div>${opPill(o)}</div></summary><div class="card-pad op-body">`+table(
-  th("LOCATION",esc(l.name+" · "+l.kind))+th("CREW",(o.crew||[]).map(pilotBtn).join("")||"None")+th("MECHS",(o.mechs||[]).map(mechBtn).join("")||(o.type==="PLANNED"?"":"None deployed"))+
+  th("LOCATION",esc(l.name+" · "+l.kind))+th("OVERVIEW",esc(o.summary||""))+th("CURRENT MISSION",o.mission?`<a class="chip" href="${esc(o.mission.href)}">${esc(o.mission.title)} →</a>`:"")+th("CREW",(o.crew||[]).map(pilotBtn).join("")||"None")+th("MECHS",(o.mechs||[]).map(mechBtn).join("")||(o.type==="PLANNED"?"":"None deployed"))+
   th("ROUNDS",o.rounds==null?"":esc(o.rounds))+th("OUTCOME",esc(o.outcome))+th("LEFT HANGING",open.map(t=>esc(t.text)+(t.status!=="OPEN"?" ("+esc(t.status)+")":"")).join("<br>")||"Nothing open")+th("FILED",esc(o.date)))+`</div></details>`}).join("")}
-if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("");
-if(el("timeline"))el("timeline").innerHTML=C.events.map(ev=>`<li><div class="time">${esc(ev.date)}</div><div class="activity-title">${esc(ev.title)}</div><div class="muted" style="font:10px var(--mono)">${ev.op?`<a href="#op-${esc(ev.op)}">OP ${esc(ev.op)}</a> · `:""}${esc(ev.note)}</div></li>`).join("");
-if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padStart(2,"0")} ACTIVE RECORDS · SAMPLE`;
- el("crew-list").innerHTML=C.pilots.map(p=>`<article class="card patrol" data-pilot="${esc(p.id)}"><div class="card-pad"><div class="crew"><div class="avatar">${esc(p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").trim()[0])}</div><div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div></div><span class="pill" style="margin-left:auto">${esc(p.status)}</span></div>${p.mech&&M[p.mech]?`<div class="muted" style="font:10px var(--mono);margin-top:12px">CHASSIS: ${esc(M[p.mech].name)}</div>`:""}${p.triggers?`<div class="muted" style="font:10px var(--mono);margin-top:6px">TRIGGERS: ${esc(p.triggers)}</div>`:""}</div></article>`).join("")}
-if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padStart(2,"0")} MECH RECORDS · SAMPLE`;
- el("mech-list").innerHTML=C.mechs.map(m=>`<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph)}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="mech-stats"><span>PILOT: ${esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED")}</span>${m.hp!=null&&m.hp!==""?`<span>HP ${esc(hpNow(m))}/${esc(m.hp)} · EVA ${esc(m.eva)} · SPD ${esc(m.spd)}</span><span>TECH ATK ${esc(m.tech)} · E-DEF ${esc(m.edef)}</span>`:`<span>${esc(m.missing||"")}</span><span>${esc(m.state)}</span>`}</div>${m.loadout?`<div class="muted" style="margin-top:8px;font:10px var(--mono)">${esc(m.loadout)}${m.systems?"<br>Systems: "+esc(m.systems):""}</div>`:""}</div></div></article>`).join("")}
+if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
+if(el("timeline"))el("timeline").innerHTML=C.events.map(ev=>`<li><div class="time">${esc(ev.date)}</div><div class="activity-title">${esc(ev.title)}</div><div class="muted" style="font:10px var(--mono)">${ev.op?`<a href="#op-${esc(ev.op)}">OP ${esc(ev.op)}</a> · `:""}${esc(ev.note)}</div></li>`).join("")||`<li><div class="muted">No deeds filed yet.</div></li>`;
+if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padStart(2,"0")} ACTIVE RECORDS`;
+ el("crew-list").innerHTML=C.pilots.map(p=>`<article class="card patrol" data-pilot="${esc(p.id)}"><div class="card-pad"><div class="crew">${p.img?`<div class="mech-thumb"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:`<div class="avatar">${esc(p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").trim()[0])}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div>${p.mech&&M[p.mech]?`<div class="crew-role">CHASSIS: ${esc(M[p.mech].name)}</div>`:""}${p.img&&p.triggers?`<div class="crew-role">TRIGGERS: ${esc(p.triggers)}</div>`:""}</div><span class="pill" style="margin-left:auto">${esc(p.status)}</span></div>${!p.img&&p.mech&&M[p.mech]?`<div class="muted" style="font:10px var(--mono);margin-top:12px">CHASSIS: ${esc(M[p.mech].name)}</div>`:""}${!p.img&&p.triggers?`<div class="muted" style="font:10px var(--mono);margin-top:6px">TRIGGERS: ${esc(p.triggers)}</div>`:""}<div data-detail-host="pilot"></div></div></article>`).join("")}
+if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padStart(2,"0")} MECH RECORDS`;
+ el("mech-list").innerHTML=C.mechs.map(m=>`<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph)}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="mech-stats"><span>PILOT: ${esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED")}</span>${m.hp!=null&&m.hp!==""?`<span>HP ${esc(hpNow(m))}/${esc(m.hp)} · ARM ${esc(m.armor??"—")} · STRUCT ${esc(m.structure??"—")} · STRESS ${esc(m.stress??"—")} · HEAT ${esc(m.heat??"—")}</span><span>EVA ${esc(m.eva)} · SPD ${esc(m.spd)} · TECH ATK ${esc(m.tech)} · E-DEF ${esc(m.edef)}</span>`:`<span>${esc(m.missing||"")}</span><span>${esc(m.state)}</span>`}</div>${m.loadout?`<div class="muted" style="margin-top:8px;font:10px var(--mono)">${esc(m.loadout)}${m.systems?"<br>Systems: "+esc(m.systems):""}</div>`:""}</div></div><div data-detail-host="mech"></div></article>`).join("")}
 if(el("faction-list"))el("faction-list").innerHTML=C.factions.map(x=>{const n=filed.filter(o=>o.client===x.id).length;
  return `<div class="faction"><span>${esc(x.name)}</span><span class="muted" style="margin-left:auto;font:10px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,L,P,M,F};
 })();
 </script>
 <script>
@@ -134,13 +148,11 @@ const rings=C.locations.filter(l=>l.parent).map(l=>{const p=L[l.parent];
  return `<circle cx="${X(p)}" cy="${Y(p)}" r="${Math.round(Math.hypot(X(l)-X(p),Y(l)-Y(p)))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
 const shape=l=>l.kind==="PLANET"?`<circle class="shape" r="13"/>`:l.kind==="MOON"?`<circle class="shape" r="7"/>`:l.kind==="STATION"?`<rect class="shape" x="-7" y="-7" width="14" height="14"/>`:`<polygon class="shape" points="0,-9 9,0 0,9 -9,0"/>`;
 const nodes=C.locations.map(l=>`<g class="node${l.visited?"":" unv"}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}"><circle r="28" fill="transparent"/>${shape(l)}<text y="${l.kind==="PLANET"?36:30}" text-anchor="middle">${esc(l.name)}</text></g>`).join("");
-const byLoc={};C.mechs.forEach(m=>{const at=stationed(m.id);if(at)(byLoc[at]=byLoc[at]||[]).push(m)});
-const marks=Object.entries(byLoc).flatMap(([id,ms])=>ms.map((m,i)=>{const l=L[id],a=-Math.PI+(i+1)/(ms.length+1)*Math.PI,w=m.name.split(" "),t=w.length>1?w.map(x=>x[0]).join(""):m.name.slice(0,2);
- return `<g class="mk" data-mech="${esc(m.id)}" transform="translate(${(X(l)+Math.cos(a)*46).toFixed(1)} ${(Y(l)+Math.sin(a)*46).toFixed(1)})" role="button" tabindex="0" aria-label="Chassis ${esc(m.name)}, stationed at ${esc(l.name)}"><rect x="-15" y="-11" width="30" height="22"/><text y="4">${esc(t)}</text></g>`})).join("");
-document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span>RIM SECTOR · SAMPLE DATA</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location or chassis marker for details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--lime)" stop-opacity=".22"/><stop offset="1" stop-color="var(--lime)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g>${zones}${rings}${lines}${nodes}${marks}<text class="zl" x="14" y="470">SECTOR GRID · 50 U · SAMPLE</text></svg></div><div class="holo-detail" id="holo-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location, a chassis marker (boxed initials) on the map, or any record in the archive below to read its file.</div></div></div><div class="holo-chips"><span class="muted" style="font:10px var(--mono);margin-right:8px">CHASSIS</span>${C.mechs.map(m=>chip("mech",m.id,m.name)).join("")}</div></div>`;
+
+document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span>RIM SECTOR</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--lime)" stop-opacity=".22"/><stop offset="1" stop-color="var(--lime)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g>${zones}${rings}${lines}${nodes}<text class="zl" x="14" y="470">SECTOR GRID · 50 U</text></svg></div><div id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></div></div></div>`;
 const svg=document.querySelector("#holomap svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)");
-svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc],[data-mech]");if(!t)return;
- e.preventDefault();UI.show(t.dataset.mech?"mech":"loc",t.dataset.mech||t.dataset.loc)});
+svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc]");if(!t)return;
+ e.preventDefault();UI.showAtMap("loc",t.dataset.loc)});
 svg.addEventListener("pointermove",e=>{if(rm.matches)return;const r=svg.getBoundingClientRect();
  far.style.transform=`translate(${(-((e.clientX-r.left)/r.width-.5)*24).toFixed(1)}px,${(-((e.clientY-r.top)/r.height-.5)*14).toFixed(1)}px)`});
 svg.addEventListener("pointerleave",()=>{far.style.transform=""});
