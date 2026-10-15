@@ -37,7 +37,7 @@ window.CAMPAIGN = {
       triggers: "Charm (+2), Spot (+2), Survive (+2), Take Someone Out (+2)",
       talents: "Gunslinger 1, Vanguard 1, Skirmisher 1",
       gear: "Mobility Hardsuit, Heavy Signature, Medium Signature, Wilderness Survival Kit, Antiphoton Visor, Smart Scope" },
-    { id: "sten", name: "STEN “HAMMER” VARGSKEL", background: "PILOT · LL0 · MECHANIC", status: "ACTIVE", mech: "skaldr",
+    { id: "sten", name: "STEN “HAMMER” VARGSKEL", background: "PILOT · LL0 · MECHANIC", status: "ACTIVE", mech: "skaldr", img: "assets/sten.png",
       triggers: "Assault (+2), Hack or Fix (+2), Survive (+2), Threaten (+2)",
       talents: "Bonded 1, Grease Monkey 1, Ace 1",
       gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Tertiary Arm, Corrective, Dataplating" },
