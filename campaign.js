@@ -62,7 +62,7 @@ window.CAMPAIGN = {
       hull: 0, agi: 2, sys: 0, eng: 0, eva: 10, spd: 5, tech: "+0", edef: 8, sens: 10, save: 10, attackBonus: 0, limitedBonus: 0,
       loadout: "Main: Pistol · Flex: Charged Blade · Heavy: Thermal Lance",
       systems: "Pattern-A Jericho Deployable Cover, COMP/CON-Class Assistant Unit, EVA Module, Expanded Compartment" },
-    { id: "xxxg-01h", name: "XXXG-01H", frame: "GMS SAGARMATHA", pilot: "guillaume", role: "TANK", glyph: "▰", state: "OPERATIONAL", size: 2,
+    { id: "xxxg-01h", name: "WAYWARD", frame: "GMS SAGARMATHA", pilot: "guillaume", role: "TANK", glyph: "▰", state: "OPERATIONAL", size: 2,
       hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 1, stress: 4, heat: 6, repair: 5,
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
       loadout: "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun",
