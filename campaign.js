@@ -29,7 +29,7 @@ window.CAMPAIGN = {
   ],
 
   pilots: [
-    { id: "frisky", name: "RURIK VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
+    { id: "frisky", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
       talents: "Hacker 1, Leader 1, Spotter 1",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, Omnihook, Personal Drone" },
@@ -49,7 +49,7 @@ window.CAMPAIGN = {
       triggers: "Blow Something Up (+2), Invent or Create (+2), Spot (+2), Stay Cool (+2)",
       gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Sound System, Tertiary Arm, Extra Rations",
       talents: "Siege Specialist 1, Grease Monkey 1, Walking Armory 1" },
-    { id: "spook", name: "NICOLOSO BENIKO “SPOOK”", background: "PILOT · LL0 · SABOTEUR", status: "ACTIVE", mech: "alba",
+    { id: "spook", name: "NICOLOSO “SPOOK” BENIKO", background: "PILOT · LL0 · SABOTEUR", status: "ACTIVE", mech: "alba",
       triggers: "Act Unseen or Unheard (+2), Blow Something Up (+2), Stay Cool (+2), Take Someone Out (+2)",
       talents: "Crack Shot 1, Infiltrator 1, Skirmisher 1",
       gear: "Stealth Hardsuit, Heavy Signature, Archaic Melee, Camo Cloth, SSC Sylph Undersuit, Thermite Charge" },
