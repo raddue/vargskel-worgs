@@ -110,16 +110,21 @@ C.factions.forEach(f => {
 if (problems.length) {
 }
 const page = fs.readFileSync(__dirname + "/index.html", "utf8");
+const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
+const pilotsPage = fs.readFileSync(__dirname + "/pilots.html", "utf8");
+const mechPage = fs.readFileSync(__dirname + "/mechbay.html", "utf8");
 if (!page.includes('id="record-detail"')) problems.push('index.html: in-place record detail pane missing');
-if (!page.includes('data-detail-host="pilot"') || !page.includes('data-detail-host="mech"')) problems.push('index.html: roster detail hosts missing');
-const crewCard = page.match(/el\("crew-list"\)\.innerHTML=C\.pilots\.map\(p=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
-if (!crewCard || crewCard.includes('p.img&&p.triggers') || crewCard.includes('!p.img&&') || !crewCard.includes('p.triggers?')) problems.push('index.html: all pilot cards must show triggers beside portrait or initial once');
+if (!ui.includes('data-detail-host="pilot"') || !ui.includes('data-detail-host="mech"')) problems.push('archive.js: roster detail hosts missing');
+const crewCard = ui.match(/el\("crew-list"\)\.innerHTML=C\.pilots\.map\(p=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
+if (!crewCard || crewCard.includes('p.img&&p.triggers') || crewCard.includes('!p.img&&') || !crewCard.includes('p.triggers?')) problems.push('archive.js: all pilot cards must show triggers beside portrait or initial once');
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
-if (!page.includes('showAtRecord') || !page.includes('toggleRecord')) problems.push('index.html: in-place, toggleable roster selection handler missing');
-if (!page.includes('CURRENT MISSION')) problems.push('index.html: operation card does not render the current-mission link');
-if (!page.includes('showUnit')) problems.push('index.html: unit-level location details missing');
+if (!ui.includes('showAtRecord') || !ui.includes('toggleRecord')) problems.push('archive.js: in-place, toggleable roster selection handler missing');
+if (!ui.includes('CURRENT MISSION')) problems.push('archive.js: operation card does not render the current-mission link');
+if (!ui.includes('showUnit')) problems.push('archive.js: unit-level location details missing');
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
+if (!pilotsPage.includes('id="crew-list"') || !pilotsPage.includes('archive.js')) problems.push('pilots.html: crew roster list or shared archive script missing');
+if (!mechPage.includes('id="mech-list"') || !mechPage.includes('archive.js')) problems.push('mechbay.html: chassis register list or shared archive script missing');
 
 if (problems.length) {
   console.error("campaign.js/index.html: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
