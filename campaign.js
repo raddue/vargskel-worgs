@@ -29,7 +29,7 @@ window.CAMPAIGN = {
   ],
 
   pilots: [
-    { id: "frisky", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
+    { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
       talents: "Hacker 1, Leader 1, Spotter 1",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, Omnihook, Personal Drone" },
@@ -56,7 +56,7 @@ window.CAMPAIGN = {
   ],
 
   mechs: [
-    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "frisky", role: "ECM & C3", glyph: "◢▰◣", img: "assets/sweet-cheeks.png",
+    { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/sweet-cheeks.png",
       state: "OPERATIONAL", hp: 12, eva: 8, spd: 4, tech: "+3", edef: 12,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
