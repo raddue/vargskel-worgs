@@ -59,6 +59,12 @@ const guillaume = C.pilots.find(p => p.id === "guillaume"), sagarmatha = C.mechs
 if (!guillaume || Object.entries({ name: "GUILLAUME “TIZONA” ARAGONEAU", background: "PILOT · LL0 · COLONIST", mech: "xxxg-01h", img: "assets/tizona.png", triggers: "Act Unseen or Unheard (+2), Survive (+2), Take Someone Out (+2), Word on the Street (+2)", gear: "Light Hardsuit, Light Signature, Light A/C, Extra Rations, Sleeping Bag, Wilderness Survival Kit", talents: "Heavy Gunner 1, Spaceborn 1, House Guard 1" }).some(([k,v]) => guillaume[k] !== v)) problems.push('Guillaume pilot record does not match supplied profile');
 if (!sagarmatha || Object.entries({ name: "WAYWARD", frame: "GMS SAGARMATHA", pilot: "guillaume", size: 2, hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 1, stress: 4, heat: 6, repair: 5, attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10, loadout: "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun", systems: "Spaceborn EVA, Custom Paint Job, Pattern-A Smoke Charges, Stable Structure, Personalizations" }).some(([k,v]) => sagarmatha[k] !== v)) problems.push('Wayward mech record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/tizona.png")) problems.push('Tizona portrait missing from assets');
+/* Every roster image needs its webp thumb (roster cards render <picture> webp-first). */
+[...C.pilots, ...C.mechs].forEach(x => {
+  if (!x.img) return;
+  const thumb = x.img.replace(/\.\w+$/, "-thumb.webp");
+  if (!fs.existsSync(__dirname + "/" + thumb)) problems.push(`${x.id}: missing ${thumb} for ${x.img}; regen: magick ${x.img} -resize 480x ${thumb}`);
+});
 const danila = C.pilots.find(p => p.id === "danila"), scooteroo = C.mechs.find(m => m.id === "scooteroo");
 if (!danila || Object.entries({ name: "DANILA “SCOOTER” HOWTER-BOWDEN", background: "PILOT · LL0 · WORKER", mech: "scooteroo", img: "assets/scooter.png", triggers: "Blow Something Up (+2), Invent or Create (+2), Spot (+2), Stay Cool (+2)", gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Sound System, Tertiary Arm, Extra Rations", talents: "Siege Specialist 1, Grease Monkey 1, Walking Armory 1" }).some(([k,v]) => danila[k] !== v)) problems.push('Danila pilot record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter portrait missing from assets');
