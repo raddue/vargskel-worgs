@@ -18,7 +18,7 @@ textarea:focus{outline:1px solid var(--cyan)}
 .tick input:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
 .tick span{font-size:14px}
 .tick input:checked+span{color:var(--muted);text-decoration:line-through}
-.q{border-left:2px solid var(--line);padding-left:11px;color:#e7b49d;font-size:14px;margin:8px 0 0}
+.q{border-left:2px solid var(--line);padding-left:11px;color:var(--rust-light);font-size:14px;margin:8px 0 0}
 .btn{background:var(--panel2);color:var(--muted);border:1px solid var(--line);font:10px var(--mono);
   letter-spacing:.1em;padding:6px 9px;cursor:pointer}
 .btn:hover{color:var(--text);border-color:var(--cyan)}

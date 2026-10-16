@@ -1,0 +1,31 @@
+:root{
+  color-scheme:dark;
+  --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+  --sans:Inter,Segoe UI,Arial,sans-serif;
+  --bg:#0b1014;
+  --panel:#121b21;
+  --panel2:#18242b;
+  --line:#2a3a42;
+  --text:#e6e8df;
+  --muted:#96a6a3;
+  --lime:#c2d57a;
+  --lime-border:#536647;
+  --rust:#d17b59;
+  --rust-light:#e7b49d;
+  --rust-wash:rgba(209,123,89,.07);
+  --cyan:#8fc5c3;
+  --text-soft:#b8c2bc;
+  --report-text:#c4cbc4;
+  --hero-start:#17252b;
+  --hero-glow:#34464a;
+  --hero-mid:#1b292f;
+  --silhouette:#849594;
+  --avatar-bg:#26383d;
+  --thumb-bg:#202e34;
+  --thumb-muted:#718784;
+  --photo-start:#29373b;
+  --photo-muted:#6d807d;
+  --chip-hover:#1b2f35;
+  --holo-bg:#0b1217;
+  --holo-button-bg:#10171c;
+}
