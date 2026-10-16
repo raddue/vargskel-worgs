@@ -28,6 +28,23 @@ const pill=(t,c)=>`<span class="pill" style="border-color:var(--${c});color:var(
 const mechPill=m=>pill(m.state,/^OPERATIONAL/.test(m.state)?"lime":"rust");
 const hpNow=m=>m.hpNow==null?m.hp:m.hpNow;
 const msize=m=>m.size==null?1:m.size;
+const D=()=>window.DETAIL||{};
+const dnote=t=>t?`<div class="muted" style="margin-top:4px;font:10px/1.6 var(--mono)">${esc(t)}</div>`:"";
+const dhead=n=>`<div class="tag" style="margin-top:10px">${esc(n)}</div>`;
+const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
+const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+const ditems=s=>{const out=[];for(const seg of String(s||"").split("·").map(x=>x.trim()).filter(Boolean)){const mm=seg.match(/^[A-Za-z/ ]+:\s*(.+)$/);for(const it of (mm?mm[1]:seg).split("/").map(x=>x.trim()).filter(Boolean))out.push(it);}return out;};
+function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
+ const tal=dnames(p.talents).map(n=>{const t=(d.talents||{})[n];if(!t)return "";return dhead(n)+dnote(t.terse)+(t.ranks||[]).map(r=>dnote("R"+r.rank+" "+r.name+": "+r.description)).join("");}).join("");
+ const sk=dnames(p.triggers).map(s=>{const n=s.replace(/\s*\(\+\d+\)$/,"").trim();const e=(d.skills||{})[n];return e?dhead(n)+dnote(e.description):"";}).join("");
+ const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n)+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
+ return dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:9px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}
+function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
+ const wep=ditems(m.loadout).map(n=>{const w=(d.weapons||{})[n];if(!w)return "";return dhead(n)+dnote([w.mount,w.type,w.damage,w.range,w.tags,w.license].filter(Boolean).join(" · "))+dnote(w.effect);}).join("");
+ const sys=dnames(m.systems).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n)+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
+ const f=(d.frames||{})[m.frame];
+ const fr=f?dhead(m.frame)+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";
+ return dsect("MOUNTED WEAPONS",wep)+dsect("SYSTEMS",sys)+dsect("FRAME",fr);}
 const opPill=o=>pill(o.status,/COMPLETED/.test(o.status)?"lime":"rust");
 const threadPill=t=>pill(t.status,t.status==="ESCALATING"?"rust":"lime");
 const mark=(k,v)=>document.querySelectorAll(".holo-svg .node").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));
@@ -106,7 +123,7 @@ function pilotDossier(id){const p=P[id];if(!p)return notFound("pilot",id);
   `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph||"?")}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:10px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No chassis assigned.</div>`)+
-  `</div></div></section></aside></div>`;
+  `</div></div></section></aside></div>`+detailPilot(p);
 }
 function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
  const p=m.pilot?P[m.pilot]:null,mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id);
@@ -126,7 +143,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
   `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
   (p?`<div class="crew">${p.img?`<div class="mech-thumb"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:10px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No pilot assigned.</div>`)+
-  `</div></div></section></aside></div>`;
+  `</div></div></section></aside></div>`+detailMech(m);
 }
 return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,L,P,M,F};
 })();

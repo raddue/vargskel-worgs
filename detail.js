@@ -1,0 +1,568 @@
+/* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
+   GPL-3.0-or-later (github.com/massif-press/lancer-data). Subset: only items fielded by
+   this campaign; reformatted for display. Campaign content itself is not lancer-data derived. */
+window.DETAIL = {
+ "weapons": {
+  "Nexus (Hunter-Killer)": {
+   "mount": "Main",
+   "type": "Nexus",
+   "damage": "1d6 Kinetic",
+   "range": "Range 10",
+   "tags": "Smart",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Nexus (Light)": {
+   "mount": "Auxiliary",
+   "type": "Nexus",
+   "damage": "1d3 Kinetic",
+   "range": "Range 10",
+   "tags": "Smart",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Missile Rack": {
+   "mount": "Auxiliary",
+   "type": "Launcher",
+   "damage": "1d3+1 Explosive",
+   "range": "Range 10, Blast 1",
+   "tags": "Loading",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Pistol": {
+   "mount": "Auxiliary",
+   "type": "CQB",
+   "damage": "1d3 Kinetic",
+   "range": "Range 5, Threat 3",
+   "tags": "Reliable {VAL} 1",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Charged Blade": {
+   "mount": "Main",
+   "type": "Melee",
+   "damage": "1d3+3 Energy",
+   "range": "Threat 1",
+   "tags": "Armor-Piercing (AP)",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Thermal Lance": {
+   "mount": "Heavy",
+   "type": "Cannon",
+   "damage": "1d6+3 Energy",
+   "range": "Line 10",
+   "tags": "Heat {VAL} (Self) 2",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Heavy Machine Gun": {
+   "mount": "Heavy",
+   "type": "Cannon",
+   "damage": "2d6+4 Kinetic",
+   "range": "Range 8",
+   "tags": "Inaccurate",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Shotgun": {
+   "mount": "Main",
+   "type": "CQB",
+   "damage": "1d6 Kinetic",
+   "range": "Range 5, Threat 3",
+   "tags": "",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Rocket-Propelled Grenade": {
+   "mount": "Main",
+   "type": "Launcher",
+   "damage": "1d6+1 Explosive",
+   "range": "Range 10, Blast 2",
+   "tags": "Loading, Ordnance",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Howitzer": {
+   "mount": "Heavy",
+   "type": "Cannon",
+   "damage": "2d6 Explosive",
+   "range": "Range 20, Blast 2",
+   "tags": "Arcing, Inaccurate, Loading, Ordnance",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Heavy Charged Blade": {
+   "mount": "Heavy",
+   "type": "Melee",
+   "damage": "1d6+3 Energy",
+   "range": "Threat 1",
+   "tags": "Armor-Piercing (AP)",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Tactical Knife": {
+   "mount": "Auxiliary",
+   "type": "Melee",
+   "damage": "1d3+1 Kinetic",
+   "range": "Threat 1",
+   "tags": "Thrown {VAL} 3",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Anti-Materiel Rifle": {
+   "mount": "Heavy",
+   "type": "Rifle",
+   "damage": "2d6 Kinetic",
+   "range": "Range 20",
+   "tags": "Accurate, Armor-Piercing (AP), Loading, Ordnance",
+   "license": "GMS LL0",
+   "effect": ""
+  }
+ },
+ "systems": {
+  "Personalizations": {
+   "sp": 1,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "You gain +2 HP and, in consultation with the GM, you may establish a minor modification you have made to your mech.<br>This mod has no numerical benefit beyond the additional HP it grants, but could provide other useful effects. If the GM agrees that this mod would help with either a pilot or mech skill check, you gain +1 Accuracy for that check."
+  },
+  "Turret Drones": {
+   "sp": 2,
+   "tags": "Limited {VAL} 3, Unique",
+   "license": "GMS LL0",
+   "effect": "Expend a charge to deploy a turret drone that attaches to any object or surface within Sensors and line of sight. Gain the Turret Attack reaction, which can be taken once for each deployed turret drone. Turret drones cannot be recalled and expire at the end of the scene."
+  },
+  "Type-I Flight System": {
+   "sp": 3,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "You may choose to count any and all of your movement as flying; however, you take Size +1 Heat at the end of any of your turns in which you fly this way."
+  },
+  "Type-3 Projected Shield": {
+   "sp": 2,
+   "tags": "Shield, Unique, Heat {VAL} (Self) 1",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Pattern-A Jericho Deployable Cover": {
+   "sp": 2,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "Deploy two sections of Size 1 hard cover in free spaces adjacent to you and to each other. Each section is an object with 5 Evasion and 10 HP that can be targeted and destroyed individually. Sections of cover can be picked up again as a full action.<br>Repairing the system restores both sections."
+  },
+  "COMP/CON-Class Assistant Unit": {
+   "sp": 2,
+   "tags": "AI, Prevent Cascade, Unique",
+   "license": "GMS LL0",
+   "effect": "Your mech has a basic COMP/CON unit, granting it the AI tag. The COMP/CON can speak to you and has a personality, but, unlike an NHP, is not truly capable of independent thought. It is obedient to you alone.<br>You can give control of your mech to its COMP/CON as a protocol, allowing your mech to act independently on your turn with its own set of actions. Unlike other AIs, a mech controlled by a COMP/CON has no independent initiative and requires direct input. Your mech will follow basic courses of action (defend this area, attack this enemy, protect me, etc.) to the best of its ability, or will act to defend itself if its instructions are complete or it receives no further guidance. You can issue new commands at the start of your turn as long as you are within Range 50 and have the means to communicate with your mech. Comp/con units are not true NHPs and thus cannot enter cascade."
+  },
+  "EVA Module": {
+   "sp": 1,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "Your mech has a propulsion system suitable for use in low or zero gravity and underwater environments. In those environments, you can fly and are not Slowed."
+  },
+  "Expanded Compartment": {
+   "sp": 1,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "Your mech has space for one additional non-Mech character or object of Size 1/2 to ride as a passenger in the cockpit. While inside the mech, they cannot suffer any effect from outside or be targeted by attacks, as if they were a pilot. You can hand over or take back control to or from them as a protocol (following the same rules as pilot and AIs), but if they take over the controls from you, the mech becomes Impaired and Slowed to reflect the lack of appropriate licenses and integration."
+  },
+  "Custom Paint Job": {
+   "sp": 1,
+   "tags": "Unique, Indestructible",
+   "license": "GMS LL0",
+   "effect": "When you take structure damage, roll 1d6. On a 6, you return to 1 HP and ignore the damage – the hit simply ‘scratched your paint’.<br>This system can only be used once before each Full Repair, and is not a valid target for system destruction."
+  },
+  "Pattern-A Smoke Charges": {
+   "sp": 2,
+   "tags": "Limited {VAL} 3, Unique, Grenade",
+   "license": "GMS LL0",
+   "effect": ""
+  },
+  "Stable Structure": {
+   "sp": 2,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "You gain +1 Accuracy on saves to avoid Prone or Knockback."
+  },
+  "Ammo Case I": {
+   "sp": 0,
+   "tags": "Limited {VAL} 6, {VAL}/Turn 1",
+   "license": "GMS LL0",
+   "effect": "1/turn, when you attack with a Main ranged weapon, you may expend charges to apply one of the following effects to your attack at the listed cost."
+  },
+  "Manipulators": {
+   "sp": 1,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "Your mech has an extra set of limbs. They are too small to have any combat benefit, but allow the mech to interact with objects that would otherwise be too small or sensitive (e.g., pilot-sized touch pads)."
+  },
+  "Rapid Burst Jump Jet System": {
+   "sp": 2,
+   "tags": "Unique",
+   "license": "GMS LL0",
+   "effect": "You can fly when you Boost; however, you must end the movement on the ground or another solid surface, or else immediately begin falling."
+  }
+ },
+ "talents": {
+  "Hacker": {
+   "terse": "Improve your tech attacks and unlock special Invade options",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "SNOW_CRASH",
+     "description": "When you hit with a tech attack that consumes Lock On, your target must choose to either take 2 Heat or be pushed 3 spaces in a direction of your choice."
+    }
+   ]
+  },
+  "Leader": {
+   "terse": "Improve your allies' rolls during combat with Leadership Dice",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Field Commander",
+     "description": "Gain 3 Leadership Dice, which are d6s, and gain the Issue Order Free Action.<br>You can’t use Leadership Dice from other characters as long as you have any remaining. If you have none, you regain 1 Leadership Die when you rest or regain all when you perform a Full Repair.<br>Leadership dice are consumed when expended."
+    }
+   ]
+  },
+  "Spotter": {
+   "terse": "Improve your Lock On Quick Tech action to empower your allies",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Particularize",
+     "description": "When an allied character adjacent to you attacks a target and consumes Lock On, they may roll twice and choose either result."
+    }
+   ]
+  },
+  "Gunslinger": {
+   "terse": "Make your Auxiliary Ranged weapons deadlier and gain the powerful Gunslinger Die",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Opening Argument",
+     "description": "Gain +1 Accuracy on the first attack roll you make with an Auxiliary ranged weapon on your turn."
+    }
+   ]
+  },
+  "Vanguard": {
+   "terse": "Improve your CQB weapons and make Overwatching more effective",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Handshake Etiquette",
+     "description": "Gain +1 Accuracy when using CQB weapons to attack targets within Range 3."
+    }
+   ]
+  },
+  "Skirmisher": {
+   "terse": "Improve your survivability by automatically gaining cover and evading attacks",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Integrated Chaff Launchers",
+     "description": "At the start of your turn, you gain soft cover. You lose this cover if you attack or force another character to make a save."
+    }
+   ]
+  },
+  "Bonded": {
+   "terse": "Bond with a partner and protect them from harm",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "I’m Your Huckleberry",
+     "description": "When you take this talent, choose another pilot (hopefully a PC, but NPCs are fine if your GM allows it) to be your Bondmate. Any mech skill checks and saves either character makes while you are adjacent gain +1 Accuracy. If both characters have this talent, this increases to +2 Accuracy, but additional characters with this talent can’t increase it any further.<br>Between missions, you can replace your Bondmate with a new one, but only if your relationship with them has changed."
+    }
+   ]
+  },
+  "Grease Monkey": {
+   "terse": "Get more out of Limited systems, repairs, and the Stabilize action",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Unsanctioned Capacity Upgrade",
+     "description": "While resting, you can spend 2 Repairs to replenish 1 use of all Limited weapons and systems."
+    }
+   ]
+  },
+  "Executioner": {
+   "terse": "Improve Heavy and Superheavy Melee attacks with more opportunities to deal damage",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Backswing Cut",
+     "description": "1/round, when you hit with a Heavy or Superheavy melee weapon, you can make another melee attack with the same weapon as a free action against a different character within Threat and line of sight. This attack deals half damage, if successful."
+    }
+   ]
+  },
+  "Heavy Gunner": {
+   "terse": "Pin enemies down with Heavy Ranged weapons",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Covering Fire",
+     "description": "Gain the <b>Covering Fire</b> Quick Action."
+    }
+   ]
+  },
+  "Siege Specialist": {
+   "terse": "Destroy terrain and force enemy movement with Cannon weapons",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Jackhammer",
+     "description": "If you have a Cannon, as a quick action, you can fire a jackhammer round from an underslung launcher, automatically dealing 10 AP Kinetic damage to a Size 1 section of any object within Range (e.g., cover, deployable equipment, buildings, or terrain). Any characters adjacent to your target are knocked back from it by 2 spaces and take 2 Kinetic damage."
+    }
+   ]
+  },
+  "Walking Armory": {
+   "terse": "Gain an Ammo Case to add effects to Main ranged weapons",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Armament",
+     "description": "You carry a supply of custom ammunition that can be used with all your main ranged weapons. Gain the Ammo Case system.<br> Once per turn, when you attack with a MAIN ranged weapon, you may expend one charge to apply one of the following effects to your attack: <ul><li> THUMPER: The attack gains KNOCKBACK 1 and deals Explosive damage.</li><li>SHOCK: The attack deals Energy damage. Choose one character targeted by your attack; adjacent characters take 1 AP Energy Damage, whether the result is a hit or miss.</li><li>MAG: The attack gains ARCING and deals Kinetic damage.</li></ul>"
+    }
+   ]
+  },
+  "Crack Shot": {
+   "terse": "Steady your aim to gain accuracy, bonus damage, and apply debuffs",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Stable, Steady",
+     "description": "As a protocol, you may <b>steady your aim</b>. If you do, you become Immobilized until the start of your next turn but gain +1 Accuracy on all attacks you make with Rifles."
+    }
+   ]
+  },
+  "Infiltrator": {
+   "terse": "Improve your Hide action and perform debilitating sneak attacks",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Prowl",
+     "description": "During your turn, gain the following benefits:<ul><li>Entering line of sight of hostile characters or moving from cover does not stop you from being Hidden.</li><li>You can pass freely through – but not end your turn in – enemy spaces.</li><li>You can Hide even in plain sight of enemies.<br>These effects immediately end when your turn ends (so you lose Hidden if you’re still in line of sight or out of cover at that time).</li></ul>"
+    }
+   ]
+  }
+ },
+ "gear": {
+  "Assault Hardsuit": {
+   "type": "Armor",
+   "bonuses": "+3 HP, +1 ARMOR, 8 EVASION (sets), 8 EDEF (sets), 4 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": "These hardsuits, common among military units, feature heavier plating than light hardsuits but more mobility than heavy hardsuits. They are powered, augmenting the user’s strength, and typically feature an onboard computer, sensor suite, integrated air, burst EVA system, and waste recycling systems."
+  },
+  "Medium Signature": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Set Damage Type, Pilot Weapon",
+   "effect": "Medium signature weapons are assault rifles, shotguns, pack-fed lasers, or disruption guns."
+  },
+  "Light Signature": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Sidearm, Set Damage Type, Pilot Weapon",
+   "effect": "Light signature weapons might be oversized revolvers, braces of pistols, and submachine guns."
+  },
+  "Dataplating": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Dataplating is a general term for any comm-linked jewelry, subdermal netting, wearable jaw, brow, or maxillary plates, etc., that allows subvocal communication and persistent heads-up and augmented reality displays without wearing a helm. Dataplates can quickly translate nearly any language, and allow users to communicate with each other all but silently."
+  },
+  "Omnihook": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A portable – if bulky – omninet terminal that allows for communication, data transfer, and limited hot-spotting. Omnihooks are extremely valuable, although most mech squads have at least one. Tuning an omnihook requires a high level of skill, so they are usually mounted or carried by designated operators."
+  },
+  "Personal Drone": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Small, non-combat drones are a common sight in the field. They’re fairly noisy but can fly about half a mile with good maneuverability before losing signal, relaying audio and visual information as they go."
+  },
+  "Mobility Hardsuit": {
+   "type": "Armor",
+   "bonuses": "10 EVASION (sets), 10 EDEF (sets), 5 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": ""
+  },
+  "Heavy Signature": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Ordnance, Loading, Set Damage Type, Pilot Weapon",
+   "effect": "Heavy signature weapons are missile tubes, heavy lasers, light machine gun, or exotic rifles."
+  },
+  "Wilderness Survival Kit": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "This kit contains many essentials for surviving in hostile environments: a rebreather, water filters, hardsuit patches, backup thermals, a bivouac kit, and so on."
+  },
+  "Antiphoton Visor": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Designed to protect the wearer’s eyes from intense bursts of light, antiphoton visors are commonly found among breach teams and solar-forward operators. They are effective against flash weapons, intense UV light, and incidental charges from energy weapons."
+  },
+  "Smart Scope": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A powerful electronic scope that provides high-resolution magnification up to two miles, and automatically adjusts its reticle for wind, gravity, and pressure. Smart scopes can project their field of vision and all data to the HUD of any networked user. They can also pair with other thermal, optical, or simulated-vision devices to further enhance targeting."
+  },
+  "Heavy Hardsuit": {
+   "type": "Armor",
+   "bonuses": "+3 HP, +2 ARMOR, 6 EVASION (sets), 8 EDEF (sets), 3 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": "The heaviest hardsuits. They are always powered and up-armored with thick, composite armor. Heavy hardsuits often feature integrated weapons, powerful mobility suites, and – by augmenting their user’s strength – allow their user to field much heavier weapons than normal infantry can typically carry. Heavy hardsuits are in decline now that half-size chassis are popular, but they are still common among private militaries and middle-tier Diasporan armed forces."
+  },
+  "Heavy A/C": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Inaccurate, Pilot Weapon",
+   "effect": "Heavy weapons are designed with the augmented strength of hardsuits in mind and include war hammers, mallets, rams, pikes, and heavy two-handed assault swords."
+  },
+  "Tertiary Arm": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A powered third arm mounted on a bracket on the hardsuit. Tertiary arms are powered and controlled using the same neural bridge processes that allow hardsuits to respond to user input. They can be equipped with manipulators to allow for fine motor control, weapons to enhance combat efficacy, or specialty tools."
+  },
+  "Corrective": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Limited {VAL} 1, Gear",
+   "effect": "This clear, plastic-like sheet can be placed over the wounds of severely injured pilots. It instantly begins to stabilize them, injecting medicine and deploying nanites to stitch wounds shut."
+  },
+  "Light Hardsuit": {
+   "type": "Armor",
+   "bonuses": "+3 HP, 10 EVASION (sets), 10 EDEF (sets), 4 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": "Light hardsuits are usually made from reactive, cloth-like weaves, with limited plating and few powered components to maximize mobility. Like other hardsuits, they can be sealed against vacuum, and protect against a decent amount of radiation and other harmful particles."
+  },
+  "Light A/C": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Sidearm, Pilot Weapon",
+   "effect": "Light A/C weapons might be knives, bayonets, punching daggers, and short swords."
+  },
+  "Extra Rations": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Pilot rations aren’t much better than their nautical forerunners – both are variants on hardtack and nutrient paste. Pilots often carry a stash of extra food, or luxuries like chocolate, coffee, alcohol, or preserved goods from their homeworld. These rations can be used to barter or boost morale."
+  },
+  "Sleeping Bag": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Coming in a variety of sizes, sleeping bags are a field necessity. They’re designed to fold out from a hardsuit, fit within a mech’s cockpit, resist fire and changes in temperature, and – when necessary – seal against vacuum."
+  },
+  "Sound System": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Though their tactical utility is questionable, many pilots set up internal speaker systems in their cockpits. This gives them a clear line to their compatriots during combat, along with the ability to play music."
+  },
+  "Stealth Hardsuit": {
+   "type": "Armor",
+   "bonuses": "8 EVASION (sets), 8 EDEF (sets), 4 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": ""
+  },
+  "Archaic Melee": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Archaic, Pilot Weapon",
+   "effect": "These weapons were made using pre-Union alloys and technology, and might be anything from industrial-era steel swords through to stone axes. While they remain widely used on some worlds, archaic weapons used by pilots are usually relics, heirlooms, or ceremonial weapons."
+  },
+  "Camo Cloth": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A square of reactive material that slowly shifts to reflect the surrounding environment, enough to cover a human comfortably. The transition takes about 10 seconds and makes anything hidden underneath very difficult to spot."
+  },
+  "SSC Sylph Undersuit": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "Discovered on Acrimea IV, a biome cultivar world controlled by Smith-Shimano Corpro (SSC), the sylph is an organic lifeform that can seemingly survive in nearly any environment. Using breeding-analogous methods defined by established bioengineering doctrines, SSC developed the sylph undersuit – sterile, living sylphs grown as envelopes and fitted to their owners. The sylph bonds to its wearer, forming a symbiotic relationship: the sylph is sustained by the host’s waste products, in return protecting the host from a range of hostile environmental factors.<br>These semi-biological, skin-tight undersuits can be worn for extended periods. They are translucent, semi-liquid, and able to be stored when not in use, conforming to whatever container they are placed in. They clean the host’s body, aid natural healing processes, and eliminate waste. As desired, segments can become opaque, change color, or take on a new texture. Sylph undersuits can cover the host’s head, sealing against vacuum, providing protection against radiation, and filtering air or liquids, even providing the ability to breathe water for a limited time."
+  },
+  "Thermite Charge": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Limited {VAL} 1, Gear",
+   "effect": ""
+  }
+ },
+ "frames": {
+  "GMS EVEREST": {
+   "source": "GMS",
+   "mechtype": "Balanced",
+   "mounts": "Main / Flex / Heavy",
+   "traits": [
+    {
+     "name": "Initiative",
+     "description": "1/scene the Everest may take any quick action as a free action."
+    },
+    {
+     "name": "Replaceable parts",
+     "description": "While resting, the Everest can be repaired at a rate of 1 Repair per 1 structure damage, instead of 2 Repairs."
+    }
+   ],
+   "core": {
+    "name": "Hyperspec Fuel Injector"
+   }
+  }
+ },
+ "skills": {
+  "Act Unseen or Unheard": {
+   "description": "Get somewhere or do something without detection."
+  },
+  "Get a Hold of Something": {
+   "description": "Acquire temporary or permanent allies, assets, or connections through wealth or social influence."
+  },
+  "Hack or Fix": {
+   "description": "Repair a device or faulty system; alternatively, hack it wide open, or totally wreck, disable or sabotage it."
+  },
+  "Lead or Inspire": {
+   "description": "Give an inspiring speech, or motivate a group of people into action."
+  },
+  "Charm": {
+   "description": "Convince a receptive audience or use leverage (money, power, personal benefit) to get your way."
+  },
+  "Spot": {
+   "description": "Spot details, objects, or people that are hidden or difficult to make out."
+  },
+  "Survive": {
+   "description": "Persevere through harsh, hostile, or unforgiving environments."
+  },
+  "Take Someone Out": {
+   "description": "Kill or disable someone quickly and quietly."
+  },
+  "Assault": {
+   "description": "Take part in direct and overt combat."
+  },
+  "Threaten": {
+   "description": "Use force or threats to make someone do what you want."
+  },
+  "Word on the Street": {
+   "description": "Get gossip, news, or hearsay from the streets, or from a particular social scene."
+  },
+  "Blow Something Up": {
+   "description": "Use explosives to totally wreck something or turn it into an enormous fireball."
+  },
+  "Invent or Create": {
+   "description": "Invent new devices, tools, or approaches to problems."
+  },
+  "Stay Cool": {
+   "description": "Perform a task that requires concentration, dexterity, speed, or precision under pressure."
+  }
+ }
+};
