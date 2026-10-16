@@ -49,7 +49,10 @@ window.CAMPAIGN = {
       triggers: "Blow Something Up (+2), Invent or Create (+2), Spot (+2), Stay Cool (+2)",
       gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Sound System, Tertiary Arm, Extra Rations",
       talents: "Siege Specialist 1, Grease Monkey 1, Walking Armory 1" },
-    { id: "tbh-4", name: "TBH", background: "PILOT · TO BE HIRED", status: "OPEN SLOT", mech: "tbh-4-mech" },
+    { id: "spook", name: "NICOLOSO BENIKO “SPOOK”", background: "PILOT · LL0 · SABOTEUR", status: "ACTIVE", mech: "alba",
+      triggers: "Act Unseen or Unheard (+2), Blow Something Up (+2), Stay Cool (+2), Take Someone Out (+2)",
+      talents: "Crack Shot 1, Infiltrator 1, Skirmisher 1",
+      gear: "Stealth Hardsuit, Heavy Signature, Archaic Melee, Camo Cloth, SSC Sylph Undersuit, Thermite Charge" },
   ],
 
   mechs: [
@@ -77,7 +80,11 @@ window.CAMPAIGN = {
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
       loadout: "Main: Shotgun · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade",
       systems: "Stable Structure, Type-3 Projected Shield, Personalizations, Custom Paint Job" },
-    { id: "tbh-4-mech", name: "TBH", frame: "UNASSIGNED", pilot: "tbh-4", role: "TBD", glyph: "?", state: "NOT ASSIGNED" }
+    { id: "alba", name: "ALBA", frame: "GMS EVEREST", pilot: "spook", role: "SABOTEUR", glyph: "▰", state: "OPERATIONAL", size: 1,
+      hull: 0, agi: 2, sys: 0, eng: 0, structure: 4, hp: 12, armor: 0, stress: 4, heat: 6, repair: 5,
+      attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 5, eva: 10, edef: 8, sens: 10, save: 10,
+      loadout: "Main: Missile Rack · Flex: Pistol / Tactical Knife · Heavy: Anti-Materiel Rifle",
+      systems: "Personalizations, Rapid Burst Jump Jet System, EVA Module, Pattern-A Jericho Deployable Cover" }
   ],
 
   ops: [
