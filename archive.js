@@ -17,6 +17,9 @@ const panelHome=()=>el("holo-detail")||document.body;
 const th=(k,v)=>v==null||v===""?"":`<tr><th scope="row">${k}</th><td>${v}</td></tr>`;
 const table=r=>`<table class="threads-table operation-table"><tbody>${r}</tbody></table>`;
 const chip=(attr,id,label)=>`<button type="button" class="chip" data-${attr}="${esc(id)}">${esc(label)}</button>`;
+const link=(href,label)=>`<a class="chip" href="${esc(href)}">${esc(label)}</a>`;
+const notFound=(kind,id)=>`<div class="card"><div class="card-pad"><div class="tag">NOT FOUND</div><div class="muted">No ${kind} record for "${esc(id)}".</div></div></div>`;
+const initial=name=>name.replace(/\u201c([^\u201d]*)\u201d/g,"$1").trim()[0]||"\u00b7";
 const opLink=o=>`<a href="#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o.title)}</a>`;
 const mechBtn=id=>M[id]?chip("mech",id,M[id].name):"";
 const locBtn=id=>L[id]?chip("loc",id,L[id].name):"";
@@ -63,6 +66,7 @@ function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}
 function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):showUnit(id)}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot]");if(!t)return;
+ if(e.target.closest("a"))return;
  const k=t.dataset.mech?"mech":t.dataset.pilot?"pilot":"loc",v=t.dataset.mech||t.dataset.pilot||t.dataset.loc;
  if(t.closest("#record-detail")){show(k,v);return}
  if(t.matches("article[data-pilot],article[data-mech]")){toggleRecord(t.dataset.pilot?"pilot":"mech",v);return}
@@ -86,12 +90,45 @@ if(el("ops")){el("ops-count").textContent=`MISSION ARCHIVE / ${String(C.ops.leng
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
 if(el("timeline"))el("timeline").innerHTML=C.events.map(ev=>`<li><div class="time">${esc(ev.date)}</div><div class="activity-title">${esc(ev.title)}</div><div class="muted" style="font:10px var(--mono)">${ev.op?`<a href="#op-${esc(ev.op)}">OP ${esc(ev.op)}</a> · `:""}${esc(ev.note)}</div></li>`).join("")||`<li><div class="muted">No deeds filed yet.</div></li>`;
 if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padStart(2,"0")} ACTIVE RECORDS`;
- el("crew-list").innerHTML=C.pilots.map(p=>`<article class="card patrol" data-pilot="${esc(p.id)}"><div class="card-pad"><div class="crew">${p.img?`<div class="mech-thumb"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:`<div class="avatar">${esc(p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").trim()[0])}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div>${p.mech&&M[p.mech]?`<div class="crew-role">CHASSIS: ${esc(M[p.mech].name)}</div>`:""}${p.triggers?`<div class="crew-role">TRIGGERS: ${esc(p.triggers)}</div>`:""}${p.talents?`<div class="crew-role">TALENTS: ${esc(p.talents)}</div>`:""}</div><span class="pill" style="margin-left:auto">${esc(p.status)}</span></div><div data-detail-host="pilot"></div></div></article>`).join("")}
+ el("crew-list").innerHTML=C.pilots.map(p=>`<article class="card patrol" data-pilot="${esc(p.id)}"><div class="card-pad"><div class="crew">${p.img?`<div class="mech-thumb"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:`<div class="avatar">${esc(p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").trim()[0])}</div>`}<div><a class="crew-name" href="pilot.html#${esc(p.id)}">${esc(p.name)}</a><div class="crew-role">${esc(p.background||"")}</div>${p.mech&&M[p.mech]?`<div class="crew-role">CHASSIS: ${esc(M[p.mech].name)}</div>`:""}${p.triggers?`<div class="crew-role">TRIGGERS: ${esc(p.triggers)}</div>`:""}${p.talents?`<div class="crew-role">TALENTS: ${esc(p.talents)}</div>`:""}</div><span class="pill" style="margin-left:auto">${esc(p.status)}</span></div><div data-detail-host="pilot"></div></div></article>`).join("")}
 if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padStart(2,"0")} MECH RECORDS`;
- el("mech-list").innerHTML=C.mechs.map(m=>`<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph)}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="mech-stats"><span>PILOT: ${esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED")}</span>${m.hp!=null&&m.hp!==""?`<span>HP ${esc(hpNow(m))}/${esc(m.hp)} · ARM ${esc(m.armor??"—")} · STRUCT ${esc(m.structure??"—")} · STRESS ${esc(m.stress??"—")} · HEAT ${esc(m.heat??"—")}</span><span>EVA ${esc(m.eva)} · SPD ${esc(m.spd)} · TECH ATK ${esc(m.tech)} · E-DEF ${esc(m.edef)}</span>`:`<span>${esc(m.missing||"")}</span><span>${esc(m.state)}</span>`}</div>${m.loadout?`<div class="muted" style="margin-top:8px;font:10px var(--mono)">${esc(m.loadout)}${m.systems?"<br>Systems: "+esc(m.systems):""}</div>`:""}</div></div><div data-detail-host="mech"></div></article>`).join("")}
+ el("mech-list").innerHTML=C.mechs.map(m=>`<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph)}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><a class="mech-title" href="mech.html#${esc(m.id)}">${esc(m.name)}</a><div class="mech-stats"><span>PILOT: ${esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED")}</span>${m.hp!=null&&m.hp!==""?`<span>HP ${esc(hpNow(m))}/${esc(m.hp)} · ARM ${esc(m.armor??"—")} · STRUCT ${esc(m.structure??"—")} · STRESS ${esc(m.stress??"—")} · HEAT ${esc(m.heat??"—")}</span><span>EVA ${esc(m.eva)} · SPD ${esc(m.spd)} · TECH ATK ${esc(m.tech)} · E-DEF ${esc(m.edef)}</span>`:`<span>${esc(m.missing||"")}</span><span>${esc(m.state)}</span>`}</div>${m.loadout?`<div class="muted" style="margin-top:8px;font:10px var(--mono)">${esc(m.loadout)}${m.systems?"<br>Systems: "+esc(m.systems):""}</div>`:""}</div></div><div data-detail-host="mech"></div></article>`).join("")}
 if(el("faction-list"))el("faction-list").innerHTML=C.factions.map(x=>{const n=filed.filter(o=>o.client===x.id).length;
  return `<div class="faction"><span>${esc(x.name)}</span><span class="muted" style="margin-left:auto;font:10px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,L,P,M,F};
+function pilotDossier(id){const p=P[id];if(!p)return notFound("pilot",id);
+ const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
+ return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div></div>`+
+  (p.img?`<div class="hero-art"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:"")+`</section>`+
+  `<div class="columns"><div class="primary"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
+  th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
+  th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
+  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
+  `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
+  (m?`<div class="mech-card"><div class="mech-thumb">${m.img?`<img src="${esc(m.img)}" alt="${esc(m.name)}">`:esc(m.glyph||"?")}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:10px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
+    :`<div class="muted">No chassis assigned.</div>`)+
+  `</div></div></section></aside></div>`;
+}
+function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
+ const p=m.pilot?P[m.pilot]:null,mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id);
+ return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div></div>`+
+  (m.img?`<div class="hero-art"><img class="hero-mech-img" src="${esc(m.img)}" alt="${esc(m.name)}"></div>`:(m.glyph?`<div class="hero-art"><span class="mech-silhouette">${esc(m.glyph)}</span></div>`:""))+`</section>`+
+  `<div class="columns"><div class="primary"><section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(
+  th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+
+  th("STATIONED",at&&L[at]?esc(L[at].name):"—")+
+  th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
+  th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+
+  th("HEAT · REPAIR",`${esc(m.heat??"—")} · ${esc(m.repair??"—")}`)+
+  th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+
+  th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva??"—")} · ${esc(m.spd??"—")} · ${esc(m.edef??"—")} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+
+  th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech??"—")} · ${esc(m.limitedBonus??"—")}`)+
+  th("LOADOUT",esc(m.loadout||"—"))+th("SYSTEMS",esc(m.systems||"—"))+
+  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"))+
+  `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
+  (p?`<div class="crew">${p.img?`<div class="mech-thumb"><img src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:10px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
+    :`<div class="muted">No pilot assigned.</div>`)+
+  `</div></div></section></aside></div>`;
+}
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

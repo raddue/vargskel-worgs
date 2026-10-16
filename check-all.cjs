@@ -125,6 +125,11 @@ if (!ui.includes('showUnit')) problems.push('archive.js: unit-level location det
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
 if (!pilotsPage.includes('id="crew-list"') || !pilotsPage.includes('archive.js')) problems.push('pilots.html: crew roster list or shared archive script missing');
 if (!mechPage.includes('id="mech-list"') || !mechPage.includes('archive.js')) problems.push('mechbay.html: chassis register list or shared archive script missing');
+const pilotDossierPage = fs.readFileSync(__dirname + "/pilot.html", "utf8");
+const mechDossierPage = fs.readFileSync(__dirname + "/mech.html", "utf8");
+if (!ui.includes('pilotDossier') || !ui.includes('mechDossier')) problems.push('archive.js: per-pilot / per-mech dossier renderers missing');
+if (!pilotDossierPage.includes('id="dossier"') || !pilotDossierPage.includes('archive.js')) problems.push('pilot.html: dossier host or shared archive script missing');
+if (!mechDossierPage.includes('id="dossier"') || !mechDossierPage.includes('archive.js')) problems.push('mech.html: dossier host or shared archive script missing');
 
 if (problems.length) {
   console.error("campaign.js/index.html: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
