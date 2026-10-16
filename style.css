@@ -6,3 +6,4 @@
 /* 5-column readiness table is wider than a phone; scroll the card, not the page */
 #readiness{overflow-x:auto}
 #crew-list article[data-pilot]{display:block}#crew-list article[data-pilot] .card-pad{display:block}.crew:has(.photo-avatar){display:grid;grid-template-columns:94px 1fr;column-gap:13px;row-gap:4px}.crew:has(.photo-avatar) .photo-avatar{grid-row:1 / span 2}.crew:has(.photo-avatar) .crew-role:last-of-type{grid-column:2}.pane-in{animation:pane-in .16s ease-out both}.pane-out{animation:pane-out .12s ease-in both}@keyframes pane-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@keyframes pane-out{to{opacity:0;transform:translateY(-3px)}}@media(prefers-reduced-motion:reduce){.pane-in,.pane-out{animation:none}}
+#record-detail:focus{outline:none}#record-detail:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
