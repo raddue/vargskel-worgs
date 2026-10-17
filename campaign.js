@@ -57,7 +57,7 @@ window.CAMPAIGN = {
 
   mechs: [
     { id: "sweet-cheeks", name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/sweet-cheeks.png",
-      state: "OPERATIONAL", hp: 12, eva: 8, spd: 4, tech: "+3", edef: 12,
+      state: "OPERATIONAL", size: 1, hp: 12, structure: 4, stress: 4, armor: 0, repair: 4, heat: 6, hull: 0, agi: 0, sys: 2, eng: 0, eva: 8, spd: 4, tech: "+3", edef: 12, sens: 15, save: 11, attackBonus: 0, limitedBonus: 0,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
     { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "SKIRMISHER", glyph: "▰▱", img: "assets/tombstone.png",
