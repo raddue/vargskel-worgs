@@ -6,6 +6,7 @@ const C=window.CAMPAIGN;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const byId=a=>Object.fromEntries(a.map(x=>[x.id,x]));
 const L=byId(C.locations),P=byId(C.pilots),M=byId(C.mechs),F=byId(C.factions);
+const legacyPilotId={frisky:"daemon"}; /* pilots renamed after their callsign landed; keep old bookmarks working */
 const ops=[...C.ops].sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
 const filed=ops.filter(o=>o.type!=="PLANNED");
 const threadsOf=id=>C.threads.filter(t=>t.op===id);
@@ -115,7 +116,7 @@ if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padSt
  el("mech-list").innerHTML=C.mechs.map(m=>`<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?`${pic(m.img,m.name)}`:esc(m.glyph)}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><a class="mech-title" href="mech.html#${esc(m.id)}">${esc(m.name)}</a><div class="mech-stats"><span>PILOT: ${esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED")}</span>${m.hp!=null&&m.hp!==""?`<span>HP ${esc(hpNow(m))}/${esc(m.hp)} · ARM ${esc(m.armor??"—")} · STRUCT ${esc(m.structure??"—")} · STRESS ${esc(m.stress??"—")} · HEAT ${esc(m.heat??"—")}</span><span>EVA ${esc(m.eva)} · SPD ${esc(m.spd)} · TECH ATK ${esc(m.tech)} · E-DEF ${esc(m.edef)}</span>`:`<span>${esc(m.missing||"")}</span><span>${esc(m.state)}</span>`}</div>${m.loadout?`<div class="muted" style="margin-top:8px;font:10px var(--mono)">${esc(m.loadout)}${m.systems?"<br>Systems: "+esc(m.systems):""}</div>`:""}</div></div><div data-detail-host="mech"></div></article>`).join("")}
 if(el("faction-list"))el("faction-list").innerHTML=C.factions.map(x=>{const n=filed.filter(o=>o.client===x.id).length;
  return `<div class="faction"><span>${esc(x.name)}</span><span class="muted" style="margin-left:auto;font:10px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
-function pilotDossier(id){const p=P[id];if(!p)return notFound("pilot",id);
+function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div></div>`+
   (p.img?`<div class="hero-art"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div>`:"")+`</section>`+
