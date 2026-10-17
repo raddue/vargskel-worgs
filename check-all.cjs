@@ -151,6 +151,16 @@ if (!ui.includes('pilotDossier') || !ui.includes('mechDossier')) problems.push('
 if (!pilotDossierPage.includes('id="dossier"') || !pilotDossierPage.includes('archive.js')) problems.push('pilot.html: dossier host or shared archive script missing');
 if (!mechDossierPage.includes('id="dossier"') || !mechDossierPage.includes('archive.js')) problems.push('mech.html: dossier host or shared archive script missing');
 
+/* Rendered, not source: a stray literal left inside a card template (e.g. a mis-counted paren)
+   reaches the page as text between tags, which the source regex above cannot see. */
+const listHost = { innerHTML: "" };
+sandbox.document = { getElementById: id => (id === "mech-list" ? listHost : id === "mech-count" ? { textContent: "" } : null), querySelectorAll: () => [], addEventListener: () => {} };
+sandbox.matchMedia = () => ({ matches: false });
+vm.runInContext("(function(){" + ui + "\n})()", sandbox, { filename: "archive.js" }); // IIFE: archive.js declares top-level consts, so a bare second run would collide with the OPORD pass below
+const cardHtml = listHost.innerHTML.split("</article>")[0] || "";
+if (!cardHtml) problems.push("archive.js: mech roster rendered no card");
+else if (/<\/(table|a|div|td|th)>[^<]/.test(cardHtml)) problems.push("archive.js: rendered mech card carries stray text between tags");
+
 /* Crew-facing OPORD: every op with a mission page carries the five-paragraph order, and the
    page mounts the shared renderer. archive.js runs against a stub DOM here so the check reads
    rendered markup rather than trusting the data shape alone. */
