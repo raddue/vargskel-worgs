@@ -21,7 +21,7 @@ const chip=(attr,id,label)=>`<button type="button" class="chip" data-${attr}="${
 const link=(href,label)=>`<a class="chip" href="${esc(href)}">${esc(label)}</a>`;
 const notFound=(kind,id)=>`<div class="card"><div class="card-pad"><div class="tag">NOT FOUND</div><div class="muted">No ${kind} record for "${esc(id)}".</div></div></div>`;
 const initial=name=>name.replace(/\u201c([^\u201d]*)\u201d/g,"$1").trim()[0]||"\u00b7";
-const opLink=o=>`<a href="#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o.title)}</a>`;
+const opLink=o=>`<a href="index.html#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o.title)}</a>`; /* dossiers have no op cards of their own; land on the archive entry */
 const mechBtn=id=>M[id]?chip("mech",id,M[id].name):"";
 const locBtn=id=>L[id]?chip("loc",id,L[id].name):"";
 const pilotBtn=id=>P[id]?chip("pilot",id,P[id].name.replace(/\u201c[^\u201d]*\u201d/g,"").replace(/\s+/g," ").trim()):"";
