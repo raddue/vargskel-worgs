@@ -125,6 +125,12 @@ const page = fs.readFileSync(__dirname + "/index.html", "utf8");
 const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
 const pilotsPage = fs.readFileSync(__dirname + "/pilots.html", "utf8");
 const mechPage = fs.readFileSync(__dirname + "/mechbay.html", "utf8");
+/* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
+const theme = fs.readFileSync(__dirname + "/theme.css", "utf8");
+const faces = [...theme.matchAll(/url\(([^)]+\.woff2)\)/g)].map(m => m[1]);
+if (!faces.length) problems.push("theme.css: no self-hosted font faces declared");
+faces.forEach(f => { if (!fs.existsSync(__dirname + "/" + f)) problems.push(`theme.css: missing font file ${f}`); });
+
 if (!page.includes('id="record-detail"')) problems.push('index.html: in-place record detail pane missing');
 if (!ui.includes('data-detail-host="pilot"') || !ui.includes('data-detail-host="mech"')) problems.push('archive.js: roster detail hosts missing');
 const crewCard = ui.match(/el\("crew-list"\)\.innerHTML=C\.pilots\.map\(p=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";

@@ -14,8 +14,8 @@
 .opord-para{margin-bottom:20px}
 .opord-para:last-child{margin-bottom:0}
 .opord-para>h4{margin:0 0 9px;font:11px var(--mono);letter-spacing:.16em;color:var(--cyan)}
-.opord-body{margin:0;font:12px/1.75 var(--mono);color:var(--report-text)}
-.opord-sub{margin:0;padding-left:26px;list-style:lower-alpha outside;font:12px/1.75 var(--mono);color:var(--report-text)}
+.opord-body{margin:0;font:15px/1.6 var(--sans);color:var(--report-text)}
+.opord-sub{margin:0;padding-left:26px;list-style:lower-alpha outside;font:15px/1.6 var(--sans);color:var(--report-text)}
 .opord-sub>li{margin-bottom:9px}
 .opord-sub>li:last-child{margin-bottom:0}
 .opord-sub b{color:var(--text)}
