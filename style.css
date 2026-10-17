@@ -8,3 +8,20 @@
 #crew-list article[data-pilot]{display:block}#crew-list article[data-pilot] .card-pad{display:block}.crew:has(.photo-avatar){display:grid;grid-template-columns:94px 1fr;column-gap:13px;row-gap:4px}.crew:has(.photo-avatar) .photo-avatar{grid-row:1 / span 2}.crew:has(.photo-avatar) .crew-role:last-of-type{grid-column:2}.pane-in{animation:pane-in .16s ease-out both}.pane-out{animation:pane-out .12s ease-in both}@keyframes pane-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}@keyframes pane-out{to{opacity:0;transform:translateY(-3px)}}@media(prefers-reduced-motion:reduce){.pane-in,.pane-out{animation:none}}
 #record-detail:focus{outline:none}#record-detail:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:99;cursor:zoom-out}.lightbox img{max-width:96vw;max-height:96vh;object-fit:contain}
+/* Crew-facing OPORD: classification banner, numbered five-paragraph body, annexes */
+.opord-class{border:1px solid var(--rust);color:var(--rust);font:10px var(--mono);letter-spacing:.18em;text-align:center;padding:5px;margin-bottom:12px}
+.opord-class:last-child{margin:12px 0 0}
+.opord-para{margin-bottom:20px}
+.opord-para:last-child{margin-bottom:0}
+.opord-para>h4{margin:0 0 9px;font:11px var(--mono);letter-spacing:.16em;color:var(--cyan)}
+.opord-body{margin:0;font:12px/1.75 var(--mono);color:var(--report-text)}
+.opord-sub{margin:0;padding-left:26px;list-style:lower-alpha outside;font:12px/1.75 var(--mono);color:var(--report-text)}
+.opord-sub>li{margin-bottom:9px}
+.opord-sub>li:last-child{margin-bottom:0}
+.opord-sub b{color:var(--text)}
+.opord-lines{margin:6px 0 0;padding-left:24px;list-style:none;counter-reset:opord}
+.opord-lines>li{margin-bottom:5px;counter-increment:opord}
+.opord-lines>li:before{content:"(" counter(opord) ") ";color:var(--muted)}
+/* annex tables are wider than a phone; scroll the card, not the page */
+.opord-annex{overflow-x:auto}
+.opord-annex .threads-table{margin-top:12px}

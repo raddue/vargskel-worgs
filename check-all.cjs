@@ -141,6 +141,34 @@ if (!ui.includes('pilotDossier') || !ui.includes('mechDossier')) problems.push('
 if (!pilotDossierPage.includes('id="dossier"') || !pilotDossierPage.includes('archive.js')) problems.push('pilot.html: dossier host or shared archive script missing');
 if (!mechDossierPage.includes('id="dossier"') || !mechDossierPage.includes('archive.js')) problems.push('mech.html: dossier host or shared archive script missing');
 
+/* Crew-facing OPORD: every op with a mission page carries the five-paragraph order, and the
+   page mounts the shared renderer. archive.js runs against a stub DOM here so the check reads
+   rendered markup rather than trusting the data shape alone. */
+const SMEAC = ["SITUATION", "MISSION", "EXECUTION", "SUSTAINMENT", "COMMAND AND SIGNAL"];
+C.ops.forEach(o => {
+  if (!o.mission) return;
+  const page = fs.readFileSync(__dirname + "/" + o.mission.href, "utf8");
+  const mount = page.match(/id="opord" data-op="([^"]+)"/);
+  if (!mount) problems.push(`${o.mission.href}: OPORD host id="opord" data-op="${o.id}" missing`);
+  if (!page.includes("archive.js")) problems.push(`${o.mission.href}: shared archive script missing`);
+  const titles = ((o.opord || {}).paras || []).map(p => p[0]);
+  SMEAC.forEach(t => { if (!titles.includes(t)) problems.push(`op ${o.id}: opord missing paragraph "${t}"`); });
+  if (!mount || !o.opord) return;
+  const host = { dataset: { op: mount[1] }, innerHTML: "" };
+  sandbox.document = { getElementById: id => (id === "opord" ? host : null), querySelectorAll: () => [], addEventListener: () => {} };
+  sandbox.matchMedia = () => ({ matches: true });
+  vm.runInContext(ui, sandbox, { filename: "archive.js" });
+  const html = host.innerHTML;
+  SMEAC.forEach((t, i) => { if (!html.includes(`${i + 1}. ${t}`)) problems.push(`op ${o.id}: rendered OPORD missing heading "${i + 1}. ${t}"`); });
+  if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing the generated task-org annex`);
+  o.crew.forEach(id => {
+    const p = C.pilots.find(x => x.id === id);
+    const cs = p && (p.name.match(/\u201c([^\u201d]*)\u201d/) || [])[1];
+    if (cs && !html.includes(cs)) problems.push(`op ${o.id}: callsign ${cs} missing from the rendered task-org annex`);
+  });
+  if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
+});
+
 if (problems.length) {
   console.error("campaign.js/index.html: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
   process.exit(1);

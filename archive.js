@@ -108,6 +108,27 @@ if(el("ops")){el("ops-count").textContent=`MISSION ARCHIVE / ${String(C.ops.leng
  return `<details class="card patrol" id="op-${esc(o.id)}"><summary class="card-pad"><div class="mission-row"><div><div class="tag"><span class="op-caret" aria-hidden="true"></span>OPERATION ${esc(o.id)} · ${esc(o.type)}</div><h3 class="mission-title">${esc(o.title)}</h3><div class="muted">CLIENT: ${o.client?esc(F[o.client].name.toUpperCase()):"NONE"} · AREA: ${esc(l.name)}${par?" ("+esc(par.name)+")":""}</div></div>${opPill(o)}</div></summary><div class="card-pad op-body">`+table(
   th("LOCATION",esc(l.name+" · "+l.kind))+th("OVERVIEW",esc(o.summary||""))+th("CURRENT MISSION",o.mission?`<a class="chip" href="${esc(o.mission.href)}">${esc(o.mission.title)} →</a>`:"")+th("CREW",(o.crew||[]).map(pilotBtn).join("")||"None")+th("MECHS",(o.mechs||[]).map(mechBtn).join("")||(o.type==="PLANNED"?"":"None deployed"))+
   th("ROUNDS",o.rounds==null?"":esc(o.rounds))+th("OUTCOME",esc(o.outcome))+th("LEFT HANGING",open.map(t=>esc(t.text)+(t.status!=="OPEN"?" ("+esc(t.status)+")":"")).join("<br>")||"Nothing open")+th("FILED",esc(o.date)))+`</div></details>`}).join("")}
+/* Crew-facing OPORD: rendered from the op record so any mission page reuses one shape.
+   Annex A (task org + callsigns) is generated from the roster; the rest is op.opord data. */
+const callsign=n=>(String(n).match(/\u201c([^\u201d]*)\u201d/)||[,""])[1]||"\u2014";
+const opLine=t=>`<li>${esc(t)}</li>`;
+const opSub=s=>`<li>${s[0]?`<b>${esc(s[0])}.</b> `:""}${Array.isArray(s[1])?`<ol class="opord-lines">${s[1].map(opLine).join("")}</ol>`:esc(s[1])}</li>`;
+const opBody=b=>Array.isArray(b)?`<ol class="opord-sub">${b.map(opSub).join("")}</ol>`:`<p class="opord-body">${esc(b)}</p>`;
+const opAnnex=(letter,title,inner)=>`<div class="card opord-annex"><div class="card-pad"><div class="tag">ANNEX ${esc(letter)} \u00b7 ${esc(title)}</div>${inner}</div></div>`;
+const opTaskOrg=o=>`<table class="threads-table"><thead><tr><th>CALLSIGN</th><th>PILOT</th><th>CHASSIS</th><th>FRAME \u00b7 SIZE</th><th>ROLE</th></tr></thead><tbody>`+
+ (o.crew||[]).map(id=>{const p=P[id];if(!p)return "";const m=p.mech?M[p.mech]:null;
+ return `<tr><td>${esc(callsign(p.name))}</td><td>${link("pilot.html#"+p.id,p.name)}</td><td>${m?link("mech.html#"+m.id,m.name):"\u2014"}</td><td>${m?esc(m.frame+" \u00b7 SIZE "+msize(m)):"\u2014"}</td><td>${esc(m&&m.role||"")}</td></tr>`}).join("")+"</tbody></table>";
+function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=i=>"ABCDEFGH"[i]||String(i+1);
+ return `<div class="opord-class">${esc(d.class)}</div>`+
+ `<div class="card"><div class="card-pad"><div class="tag">OPERATION ORDER \u00b7 OP ${esc(o.id)} \u00b7 ${esc(o.title)}</div><h3 class="mission-title">${esc(d.no)}</h3>`+table(
+ th("ISSUING HQ",esc(d.hq))+th("DTG OF ORDER",esc(d.dtg))+th("H-HOUR",esc(d.hhour))+th("REFERENCES",br(d.refs))+
+ th("DISTRIBUTION",br(d.distribution))+th("STATUS",opPill(o)))+`</div></div>`+
+ `<div class="card"><div class="card-pad">`+d.paras.map((p,i)=>`<div class="opord-para"><h4>${i+1}. ${esc(p[0])}</h4>${opBody(p[1])}</div>`).join("")+`</div></div>`+
+ opAnnex(letter(0),"TASK ORGANIZATION AND CALLSIGNS",opTaskOrg(o))+
+ d.annexes.map((a,i)=>opAnnex(letter(i+1),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`)).join("")+
+ `<div class="opord-class">${esc(d.class)}</div>`;}
+if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
+ host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
 if(el("timeline"))el("timeline").innerHTML=C.events.map(ev=>`<li><div class="time">${esc(ev.date)}</div><div class="activity-title">${esc(ev.title)}</div><div class="muted" style="font:10px var(--mono)">${ev.op?`<a href="#op-${esc(ev.op)}">OP ${esc(ev.op)}</a> · `:""}${esc(ev.note)}</div></li>`).join("")||`<li><div class="muted">No deeds filed yet.</div></li>`;
 if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padStart(2,"0")} ACTIVE RECORDS`;
