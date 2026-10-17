@@ -89,7 +89,7 @@ window.CAMPAIGN = {
 
   ops: [
     { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: null, status: "UNBRIEFED",
-      date: "5016U · D---", crew: [], mechs: [], rounds: null,
+      date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["sweet-cheeks", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
       outcome: "Campaign starting. First drop: Nov Elysia." }
