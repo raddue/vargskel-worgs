@@ -135,6 +135,8 @@ if (!page.includes('id="record-detail"')) problems.push('index.html: in-place re
 if (!ui.includes('data-detail-host="pilot"') || !ui.includes('data-detail-host="mech"')) problems.push('archive.js: roster detail hosts missing');
 const crewCard = ui.match(/el\("crew-list"\)\.innerHTML=C\.pilots\.map\(p=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
 if (!crewCard || crewCard.includes('p.img&&p.triggers') || crewCard.includes('!p.img&&') || !crewCard.includes('p.triggers?')) problems.push('archive.js: all pilot cards must show triggers beside portrait or initial once');
+const mechCard = ui.match(/el\("mech-list"\)\.innerHTML=C\.mechs\.map\(m=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
+if (!mechCard.includes('th("PILOT"') || !mechCard.includes('th("LOADOUT"') || !mechCard.includes('th("SYSTEMS"') || /STRUCT|STRESS|HEAT|EVA /.test(mechCard)) problems.push('archive.js: mech roster card must show key/value rows (PILOT/ROLE/STATE/LOADOUT/SYSTEMS) and leave numeric stats to the mech detail');
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
 if (!ui.includes('showAtRecord') || !ui.includes('toggleRecord')) problems.push('archive.js: in-place, toggleable roster selection handler missing');
