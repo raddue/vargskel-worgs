@@ -149,6 +149,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
     :`<div class="muted">No pilot assigned.</div>`)+
   `</div></div></section></aside></div>`+detailMech(m);
 }
+lightbox();
 return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,L,P,M,F};
 })();
 
@@ -184,4 +185,3 @@ if ("IntersectionObserver" in window) {
   }, { threshold: [0, .25, .5, .75, 1] });
   cards.forEach(card => observer.observe(card));
 }
-lightbox();
