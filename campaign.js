@@ -9,7 +9,10 @@ window.CAMPAIGN = {
     unit: "VW-01",
     name: "VARGSKEL WORGS",
     tagline: "Operational record of contracts, deployments, and assigned personnel.",
-    updated: "5016U · D071"
+    updated: "5016U · D071",
+    /* Where the lance is mustered between deployments. Read by the dossier when no filed
+    operation places a chassis; a filed op supersedes it. */
+    station: "UNS RIO GRANDE"
   },
 
   locations: [

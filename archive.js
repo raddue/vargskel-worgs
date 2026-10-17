@@ -74,7 +74,7 @@ function showUnit(id){const l=L[id];if(!l||!panel())return;const here=filed.filt
 function showMech(id){const m=M[id];if(!m||!panel())return;const mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id),nf="NOT FILED";
  mark("mech",id);
  panel().innerHTML=`<div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h3 class="mission-title">${esc(m.name)}</h3>`+table(
-  th("PILOT",pilotBtn(m.pilot))+th("STATE",esc(m.state))+th("STATIONED",at?locBtn(at):"")+
+  th("PILOT",pilotBtn(m.pilot))+th("STATE",esc(m.state))+th("STATIONED",at?locBtn(at):C.meta.station?esc(C.meta.station):"")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:nf)+th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+
   th("HEAT · REPAIR",`${esc(m.heat??"—")} · ${esc(m.repair??"—")}`)+th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+th("REPAIR",m.repair??"—")+th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva)} · ${esc(m.spd)} · ${esc(m.edef)} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech)} · ${esc(m.limitedBonus??"—")}`)+
   th("LOADOUT",esc(m.loadout||""))+th("SYSTEMS",esc(m.systems||""))+
@@ -150,13 +150,17 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
     :`<div class="muted">No chassis assigned.</div>`)+
   `</div></div></section></aside></div>`+detailPilot(p);
 }
+/* The mech dossier's aside runs short against the chassis file; the pilot's own rows fill it. */
+const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
+ th("STATUS",pill(p.status,"lime"))+th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
+ th("DEPLOYED",pilotOps(p.id).reverse().map(opLink).join("<br>")||"Never"))+`</div></div></section>`:"";
 function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
  const p=m.pilot?P[m.pilot]:null,mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id);
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div></div>`+
   (m.img?`<div class="hero-art"><img class="hero-mech-img" src="${esc(m.img)}" alt="${esc(m.name)}"></div>`:(m.glyph?`<div class="hero-art"><span class="mech-silhouette">${esc(m.glyph)}</span></div>`:""))+`</section>`+
   `<div class="columns"><div class="primary"><section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(
   th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+
-  th("STATIONED",at&&L[at]?esc(L[at].name):"—")+
+  th("STATIONED",at&&L[at]?esc(L[at].name):C.meta.station?esc(C.meta.station):"—")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
   th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+
   th("HEAT · REPAIR",`${esc(m.heat??"—")} · ${esc(m.repair??"—")}`)+
@@ -167,8 +171,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"))+
   `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
   (p?`<div class="crew">${p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:10px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
-    :`<div class="muted">No pilot assigned.</div>`)+
-  `</div></div></section></aside></div>`+detailMech(m);
+    :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }
 lightbox();
 return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,L,P,M,F};
