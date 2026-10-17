@@ -75,7 +75,7 @@ window.CAMPAIGN = {
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
       loadout: "Main: Shotgun · Flex: Rocket-Propelled Grenade · Heavy: Howitzer",
       systems: "Ammo Case I, Type-3 Projected Shield, Manipulators, Stable Structure, EVA Module" },
-    { id: "skaldr", name: "SKALDR", frame: "GMS EVEREST", pilot: "sten", role: "SKIRMISHER", glyph: "▰", state: "OPERATIONAL", size: 1,
+    { id: "skaldr", name: "SKALDR", frame: "GMS EVEREST", pilot: "sten", role: "SKIRMISHER", glyph: "▰", img: "assets/skaldr.png", state: "OPERATIONAL", size: 1,
       hull: 2, agi: 0, sys: 0, eng: 0, hp: 16, structure: 4, stress: 4, armor: 0, heat: 6, repair: 6,
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
       loadout: "Main: Shotgun · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade",
