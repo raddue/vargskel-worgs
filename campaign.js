@@ -117,6 +117,12 @@ window.CAMPAIGN = {
           "VW-01 CONTRACT SOLSTICE RAIN — tasking, rules of engagement, payment terms",
           "FOB SABER RENDEZVOUS INSTRUCTIONS — Amanta Motors plant, industrial district"],
         distribution: ["VW-01 (six pilots)", "RIO GRANDE DECK OPS", "FOB SABER"],
+        vips: [
+          { name: "CAPTAIN FARRIS", role: "UNION DELEGATION · SHIP CAPTAIN", img: "assets/captain-farris-thumb.webp",
+            blurb: "Captain of the Union delegation's ship, last photographed on her own command deck before the talks collapsed. Missing in the central district since; deck ops holds her chair until she is aboard. Extraction priority one." },
+          { name: "AMBASSADOR BANNERJEE", role: "UNION DELEGATION · LEAD NEGOTIATOR", img: "assets/ambassador-bannerjee-thumb.webp",
+            blurb: "Lead negotiator of the Cressidium peace talks, photographed at the Nov Elysia spaceport before the collapse. The peace holds only as long as his signature does, which is why both sides want him. Missing in the central district since. Extraction priority one." }
+        ],
 
         paras: [
           ["SITUATION", [
