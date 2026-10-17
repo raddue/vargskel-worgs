@@ -49,7 +49,7 @@ window.CAMPAIGN = {
       triggers: "Blow Something Up (+2), Invent or Create (+2), Spot (+2), Stay Cool (+2)",
       gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Sound System, Tertiary Arm, Extra Rations",
       talents: "Siege Specialist 1, Grease Monkey 1, Walking Armory 1" },
-    { id: "spook", name: "NICOLOSO “SPOOK” BENIKO", background: "PILOT · LL0 · SABOTEUR", status: "ACTIVE", mech: "alba",
+    { id: "spook", name: "NICOLOSO “SPOOK” BENIKO", background: "PILOT · LL0 · SABOTEUR", status: "ACTIVE", mech: "alba", img: "assets/spook.png",
       triggers: "Act Unseen or Unheard (+2), Blow Something Up (+2), Stay Cool (+2), Take Someone Out (+2)",
       talents: "Crack Shot 1, Infiltrator 1, Skirmisher 1",
       gear: "Stealth Hardsuit, Heavy Signature, Archaic Melee, Camo Cloth, SSC Sylph Undersuit, Thermite Charge" },
