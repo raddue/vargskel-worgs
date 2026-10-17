@@ -152,6 +152,9 @@ C.ops.forEach(o => {
   const mount = page.match(/id="opord" data-op="([^"]+)"/);
   if (!mount) problems.push(`${o.mission.href}: OPORD host id="opord" data-op="${o.id}" missing`);
   if (!page.includes("archive.js")) problems.push(`${o.mission.href}: shared archive script missing`);
+  [...new Set([...page.matchAll(/assets\/[\w.-]+/g)].map(m => m[0]))].forEach(a => {
+    if (!fs.existsSync(__dirname + "/" + a)) problems.push(`${o.mission.href}: references missing ${a}`);
+  });
   const titles = ((o.opord || {}).paras || []).map(p => p[0]);
   SMEAC.forEach(t => { if (!titles.includes(t)) problems.push(`op ${o.id}: opord missing paragraph "${t}"`); });
   if (!mount || !o.opord) return;

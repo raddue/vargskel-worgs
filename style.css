@@ -27,3 +27,7 @@
    annex 1px of phantom overflow and permanent scrollbars. Same split as #readiness. */
 .opord-annex .card-pad{overflow-x:auto}
 .opord-annex .threads-table{margin-top:12px}
+/* Planet art ships with opaque black space around the disc: screen-blend it so the panel's
+   radial glow shows through instead of a black square. filter:none because a drop-shadow
+   would otherwise draw a square shadow from that same black background. */
+.hero-planet{mix-blend-mode:screen;filter:none}
