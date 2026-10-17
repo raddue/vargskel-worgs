@@ -93,6 +93,11 @@ window.CAMPAIGN = {
   ops: [
     { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: "union", status: "UNBRIEFED",
       date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["sweet-cheeks", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
+      /* Mission-page conflict history, rendered above the OPORD. Original copy from facts the
+      site already publishes: do not lift prose from the Solstice Rain adventure text. */
+      history: ["Cressidium sits on the periphery — one inhabited world at the far edge of Union's reach, dark to the charts long enough that its recontact is still recent. What Union found on its return was a world already split: the Vestan Sovereignty holding the cities and the industrial districts, the Leandric States Alliance holding the coast and the trade lanes, and no patience left on either side. Nov Elysia is the seam between them, a frontier city under Vestan control and the only real foothold Union has on the planet.",
+        "Union came back to talk rather than to fight. A delegation went down with the UNS Rio Grande in orbit behind it, to put both sides at a table and bring Cressidium into some settled relationship with the wider human sphere — and those talks were the only thing holding the peace. When they collapsed, they collapsed into open war: VSAF moving on the city, Leandric units holding inside it, and two Union principals missing in the central district before anyone could reach them. The Worgs are on contract because Union would rather pay a lance than commit a fleet to a periphery world."],
+
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
       outcome: "Campaign starting. First drop: Nov Elysia.",

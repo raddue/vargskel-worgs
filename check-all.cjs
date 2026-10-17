@@ -159,8 +159,10 @@ C.ops.forEach(o => {
   const titles = ((o.opord || {}).paras || []).map(p => p[0]);
   SMEAC.forEach(t => { if (!titles.includes(t)) problems.push(`op ${o.id}: opord missing paragraph "${t}"`); });
   if (!mount || !o.opord) return;
-  const host = { dataset: { op: mount[1] }, innerHTML: "" };
-  sandbox.document = { getElementById: id => (id === "opord" ? host : null), querySelectorAll: () => [], addEventListener: () => {} };
+  const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" };
+  if (!page.includes('id="conflict-history"')) problems.push(`${o.mission.href}: conflict-history host missing`);
+  if (!Array.isArray(o.history) || !o.history.length || o.history.some(h => typeof h !== "string" || !h.length)) problems.push(`op ${o.id}: conflict history must be a non-empty list of paragraphs`);
+  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : null), querySelectorAll: () => [], addEventListener: () => {} };
   sandbox.matchMedia = () => ({ matches: true });
   vm.runInContext(ui, sandbox, { filename: "archive.js" });
   const html = host.innerHTML;
@@ -172,6 +174,7 @@ C.ops.forEach(o => {
     if (cs && !html.includes(cs)) problems.push(`op ${o.id}: callsign ${cs} missing from the rendered task-org annex`);
   });
   if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
+  if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
 });
 
 if (problems.length) {

@@ -127,6 +127,10 @@ function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=
  opAnnex(letter(0),"TASK ORGANIZATION AND CALLSIGNS",opTaskOrg(o))+
  d.annexes.map((a,i)=>opAnnex(letter(i+1),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`)).join("")+
  `<div class="opord-class">${esc(d.class)}</div>`;}
+/* Mission-page conflict history: the op record carries the copy, the page carries the head. */
+const histHost=el("conflict-history");
+if(histHost){const o=C.ops.find(x=>String(x.id)===histHost.dataset.op);
+ histHost.innerHTML=o&&o.history&&o.history.length?`<div class="card"><div class="card-pad">`+o.history.map(p=>`<p>${esc(p)}</p>`).join("")+`</div></div>`:"";}
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
  host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
