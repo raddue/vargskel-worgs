@@ -22,6 +22,8 @@
 .opord-lines{margin:6px 0 0;padding-left:24px;list-style:none;counter-reset:opord}
 .opord-lines>li{margin-bottom:5px;counter-increment:opord}
 .opord-lines>li:before{content:"(" counter(opord) ") ";color:var(--muted)}
-/* annex tables are wider than a phone; scroll the card, not the page */
-.opord-annex{overflow-x:auto}
+/* Annex A table is wider than a phone: scroll the pad, not the card. The card carries the
+   .card::after border sweep at inset:-1px, so making the card the scroll box gives every
+   annex 1px of phantom overflow and permanent scrollbars. Same split as #readiness. */
+.opord-annex .card-pad{overflow-x:auto}
 .opord-annex .threads-table{margin-top:12px}
