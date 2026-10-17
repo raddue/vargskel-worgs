@@ -121,7 +121,7 @@ const opTaskOrg=o=>`<table class="threads-table"><thead><tr><th>CALLSIGN</th><th
 function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=i=>"ABCDEFGH"[i]||String(i+1);
  return `<div class="opord-class">${esc(d.class)}</div>`+
  `<div class="card"><div class="card-pad"><div class="tag">OPERATION ORDER \u00b7 OP ${esc(o.id)} \u00b7 ${esc(o.title)}</div><h3 class="mission-title">${esc(d.no)}</h3>`+table(
- th("ISSUING HQ",esc(d.hq))+th("DTG OF ORDER",esc(d.dtg))+th("H-HOUR",esc(d.hhour))+th("REFERENCES",br(d.refs))+
+ th("ISSUING HQ",esc(d.hq))+th("CLIENT",o.client&&F[o.client]?esc(F[o.client].name.toUpperCase()):"NONE")+th("DTG OF ORDER",esc(d.dtg))+th("H-HOUR",esc(d.hhour))+th("REFERENCES",br(d.refs))+
  th("DISTRIBUTION",br(d.distribution))+th("STATUS",opPill(o)))+`</div></div>`+
  `<div class="card"><div class="card-pad">`+d.paras.map((p,i)=>`<div class="opord-para"><h4>${i+1}. ${esc(p[0])}</h4>${opBody(p[1])}</div>`).join("")+`</div></div>`+
  opAnnex(letter(0),"TASK ORGANIZATION AND CALLSIGNS",opTaskOrg(o))+

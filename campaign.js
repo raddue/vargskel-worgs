@@ -28,7 +28,7 @@ window.CAMPAIGN = {
   factions: [
     { id: "vestan",   name: "Vestan Civic Council",     standing: "NEUTRAL", zone: { x: 38, y: 44, rx: 170, ry: 115, c: "cyan" } },
     { id: "leandric", name: "Leandric States Alliance", standing: "UNKNOWN", zone: { x: 60, y: 68, rx: 120, ry: 80,  c: "lime" } },
-    { id: "union",    name: "Union Delegation",         standing: "UNKNOWN", zone: { x: 86, y: 64, rx: 100, ry: 90,  c: "rust" } }
+    { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { x: 86, y: 64, rx: 100, ry: 90,  c: "rust" } }
   ],
 
   pilots: [
@@ -91,7 +91,7 @@ window.CAMPAIGN = {
   ],
 
   ops: [
-    { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: null, status: "UNBRIEFED",
+    { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: "union", status: "UNBRIEFED",
       date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["sweet-cheeks", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
