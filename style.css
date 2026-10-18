@@ -67,3 +67,33 @@
 .p-card{display:inline-flex;align-items:center;gap:8px;margin:0 12px 6px 0}
 .p-face{width:44px;height:44px;flex-shrink:0;border:1px solid var(--line);background:var(--thumb-bg);display:grid;place-items:center;overflow:hidden}
 .p-face img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* INTEL console (docs/plans/2026-10-18-intel-console-tabs-design.md): the pagebar carries the page
+   identity and the tab strip, so the map takes the vertical room the hero used to hold. */
+.pagebar{position:sticky;top:0;z-index:30;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:14px 28px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+.pagebar h1{margin:2px 0 0;font-size:clamp(22px,3vw,34px)}
+.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.tab{font:12px var(--mono);letter-spacing:.12em;padding:10px 14px;background:none;border:1px solid var(--line);border-bottom:0;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--text);border-color:var(--cyan);box-shadow:inset 0 -2px 0 var(--cyan)}
+.tabpanel[hidden]{display:none}
+.readout{padding:18px 28px 0}
+/* Rows read as a grid of label/value pairs so the map stays above the fold on a laptop; the
+   honesty footer spans the whole width under them. */
+.readout table{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0 28px}
+.readout tbody{display:contents}
+.readout tr{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px;align-items:start}
+.readout th,.readout td{padding:7px 0;border-top:1px solid var(--line)}
+.readout th{white-space:nowrap}
+.maphead{display:flex;gap:6px;justify-content:flex-end;padding:14px 28px 0}
+.level{font:12px var(--mono);letter-spacing:.12em;padding:8px 14px;background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer}
+main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .level[data-level="SYSTEM"]{color:var(--text);border-color:var(--cyan)}
+#tab-map .holo-view{min-height:clamp(380px,64vh,760px)}
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:0 28px 28px}
+.badge-insertion,.badge-rendezvous,.badge-extraction,.badge-muster,.badge-hostile{display:inline-block;margin:2px 3px}
+.badge-hostile .chip{border-color:var(--rust);color:var(--rust)}
+.badge-insertion .chip,.badge-rendezvous .chip{border-color:var(--cyan)}
+.badge-muster .chip{border-color:var(--lime)}
+.node.badge-insertion>circle:first-child,.node.badge-extraction>circle:first-child{stroke:var(--cyan);stroke-width:1.5;stroke-dasharray:4 4;fill:transparent}
+.node.badge-rendezvous>circle:first-child{stroke:var(--cyan);stroke-width:1.5;fill:transparent}
+.node.badge-hostile>circle:first-child{stroke:var(--rust);stroke-width:1.5;fill:transparent}
+.node.badge-muster>circle:first-child{stroke:var(--lime);stroke-width:1.5;fill:transparent}

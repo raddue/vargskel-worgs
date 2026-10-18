@@ -105,8 +105,11 @@ function holomap(level){
   return `<circle cx="${X(p)}" cy="${Y(p)}" r="${Math.round(Math.hypot(X(l)-X(p),Y(l)-Y(p)))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
  /* A framed site is not its own node in the frame above it: it hangs under the body it sits on. */
  const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
- const nodes=here.map(l=>{const hosts=hostsOf(l.id);
-  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
+ /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
+    hostile areas and the muster hull. situation() owns the roles, the map only draws them. */
+ const marks=new Map(situation().badges.map(b=>[b.loc,b.role]));
+ const nodes=here.map(l=>{const hosts=hostsOf(l.id),role=marks.get(l.id);
+  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}${role?" badge-"+role:""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${role?", "+esc(role)+" ground":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
  const kinds=here.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
   +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
@@ -164,11 +167,9 @@ function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",p.mech?mechBtn(p.mech):"None assigned")+
   th("TRIGGERS",esc(p.triggers||""))+th("TALENTS",esc(p.talents||""))+th("GEAR",esc(p.gear||""))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}
-function showPerson(id){const p=N[id];if(!p||!panel())return;
+function showPerson(id){if(!N[id]||!panel())return;
  mark("person",id);
- panel().innerHTML=`<div class="tag">PERSONNEL RECORD</div><h3 class="mission-title">${esc(p.name)}</h3>`+table(
-  th("ROLE",esc(p.role))+th("FACTION",F[p.faction]?esc(F[p.faction].name):"")+th("STATUS",pill(p.status,p.status==="MISSING"?"rust":"lime"))+
-  th("LAST KNOWN",locBtn(p.lastKnown))+th("KNOWN OPS",p.ops.map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>")||"None recorded")+th("NOTES",esc(p.notes)));}
+ panel().innerHTML=personFile(id)}
 function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):kind==="person"?showPerson(id):showUnit(id)}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot],[data-person]");if(!t)return;
  if(e.target.closest("a"))return;
@@ -240,8 +241,7 @@ if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padS
 if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padStart(2,"0")} MECH RECORDS`;
  el("mech-list").innerHTML=C.mechs.map(m=>{const mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),nf="NOT FILED";
  return `<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph)}</span></div>`}</div><div class="mech-id"><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><a class="mech-title" href="mech.html#${esc(m.id)}">${esc(m.name)}</a>${table(th("PILOT",esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED"))+th("ROLE",esc(m.role||""))+th("STATE",`${esc(m.state??"")}${m.missing?` \u00b7 ${esc(m.missing)}`:""}`)+th("LOADOUT",esc(m.loadout||""))+th("SYSTEMS",esc(m.systems||"")))}<div style="margin-top:8px">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div><div class="mech-matrix">${table(th("STATIONED",at?esc(L[at].name):C.meta.station?esc(C.meta.station):"")+(m.conditions?.length?th("CONDITIONS",m.conditions.map(c=>pill(c,"rust")).join("")):"")+th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:nf)+th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+th("HEAT · REPAIR",`${esc(heatNow(m)??"—")}/${esc(m.heat??"—")} · ${esc(repairsNow(m)??"—")}/${esc(m.repair??"—")}`)+th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva)} · ${esc(m.spd)} · ${esc(m.edef)} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech)} · ${esc(m.limitedBonus??"—")}`)+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+(last?th("LAST OUTCOME",esc(last.outcome)):""))}</div></div></article>`}).join("")}
-if(el("faction-list"))el("faction-list").innerHTML=C.factions.map(x=>{const n=filed.filter(o=>o.client===x.id).length;
- return `<div class="faction"><span>${esc(x.name)} ${C.personnel.filter(p=>p.faction===x.id).map(p=>personBtn(p.id)).join(" ")}</span><span class="muted" style="margin-left:auto;font:13px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
+if(el("faction-list"))el("faction-list").innerHTML=factionTable()
 function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div></div>`+
@@ -278,8 +278,48 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
   (p?`<div class="crew">${p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }
+/* Intel console (docs/plans/2026-10-18-intel-console-tabs-design.md). These are pure functions so
+   check-all can assert the markup without the map glue, and so the tab shell and the map pane
+   render one record rather than two. */
+function personFile(id){const p=N[id];if(!p)return "";
+ return `<div class="tag">PERSONNEL RECORD</div><h3 class="mission-title">${esc(p.name)}</h3>`
+  +(p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:"")
+  +table(th("ROLE",esc(p.role))+th("FACTION",F[p.faction]?esc(F[p.faction].name):"")+th("STATUS",pill(p.status,p.status==="MISSING"?"rust":"lime"))+
+   th("LAST KNOWN",locBtn(p.lastKnown))+
+   th("KNOWN OPS",(p.ops||[]).map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>")||"None recorded")+
+   th("NOTES",esc(p.notes)))}
+function personnelList(){
+ return C.personnel.map(p=>`<article class="card patrol" data-person="${esc(p.id)}"><div class="card-pad">${personCard(p.id)}<div class="tag">${esc(p.role)}</div><div class="muted">${esc(p.notes)}</div></div></article>`).join("")
+  +`<article class="card"><div class="card-pad"><div class="tag">FULL CREW</div><div class="muted">Notable personnel are recorded here; the six pilots of this lance keep files of their own.</div><div style="margin-top:8px">${link("pilots.html","OPEN CREW FILES →")}</div></div></article>`}
+function factionTable(){
+ return table(C.factions.map(x=>{const held=C.locations.filter(l=>l.faction===x.id),n=filed.filter(o=>o.client===x.id).length;
+  return `<tr><th scope="row">${esc(x.name)}</th>`+
+   `<td>${held.map(l=>locBtn(l.id)).join(" ")||"No site recorded"}</td>`+
+   `<td>${C.personnel.filter(p=>p.faction===x.id).map(p=>personBtn(p.id)).join(" ")||"—"}</td>`+
+   `<td class="muted">${n} OPERATION${n===1?"":"S"}</td><td><span class="standing">${esc(x.standing)}</span></td></tr>`}).join(""))}
+/* The readout is the preflight picture: what the plan names, who is unaccounted for at the op area,
+   and which ground is hostile. No row of it is observation, and the wording says so. */
+function situation(){
+ const o=filed[0]||ops[0]||{},s=o.sites||{},missing=C.personnel.filter(p=>p.status==="MISSING"&&p.lastKnown===o.loc);
+ const badges=[];
+ [["INSERTION","insertion"],["RENDEZVOUS","rendezvous"],["EXTRACTION","extraction"]].forEach(([label,k])=>{if(s[k])badges.push({loc:s[k],role:k,label:label})});
+ C.locations.filter(l=>l.faction&&(F[l.faction]||{}).standing==="HOSTILE").forEach(l=>badges.push({loc:l.id,role:"hostile",label:"HOSTILE"}));
+ C.locations.filter(l=>l.name===C.meta.station).forEach(l=>badges.push({loc:l.id,role:"muster",label:"MUSTER"}));
+ const badge=b=>{const l=L[b.loc];
+  return `<span class="badge-${esc(b.role)}">${chip("loc",b.loc,`${b.label} · ${l?l.name:b.loc}`)}</span>`};
+ const row=role=>badges.filter(b=>b.role===role).map(badge).join(" ");
+ return {html:`<div class="readout"><div class="tag">PREFLIGHT READOUT</div>`+table(
+   th("OPERATION",esc(o.title||"None filed"))+th("MISSION STATE",`${esc(o.type||"—")} · ${esc(o.status||"—")}`)+
+   th("OPERATING AREA",o.loc&&L[o.loc]?locBtn(o.loc):"—")+
+   th("UNACCOUNTED",`${missing.length} MISSING${missing.length?" · "+missing.map(p=>esc(p.name)).join(" · "):""}`)+
+   th("SITES ON THE PLAN",row("insertion")+" "+row("rendezvous")+" "+row("extraction"))+
+   th("HOSTILE GROUND",row("hostile")||"None recorded")+
+   th("MUSTER",row("muster")||"None recorded"))+
+  `<div class="muted" style="margin-top:8px">Read as the plan of record and last known reports, not as observation: every row comes from the operation order or the site's own file.</div></div>`,
+  badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
+}
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,pinchIntent,holomap,fitLevel,unitFile,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

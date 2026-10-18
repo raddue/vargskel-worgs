@@ -28,11 +28,17 @@
     <div class="status">● CREW STATUS: ACTIVE</div>
   </header>
   <main>
-    <section class="hero">
-      <div class="hero-copy"><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>INTELLIGENCE</h1><p>Sector and theater holomap of the Cressidium contract. Select a site to read its file, and pinch or use the corner control to change scale.</p></div>
-    </section>
-    <section id="holomap"></section>
-    <section id="relations"><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
+    <div class="pagebar">
+      <div><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>INTELLIGENCE</h1></div>
+      <div class="tabs" role="tablist" aria-label="Intelligence sections">
+        <button class="tab" type="button" role="tab" id="tl-map" aria-controls="tab-map" aria-selected="true" data-tab="map">MAP</button>
+        <button class="tab" type="button" role="tab" id="tl-relations" aria-controls="tab-relations" aria-selected="false" data-tab="relations">RELATIONS</button>
+        <button class="tab" type="button" role="tab" id="tl-personnel" aria-controls="tab-personnel" aria-selected="false" data-tab="personnel">PERSONNEL</button>
+      </div>
+    </div>
+    <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><button class="level" type="button" data-level="SYSTEM">SYSTEM</button><button class="level" type="button" data-level="THEATER">THEATER</button></div><section id="holomap"></section></section>
+    <section class="tabpanel" id="tab-relations" role="tabpanel" aria-labelledby="tl-relations" hidden><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
+    <section class="tabpanel" id="tab-personnel" role="tabpanel" aria-labelledby="tl-personnel" hidden><div class="section-head"><h2>NOTABLE PERSONNEL</h2><span>PERSONNEL</span></div><div class="people" id="people-list"></div></section>
   </main>
   <footer class="footer"><span>VARGSKEL WORGS / INTELLIGENCE</span><span>LOCAL MOCKUP · PUBLIC RELEASE NOT CONFIGURED</span></footer>
 </div>
@@ -44,7 +50,14 @@ const L=UI.byId(CAMPAIGN.locations);
 const X=l=>l.x*10,Y=l=>l.y*4.8;
 
 document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div><ul class="holo-key" aria-label="Map key"></ul><div id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></div></div></div>`;
+document.getElementById("readout").innerHTML=UI.situation().html;
+document.getElementById("people-list").innerHTML=UI.personnelList();
 UI.fitLevel();
+/* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
+   pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
+const tabs=[...document.querySelectorAll(".tab")];
+const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});if(n==="map")UI.fitLevel()};
+document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)pickTab(t.dataset.tab)});
 const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
 /* Map a site to the centre of the 1000x480 viewBox. The far grid stays at 1x so the sector frame reads as instrumentation around the zoomed system. */
 const zoomTo=id=>{const l=L[id];if(l)world.style.transform=`translate(${(500-Z*X(l)).toFixed(1)}px,${(240-Z*Y(l)).toFixed(1)}px) scale(${Z})`};

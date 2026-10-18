@@ -360,6 +360,53 @@ if (!panel.html.includes(`<td>${bay.window.UI.esc(shortName(leadPilot))}</td><td
 const blank = bay.window.UI.ledgerPanel([]);
 if (blank.count !== "0 ENTRIES · 0 PILOTS" || !blank.html.includes("No sessions logged yet")) problems.push("ledger panel: an empty ledger needs a zeroed count and the prompt to log a session");
 if (!bay.window.UI.ledgerPanel(C.ledger).count.startsWith(`${C.ledger.length} ENTRIES`)) problems.push(`ledger panel: count must match the real ${C.ledger.length} ledger row(s)`);
+/* INTEL console: the map page becomes a tab shell, and every collectable part is a pure function
+   because intel.html's inline map glue cannot run under the render stub (see
+docs/plans/2026-10-18-intel-console-tabs-design.md). Source text covers the shell; UI.* covers the markup. */
+const intel = bay.window.UI, op0 = C.ops[0] || {}, sites = op0.sites || {}, area = C.locations.find(x => x.id === op0.loc) || {};
+if (!/role="tablist"/.test(intelPage)) problems.push('intel.html: the page needs a role="tablist" for the MAP | RELATIONS | PERSONNEL tabs');
+["map", "relations", "personnel"].forEach(t => { if (!new RegExp(`id="tab-${t}"`).test(intelPage)) problems.push(`intel.html: missing tabpanel id="tab-${t}"`); });
+if (!/class="pagebar"/.test(intelPage)) problems.push("intel.html: needs the sticky .pagebar that carries the h1 and the tabs");
+if (/class="hero"/.test(intelPage)) problems.push("intel.html: the hero must be gone now that the pagebar carries the page identity");
+["SYSTEM", "THEATER"].forEach(l => { if (!new RegExp(`data-level="${l}"`).test(intelPage)) problems.push(`intel.html: the map head strip needs a data-level="${l}" button`); });
+["insertion", "rendezvous", "extraction"].forEach(k => {
+  const l = C.locations.find(x => x.id === sites[k]);
+  if (!l) return problems.push(`op ${op0.id}.sites.${k} must name an existing location`);
+  if (area.level && l.level !== area.level) problems.push(`op ${op0.id}.sites.${k} (${l.id}) must sit in the same frame as the op area ${area.id}`);
+});
+const personFile = intel.personFile ? intel.personFile("farris") : "";
+if (!personFile) problems.push("archive.js: UI.personFile must return a personnel record body as a pure string");
+else ["PERSONNEL RECORD", "assets/captain-farris-thumb.webp", "LAST KNOWN"].forEach(s => { if (!personFile.includes(s)) problems.push(`UI.personFile("farris") must carry ${s}`); });
+const people = intel.personnelList ? intel.personnelList() : "";
+if (!people) problems.push("archive.js: UI.personnelList must return the notable-people markup");
+else {
+  C.personnel.forEach(p => { if (!people.includes(intel.esc(p.name))) problems.push(`personnel tab must name ${p.id}`); });
+  if (!/pilots\.html/.test(people)) problems.push("personnel tab must link into the pilot pages for the full crew");
+}
+const facTable = intel.factionTable ? intel.factionTable() : "";
+if (!facTable) problems.push("archive.js: UI.factionTable must return the relations table");
+else {
+  if (!/threads-table/.test(facTable)) problems.push("relations tab must render the ledger as a threads-table");
+  C.factions.forEach(x => { if (!facTable.includes(intel.esc(x.name))) problems.push(`relations table must name faction ${x.id}`); });
+  C.locations.filter(l => l.faction).forEach(l => { if (!facTable.includes(l.id)) problems.push(`relations table must carry a chip for the held site ${l.id}`); });
+  C.personnel.forEach(p => { if (!facTable.includes(p.id)) problems.push(`relations table must carry a chip for ${p.id}`); });
+  if (!/class="standing"/.test(facTable)) problems.push("relations table must keep the standing pill per faction");
+}
+const situation = intel.situation ? intel.situation() : null;
+if (!situation) problems.push("archive.js: UI.situation must return the preflight readout and badge map");
+else {
+  const said = JSON.stringify(situation), missing = C.personnel.filter(p => p.status === "MISSING" && p.lastKnown === op0.loc).length;
+  if (!said.includes(op0.title)) problems.push("situation readout must name the operation");
+  if (!said.includes(op0.type) || !said.includes(op0.status)) problems.push(`situation readout must state type ${op0.type} and brief state ${op0.status}`);
+  if (!missing) problems.push("situation readout: no personnel are missing at the op area, so the badge cannot be asserted");
+  else if (!new RegExp(`${missing} MISSING`).test(said)) problems.push(`situation readout must count the ${missing} personnel missing at ${op0.loc}, not a hand-written total`);
+  ["insertion", "rendezvous", "extraction"].forEach(k => { if (!said.includes(sites[k])) problems.push(`situation badges must mark the ${k} site ${sites[k]}`); });
+  const hostile = C.locations.filter(l => l.faction && (C.factions.find(f => f.id === l.faction) || {}).standing === "HOSTILE");
+  hostile.forEach(l => { if (!said.includes(l.id)) problems.push(`situation badges must mark hostile site ${l.id}`); });
+  const muster = C.locations.filter(l => l.name === ((C.meta || {}).station || ""));
+  muster.forEach(l => { if (!said.includes(l.id)) problems.push(`situation badges must mark the muster site ${l.id}`); });
+  if (/LIVE|TRACK(ING|ED)|REAL-?TIME/i.test(said)) problems.push("situation wording must say planned, last known or recorded, never imply live tracking");
+}
 /* ponytail: dossier imgs checked for alt only; archive.js emits no width/height yet. Add width+height
    to this check once archive.js sets intrinsic dimensions (tracked follow-up). */
 [["pilot.html", C.pilots], ["mech.html", C.mechs]].forEach(([pg, recs]) => recs.forEach(r => {

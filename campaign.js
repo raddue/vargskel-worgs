@@ -139,6 +139,10 @@ window.CAMPAIGN = {
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
       outcome: "Campaign starting. First drop: Nov Elysia.",
+      /* The three named points of the plan, each an existing location in the operation's own frame.
+      The intel console badges them and check-all asserts both that they resolve and that they sit
+      in the same frame as the operation area. */
+      sites: { insertion: "dropzone", rendezvous: "dock", extraction: "rio" },
       checks: ["Nominate lance lead, VIP carrier, and rearguard before H-hour.", "Link up at FOB Saber.", "Secure Captain Farris and Ambassador Bannerjee for extraction."],
 
       /* Crew-facing operation order. Player-eyes only: what command tells the lance before
