@@ -79,7 +79,9 @@ const KINDS={
  ZONE:{k:"k-zone",s:`<circle class="shape" r="9" fill="none" stroke-dasharray="2 3"/>`},
  ORBITAL:{k:"k-orbital",s:`<polygon class="shape" points="0,-4 11,0 0,4 -11,0"/>`}
 };
-const LEVELS={SYSTEM:{head:"SECTOR HOLOMAP",sub:"CRESSIDIUM SYSTEM"},THEATER:{head:"THEATER HOLOMAP",sub:"NOV ELYSIA AND APPROACHES"}};
+const LEVELS={
+ SYSTEM:{head:"SECTOR HOLOMAP",sub:"CRESSIDIUM SYSTEM",grid:"SECTOR GRID · 50 U",aria:"Sector holomap: the star's bodies and their orbits. Select a body to read its file."},
+ THEATER:{head:"THEATER HOLOMAP",sub:"NOV ELYSIA AND APPROACHES",grid:"THEATER GRID · 10 U",aria:"Theater holomap: Nov Elysia, its districts, and the ground approaches. Select a site to read its file."}};
 let frame=null;
 /* Pure: returns the markup for one frame. Ops legs are drawn only where both ends are on the frame. */
 function holomap(level){
@@ -91,13 +93,17 @@ function holomap(level){
  const legsOn=legs.filter(on);
  const lines=legsOn.slice(1).map((id,i)=>{const a=L[legsOn[i]],b=L[id],plan=!b.visited;
   return `<line x1="${X(a)}" y1="${Y(a)}" x2="${X(b)}" y2="${Y(b)}" stroke="var(${plan?"--muted":"--lime"})" stroke-width="1.5" stroke-dasharray="${plan?"4 6":"6 6"}" opacity=".7"/>`}).join("");
- const zones=level==="THEATER"?C.factions.filter(f=>f.zone).map(f=>`<ellipse cx="${f.zone.x*10}" cy="${f.zone.y*4.8}" rx="${f.zone.rx}" ry="${f.zone.ry}" fill="var(--${esc(f.zone.c)})" fill-opacity=".05" stroke="var(--${esc(f.zone.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/><text class="zl" x="${Math.min(910,Math.max(90,f.zone.x*10))}" y="${f.zone.y*4.8+f.zone.ry+14}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`).join(""):"";
- const rings=here.filter(l=>l.parent&&on(l.parent)).map(l=>{const p=L[l.parent];
+ /* A zone centred on a site adds no label: that site's own file already states who holds it. */
+ const zones=level==="THEATER"?C.factions.filter(f=>f.zone).map(f=>{const near=here.some(l=>Math.hypot(l.x-f.zone.x,l.y-f.zone.y)<5);
+  return `<ellipse cx="${f.zone.x*10}" cy="${f.zone.y*4.8}" rx="${f.zone.rx}" ry="${f.zone.ry}" fill="var(--${esc(f.zone.c)})" fill-opacity=".05" stroke="var(--${esc(f.zone.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/>`+(near?"":`<text class="zl" x="${Math.min(910,Math.max(90,f.zone.x*10))}" y="${f.zone.y*4.8+f.zone.ry+14}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`)}).join(""):"";
+ /* Rings are orbits, so only things that orbit get one: a district does not orbit its city. */
+ const orbitKinds=["MOON","STATION","ORBITAL"];
+ const rings=here.filter(l=>l.parent&&on(l.parent)&&orbitKinds.includes(l.kind)).map(l=>{const p=L[l.parent];
   return `<circle cx="${X(p)}" cy="${Y(p)}" r="${Math.round(Math.hypot(X(l)-X(p),Y(l)-Y(p)))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
  /* A framed site is not its own node in the frame above it: it hangs under the body it sits on. */
  const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
  const nodes=here.map(l=>{const hosts=hostsOf(l.id);
-  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.kind==="PLANET"?36:30}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.kind==="PLANET"?48:42)+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
+  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
  const kinds=here.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
   +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
@@ -106,7 +112,7 @@ function holomap(level){
   +(legsOn.some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
   +(rings?`<li><span class="k-orbit"></span>ORBIT</li>`:"")
   +(level==="THEATER"?`<li><button class="k-level" type="button" data-level="SYSTEM" aria-label="Back out to the sector view">SYSTEM VIEW</button></li>`:"");
- return {world:zones+rings+lines+nodes,key};
+ return {world:zones+rings+lines+nodes,key,grid:LEVELS[level].grid,aria:LEVELS[level].aria};
 }
 /* The frame the campaign is actually on: ops land on the theater, so that is what opens. */
 const startLevel=()=>{const l=L[C.ops[0]&&C.ops[0].loc];return l&&l.level==="THEATER"?"THEATER":"SYSTEM"};
@@ -114,10 +120,15 @@ function fitLevel(level){
  const at=level||startLevel(),m=holomap(at),world=el("holo-world");
  frame=at;
  if(!world)return m;          /* pages without a map still get the pane chips */
+ /* The frame swap is a cut, not a camera move: the world's transition rides with the zoom only. */
+ world.style.transition="none";
  world.innerHTML=m.world;world.style.transform="";
+ if(typeof requestAnimationFrame==="function")requestAnimationFrame(()=>{world.style.transition=""});
  const key=document.querySelector(".holo-key");if(key)key.innerHTML=m.key;
  const head=el("route-heading");if(head)head.textContent=LEVELS[at].head;
  const sub=el("holo-sub");if(sub)sub.textContent=LEVELS[at].sub;
+ const grid=el("holo-grid");if(grid)grid.textContent=m.grid;
+ const svg=document.querySelector("#holomap svg");if(svg)svg.setAttribute("aria-label",m.aria);
  const card=document.querySelector(".holo");if(card){card.classList.toggle("theater",at==="THEATER");card.classList.toggle("system",at==="SYSTEM")}
  return m;
 }

@@ -198,9 +198,9 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
   if (booted && (!HOLO || typeof HOLO.holomap !== "function")) problems.push("archive.js: UI.holomap(level) missing, so the holomap cannot be checked per level");
   else if (booted && D) {
     const idsOn = lvl => D.locations.filter(l => l.level === lvl).map(l => l.id);
-    const drawn = lvl => { let out; try { out = HOLO.holomap(lvl); } catch (e) { problems.push(`UI.holomap("${lvl}") threw: ${e.message}`); return { ids: [], key: "", world: "" } }
-      if (!out || typeof out.world !== "string" || typeof out.key !== "string") { problems.push(`UI.holomap("${lvl}") must return {world,key} strings`); return { ids: [], key: "", world: "" } }
-      return { ids: [...out.world.matchAll(/data-loc="([^"]+)"/g)].map(m => m[1]), key: out.key, world: out.world }; };
+    const drawn = lvl => { let out; try { out = HOLO.holomap(lvl); } catch (e) { problems.push(`UI.holomap("${lvl}") threw: ${e.message}`); return { ids: [], key: "", world: "", grid: "", aria: "" } }
+      if (!out || typeof out.world !== "string" || typeof out.key !== "string") { problems.push(`UI.holomap("${lvl}") must return {world,key} strings`); return { ids: [], key: "", world: "", grid: "", aria: "" } }
+      return { ids: [...out.world.matchAll(/data-loc="([^"]+)"/g)].map(m => m[1]), key: out.key, world: out.world, grid: String(out.grid || ""), aria: String(out.aria || "") }; };
     const fames = { SYSTEM: drawn("SYSTEM"), THEATER: drawn("THEATER") };
     Object.keys(fames).forEach(lvl => { const { ids } = fames[lvl], want = idsOn(lvl);
       if (!want.length) problems.push(`campaign.js: no ${lvl} locations, so that frame cannot be checked`);
@@ -208,6 +208,12 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
       ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${lvl}") draws ${id}, which campaign.js does not mark ${lvl}`); }); });
     if (!fames.THEATER.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("THEATER") key has no SYSTEM VIEW chip');
     if (fames.SYSTEM.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("SYSTEM") key offers SYSTEM VIEW, which is where it already is');
+    /* Each frame has to say which frame it is — to sighted readers in the corner and to screen readers. */
+    if (!/THEATER GRID/.test(fames.THEATER.grid) || !/SECTOR GRID/.test(fames.SYSTEM.grid)) problems.push("each frame's corner grid label must name that frame");
+    if (!/Theater holomap/.test(fames.THEATER.aria) || !/Sector holomap/.test(fames.SYSTEM.aria)) problems.push("each frame must announce itself: holomap(level).aria must name that frame");
+    if (fames.THEATER.aria === fames.SYSTEM.aria) problems.push("the two frames must not share one aria-label");
+    if (!fames.SYSTEM.key.includes('class="k-orbit"')) problems.push('UI.holomap("SYSTEM") key must list ORBIT: the sector frame draws orbit rings');
+    if (fames.THEATER.key.includes('class="k-orbit"')) problems.push('UI.holomap("THEATER") must not offer an ORBIT chip: a district does not orbit its city');
     /* A site framed onto a body must hang under that body, not float as a sector node of its own. */
     D.locations.filter(l => l.frame).forEach(k => {
       const host = D.locations.find(x => x.id === k.frame);
@@ -230,7 +236,22 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
     if (by.pell?.parent !== "cressidium") problems.push("pell must orbit cressidium, not the city");
     if (!by.dock || !by.elysia) problems.push("dock and elysia ids must survive: index.html builds a route from dock and ops carry loc elysia");
     const src = fs.readFileSync(__dirname + "/campaign.js", "utf8");
-    [["elysia", "frontier city under Vestan control"], ["district", "central district"], ["dock", "FOB SABER RENDEZVOUS"], ["dropzone", "Dropship Kingfisher 2-2"], ["rio", "HIGH ORBIT OVER NOV ELYSIA"], ["coast", "Leandric States Alliance holding"], ["vsaf", "VSAF moving on"]].forEach(([id, quote]) => { if (!src.includes(quote)) problems.push(`location ${id}: grounding quote is not source text: "${quote}"`); });
+    /* The order is the source of truth. Each note must carry a phrase the OPORD still contains, so
+       changing either side of the pair breaks this. Reading the OPORD region and not the notes is
+       what stops the check from grading its own prose. */
+    const order = src.slice(src.indexOf("opord:"), src.indexOf("threads:"));
+    [["elysia", "conducting siege operations against the city"],
+     ["district", "assume VSAF infantry and armour in both the industrial and central districts"],
+     ["industry", "the Amanta Motors factory in the industrial district"],
+     ["dock", "FOB SABER RENDEZVOUS"],
+     ["dropzone", "Dropship Kingfisher 2-2"],
+     ["rio", "UNS Rio Grande in high orbit, lightly armed"],
+     ["vsaf", "hold the approaches to Nov Elysia's central district"]].forEach(([id, quote]) => {
+      const l = D.locations.find(x => x.id === id);
+      if (!l) { problems.push(`location ${id} is missing`); return; }
+      if (!String(l.notes).includes(quote)) problems.push(`location ${id}: its note must quote the order ("${quote}")`);
+      if (!order.includes(quote)) problems.push(`location ${id}: the order no longer says "${quote}", so that note is no longer grounded`);
+    });
     const bad = extra => { D.locations.push(Object.assign({ id: "zz", name: "ZZ", kind: "PLANET", x: 50, y: 50, level: "SYSTEM" }, extra)); let threw = false; try { HOLO.holomap("SYSTEM"); } catch (e) { threw = true } D.locations.pop(); return threw; };
     if (!bad({ kind: "NOPE" })) problems.push("UI.holomap must throw on an unknown kind instead of drawing a wreck field");
     /* A record with no level belongs to neither frame; that is a data fault, which the level check above reports. */
