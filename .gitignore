@@ -1,1 +1,3 @@
 .pi/
+# Session handoffs are machine-local working notes, never published.
+docs/handoffs/
