@@ -34,3 +34,12 @@
 /* secondary text long enough that it has to actually be read: brighter than .muted */
 .detail{color:var(--text-soft)}
 .opord-toc{position:sticky;top:8px;z-index:2}.opord-toc nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.opord-para,.opord-annex{scroll-margin-top:120px}@media(max-width:620px){.opord-toc{position:static}.opord-para,.opord-annex{scroll-margin-top:0}}
+@media print{
+  @page{margin:16mm}
+  :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--text:#111;--text-soft:#333;--muted:#555;--line:#999;--cyan:#036;--lime:#060;--rust:#900;--rust-light:#900;--rust-wash:#fff;--report-text:#111;--hero-start:#fff;--hero-glow:#fff;--hero-mid:#fff;--silhouette:#555;--avatar-bg:#fff;--thumb-bg:#fff;--thumb-muted:#555;--photo-start:#fff;--photo-muted:#555;--chip-hover:#fff;--holo-bg:#fff;--holo-button-bg:#fff}
+  .topline,.nav,.status,.hero-art,.chip,.holo-chips,.lightbox,.footer span:last-child,#holomap{display:none!important}
+  .sweep,.route-pulse{animation:none!important}
+  .card,article,.vip,.opord-para{break-inside:avoid}
+  .shell{max-width:none;padding:0}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:10px;color:#555}
+}
