@@ -219,3 +219,5 @@ if ("IntersectionObserver" in window) {
   }, { threshold: [0, .25, .5, .75, 1] });
   cards.forEach(card => observer.observe(card));
 }
+
+if (typeof addEventListener === "function") addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach(d=>d.open=true));
