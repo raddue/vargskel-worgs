@@ -31,6 +31,13 @@ window.CAMPAIGN = {
     { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { x: 86, y: 64, rx: 100, ry: 90,  c: "rust" } }
   ],
 
+  personnel: [
+    { id: "farris", name: "CAPTAIN FARRIS", role: "UNION DELEGATION · SHIP CAPTAIN", faction: "union", status: "MISSING", lastKnown: "elysia", ops: ["001"], img: "assets/captain-farris-thumb.webp",
+      notes: "Captain of the Union delegation's ship, last photographed on her own command deck before the talks collapsed. Missing in the central district since; deck ops holds her chair until she is aboard. Extraction priority one." },
+    { id: "bannerjee", name: "AMBASSADOR BANNERJEE", role: "UNION DELEGATION · LEAD NEGOTIATOR", faction: "union", status: "MISSING", lastKnown: "elysia", ops: ["001"], img: "assets/ambassador-bannerjee-thumb.webp",
+      notes: "Lead negotiator of the Cressidium peace talks, photographed at the Nov Elysia spaceport before the collapse. The peace holds only as long as his signature does, which is why both sides want him. Missing in the central district since. Extraction priority one." }
+  ],
+
   pilots: [
     { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
@@ -117,12 +124,7 @@ window.CAMPAIGN = {
           "VW-01 CONTRACT SOLSTICE RAIN — tasking, rules of engagement, payment terms",
           "FOB SABER RENDEZVOUS INSTRUCTIONS — Amanta Motors plant, industrial district"],
         distribution: ["VW-01 (six pilots)", "RIO GRANDE DECK OPS", "FOB SABER"],
-        vips: [
-          { name: "CAPTAIN FARRIS", role: "UNION DELEGATION · SHIP CAPTAIN", img: "assets/captain-farris-thumb.webp",
-            blurb: "Captain of the Union delegation's ship, last photographed on her own command deck before the talks collapsed. Missing in the central district since; deck ops holds her chair until she is aboard. Extraction priority one." },
-          { name: "AMBASSADOR BANNERJEE", role: "UNION DELEGATION · LEAD NEGOTIATOR", img: "assets/ambassador-bannerjee-thumb.webp",
-            blurb: "Lead negotiator of the Cressidium peace talks, photographed at the Nov Elysia spaceport before the collapse. The peace holds only as long as his signature does, which is why both sides want him. Missing in the central district since. Extraction priority one." }
-        ],
+        vips: [{ id: "farris" }, { id: "bannerjee" }],
 
         paras: [
           ["SITUATION", [

@@ -20,7 +20,7 @@ const dupes = key => {
   C[key].forEach(x => (seen.has(x.id) ? problems.push(`${key}: duplicate id "${x.id}"`) : seen.add(x.id)));
 };
 
-["locations", "factions", "pilots", "mechs", "ops", "threads", "events"].forEach(dupes);
+["locations", "factions", "personnel", "pilots", "mechs", "ops", "threads", "events"].forEach(dupes);
 
 /* Ids become markup and sort keys, and the fields the page reads without a guard
    must exist: a numeric id or a missing array used to blank the whole archive
@@ -28,6 +28,7 @@ const dupes = key => {
 const required = {
   locations: ["name", "kind", "x", "y"],
   factions: ["name", "standing"],
+  personnel: ["name", "role", "status"],
   pilots: ["name", "background", "status"],
   mechs: ["name", "frame", "role", "state", "glyph"],
   ops: ["title", "type", "status", "loc", "outcome", "date"],
@@ -82,7 +83,14 @@ C.mechs.forEach(m => {
   if (typeof m.hp !== "number" || typeof m.hpNow !== "number" || m.hpNow < 0 || m.hpNow > m.hp)
     problems.push(`mech ${m.id}: hpNow ${JSON.stringify(m.hpNow)} needs hp as a number and 0 <= hpNow <= hp`);
 });
-const loc = ids("locations"), fac = ids("factions"), pilot = ids("pilots"), mech = ids("mechs"), op = ids("ops");
+const loc = ids("locations"), fac = ids("factions"), person = ids("personnel"), pilot = ids("pilots"), mech = ids("mechs"), op = ids("ops");
+C.personnel.forEach(p => {
+  have(fac, "factions", p.faction, `personnel ${p.id}.faction`);
+  have(loc, "locations", p.lastKnown, `personnel ${p.id}.lastKnown`);
+  if (!Array.isArray(p.ops)) problems.push(`personnel ${p.id}.ops must be an array`);
+  else p.ops.forEach(id => have(op, "ops", id, `personnel ${p.id}.ops`));
+});
+C.ops.forEach(o => (o.opord?.vips || []).forEach(v => have(person, "personnel", v.id, `op ${o.id}.opord.vips`)));
 
 C.locations.forEach(l => {
   if (l.parent) have(loc, "locations", l.parent, `location ${l.id}.parent`);
