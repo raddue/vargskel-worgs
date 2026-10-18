@@ -208,6 +208,13 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
       ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${lvl}") draws ${id}, which campaign.js does not mark ${lvl}`); }); });
     if (!fames.THEATER.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("THEATER") key has no SYSTEM VIEW chip');
     if (fames.SYSTEM.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("SYSTEM") key offers SYSTEM VIEW, which is where it already is');
+    /* The missing principals are identified by portrait on the map pane, not only by name. */
+    const missingPane = HOLO.unitFile ? HOLO.unitFile("elysia") : "";
+    if (!HOLO.unitFile) problems.push("archive.js: UI.unitFile(id) missing, so the map pane cannot be checked");
+    else D.personnel.filter(p => p.status === "MISSING").forEach(p => {
+      if (!missingPane.includes(p.img)) problems.push(`unitFile("elysia") omits ${p.id}'s portrait (${p.img}), so a missing principal reads there as a name only`);
+    });
+    if (!/class="p-face"/.test(missingPane)) problems.push('unitFile must pair personnel portraits with their chips (class="p-face")');
     /* Each frame has to say which frame it is — to sighted readers in the corner and to screen readers. */
     if (!/THEATER GRID/.test(fames.THEATER.grid) || !/SECTOR GRID/.test(fames.SYSTEM.grid)) problems.push("each frame's corner grid label must name that frame");
     if (!/Theater holomap/.test(fames.THEATER.aria) || !/Sector holomap/.test(fames.SYSTEM.aria)) problems.push("each frame must announce itself: holomap(level).aria must name that frame");

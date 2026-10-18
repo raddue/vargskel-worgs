@@ -64,3 +64,6 @@
 .holo-back{position:absolute;top:8px;right:8px;z-index:4;font-size:11px;letter-spacing:.1em;background:var(--bg);color:var(--cyan);border:1px solid var(--cyan);padding:3px 8px;cursor:pointer}
 .holo-back:hover,.holo-back:focus-visible{background:var(--chip-hover)}
 .holo-back[hidden]{display:none}
+.p-card{display:inline-flex;align-items:center;gap:8px;margin:0 12px 6px 0}
+.p-face{width:44px;height:44px;flex-shrink:0;border:1px solid var(--line);background:var(--thumb-bg);display:grid;place-items:center;overflow:hidden}
+.p-face img{width:100%;height:100%;object-fit:cover;display:block}

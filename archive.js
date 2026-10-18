@@ -26,6 +26,9 @@ const mechBtn=id=>M[id]?chip("mech",id,M[id].name):"";
 const locBtn=id=>L[id]?chip("loc",id,L[id].name):"";
 const pilotBtn=id=>P[id]?chip("pilot",id,P[id].name.replace(/\u201c[^\u201d]*\u201d/g,"").replace(/\s+/g," ").trim()):"";
 const personBtn=id=>N[id]?chip("person",id,N[id].name):"";
+/* Missing principals are recognisable by face as much as by name, so the map pane pairs the two.
+   Their img values are already webp thumbs, so these render directly rather than through pic(). */
+const personCard=id=>{const p=N[id];return p?`<span class="p-card">${p.img?`<span class="p-face"><img src="${esc(p.img)}" alt="${esc(p.name)}"></span>`:""}${personBtn(id)}</span>`:""};
 const pill=(t,c)=>`<span class="pill" style="border-color:var(--${c});color:var(--${c})">${esc(t)}</span>`;
 const mechPill=m=>pill(m.state,/^OPERATIONAL/.test(m.state)?"lime":"rust")+(m.conditions||[]).map(c=>pill(c,"rust")).join("");
 const hpNow=m=>m.hpNow==null?m.hp:m.hpNow,heatNow=m=>m.heatNow==null?m.heat:m.heatNow,repairsNow=m=>m.repairsNow==null?m.repair:m.repairsNow;
@@ -141,7 +144,7 @@ function unitFile(id){const l=L[id];if(!l)return "";
   +(l.img?`<div class="mech-thumb">${pic(l.img,l.name)}</div>`:"")
   +(l.notes?`<div class="muted">${esc(l.notes)}</div>`:"")+table(
   th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th(l.parent?(["MOON","STATION","ORBITAL"].includes(l.kind)?"IN ORBIT":"WITHIN"):"IN ORBIT",l.parent?locBtn(l.parent):"None")+
-  th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personBtn(p.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
+  th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personCard(p.id)).join("")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
   th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))
   +(enter.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${enter.map(x=>`<button class="chip" type="button" data-loc="${esc(x.id)}">ENTER THEATER · ${esc(x.name)}</button>`).join("")}</div>`:"")}
 function showUnit(id){const l=L[id];if(!l||!panel())return;if(l.level&&l.level!==frame)fitLevel(l.level);
