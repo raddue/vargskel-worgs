@@ -59,7 +59,8 @@ UI.fitLevel();
    pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
 let currentLoc="";   /* the ground the pane is about, so a tab round trip puts it back in the URL */
 const tabs=[...document.querySelectorAll(".tab")];
-const pickTab=(n,push)=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});const was=tabFromHash();if(n==="map")setHash("map",currentLoc,!!push&&was!==n);else if(was!==n)setHash(n,"",push)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
+const pickTab=(n,push)=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});const was=tabFromHash(),unresolved=!!locRaw()&&!L[locFromHash()]; /* URL names a ground we could not resolve: leave it as typed */
+if(n==="map"){if(!unresolved)setHash("map",currentLoc,!!push&&was!==n)}else if(was!==n)setHash(n,"",push)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
 /* archive.js calls this when a record opens, so its pane is not left in a hidden panel. */
 UI.pickTab=pickTab;
 /* The tab anchors carry a bare #map/#relations/#personnel href, and that default navigation
@@ -71,7 +72,7 @@ const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=sv
 const zoomTo=id=>{const l=L[id];if(l)world.style.transform=`translate(${(500-Z*X(l)).toFixed(1)}px,${(240-Z*Y(l)).toFixed(1)}px) scale(${Z})`};
 const resetView=()=>{world.style.transform=""};
 svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc]");if(!t)return;
- e.preventDefault();setHash("map",t.dataset.loc);UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc);syncBack()});
+ e.preventDefault();currentLoc=t.dataset.loc;setHash("map",t.dataset.loc);UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc);syncBack()});
 svg.addEventListener("pointermove",e=>{if(rm.matches)return;const r=svg.getBoundingClientRect();
  far.style.transform=`translate(${(-((e.clientX-r.left)/r.width-.5)*24).toFixed(1)}px,${(-((e.clientY-r.top)/r.height-.5)*14).toFixed(1)}px)`});
 svg.addEventListener("pointerleave",()=>{far.style.transform=""});
@@ -114,7 +115,7 @@ const locRaw=()=>hashOf().indexOf("map/")===0?hashOf().slice(4):"";   /* ground 
 const locFromHash=()=>{const r=locRaw();if(!r)return "";try{return decodeURIComponent(r)}catch(e){return ""}};   /* a malformed %-escape is not a crash path */
 const setHash=(n,id,push)=>{try{const u="#"+n+(n==="map"&&id?"/"+encodeURIComponent(id):"");if(u!==location.hash){const h=push?history.pushState:history.replaceState;h.call(history,null,"",u)}}catch(e){}};   /* a tab click pushes, a selection replaces */
 /* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
-document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a")){currentLoc=t.dataset.loc;setHash("map",currentLoc)}else if(e.target.closest("[data-person],[data-mech],[data-pilot]"))currentLoc=""},true);
+document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a")){currentLoc=t.dataset.loc;setHash("map",currentLoc)}else if(e.target.closest("[data-person],[data-mech],[data-pilot]")){currentLoc="";setHash("map","")}},true);
 const resetPane=()=>{const d=document.getElementById("record-detail");if(d)d.innerHTML=NO_SEL};
 let selected=false;
 const render=()=>{const raw=locRaw(),id=locFromHash(),loc=id&&L[id]?id:"";

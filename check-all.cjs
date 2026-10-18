@@ -401,7 +401,10 @@ if (/#holomap\{display:none/.test(consoleCss)) problems.push("style.css: print m
    user-supplied string, so a malformed escape must fall back rather than throw. */
 if (!/back\.hidden=!zoomed\(\)/.test(intelPage)) problems.push("intel.html: the back control is camera-only, so its label cannot go stale");
 if (!/try\{return decodeURIComponent/.test(intelPage)) problems.push("intel.html: a malformed percent-encoded hash must fall back, not throw");
-if (!/const was=tabFromHash\(\);if\(n==="map"\)setHash\("map",currentLoc/.test(intelPage)) problems.push("intel.html: a tab change must write the hash and restoring MAP must carry the selected ground back, or a reload hides the map");
+if (!/const was=tabFromHash\(\),unresolved=!!locRaw\(\)&&!L\[locFromHash\(\)\]/.test(intelPage)) problems.push("intel.html: a tab change must write the hash and restoring MAP must carry the selected ground back, or a reload hides the map");
+if (!/if\(n==="map"\)\{if\(!unresolved\)setHash\("map",currentLoc/.test(intelPage)) problems.push("intel.html: a hash naming a ground that does not resolve must be left as typed, or a reload of it quietly selects the arrival site and drops the URL the reader shared");
+if (!/currentLoc="";setHash\("map",""\)/.test(intelPage)) problems.push("intel.html: revealing a person or chassis record must drop the ground from the URL, or the address bar keeps naming a site the pane has left");
+if (!/currentLoc=t\.dataset\.loc;setHash\("map",t\.dataset\.loc\)/.test(intelPage)) problems.push("intel.html: keyboard selection must move the remembered ground with the URL, or the next tab round trip restores the site it replaced");
 if (!/if\(raw\)\{selected=true;UI\.mark\("loc",""\);resetPane\(\)/.test(intelPage)) problems.push("intel.html: unknown id in hash must fall back SELECT TARGET instead leaving stale record");
 if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expose UI.pickTab so a record opened from another tab can reveal the map panel");
 const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
