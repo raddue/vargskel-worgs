@@ -48,14 +48,16 @@ const pilot = C.pilots.find(p => p.mech && C.mechs.some(m => m.id === p.mech));
 const mech = C.mechs.find(m => m.id === pilot.mech);
 const plain = name => name.replace(/“([^”]*)”/g, '$1').replace(/\s+/g, ' ').trim();
 const crewName = name => name.replace(/“[^”]*”/g, '').replace(/\s+/g, ' ').trim();
+const pilotById = Object.fromEntries(C.pilots.map(p => [p.id, p]));
+const mechById = Object.fromEntries(C.mechs.map(m => [m.id, m]));
 const op = C.ops.find(o => (o.crew || []).length && o.mission);
 const words = s => s.split(' ').map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
 const pages = [
   { name: 'index', file: 'index.html', expect: [/OUTCOME/, new RegExp(words(crewName(C.pilots.find(p => p.id === op.crew[0]).name))), new RegExp(`MECHS\\s+${words(C.mechs.find(m => m.id === op.mechs[0]).name)}`), new RegExp(words(op.mission.title))] },
-  { name: 'pilots', file: 'pilots.html', expect: [] },
-  { name: 'pilot', file: 'pilot.html', hash: pilot.id, expect: [new RegExp(`CHASSIS\\s+${words(mech.name)}`)] },
-  { name: 'mechbay', file: 'mechbay.html', expect: [] },
-  { name: 'mech', file: 'mech.html', hash: mech.id, expect: [new RegExp(`PILOT\\s+${words(plain(pilot.name))}`)] },
+  { name: 'pilots', file: 'pilots.html', expect: [/PILOT ROSTER/, ...C.pilots.filter(p => p.mech && mechById[p.mech]).map(p => new RegExp(`CHASSIS\\s+${words(mechById[p.mech].name)}`))] },
+  { name: 'pilot', file: 'pilot.html', hash: pilot.id, expect: [/PILOT DOSSIER/, new RegExp(`CHASSIS\\s+${words(mech.name)}`)] },
+  { name: 'mechbay', file: 'mechbay.html', expect: [/CHASSIS REGISTER/, ...C.mechs.filter(m => m.pilot && pilotById[m.pilot]).map(m => new RegExp(`PILOT\\s+${words(plain(pilotById[m.pilot].name))}`))] },
+  { name: 'mech', file: 'mech.html', hash: mech.id, expect: [/CHASSIS DOSSIER/, new RegExp(`PILOT\\s+${words(plain(pilot.name))}`)] },
   { name: 'solstice-rain', file: 'solstice-rain.html', expect: [new RegExp(`${words(pilot.name.match(/\u201c([^\u201d]*)\u201d/)[1])}\\s+${words(pilot.name)}`)] },
 ];
 
