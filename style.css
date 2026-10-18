@@ -33,3 +33,4 @@
 .hero-planet{mix-blend-mode:screen;filter:none}
 /* secondary text long enough that it has to actually be read: brighter than .muted */
 .detail{color:var(--text-soft)}
+.opord-toc{position:sticky;top:8px;z-index:2}.opord-toc nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.opord-para,.opord-annex{scroll-margin-top:120px}@media(max-width:620px){.opord-toc{position:static}.opord-para,.opord-annex{scroll-margin-top:0}}
