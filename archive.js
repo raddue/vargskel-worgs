@@ -5,7 +5,7 @@ window.UI=(()=>{
 const C=window.CAMPAIGN;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const byId=a=>Object.fromEntries(a.map(x=>[x.id,x]));
-const L=byId(C.locations),P=byId(C.pilots),M=byId(C.mechs),F=byId(C.factions);
+const L=byId(C.locations),P=byId(C.pilots),M=byId(C.mechs),F=byId(C.factions),N=byId(C.personnel);
 const legacyPilotId={frisky:"daemon"}; /* pilots renamed after their callsign landed; keep old bookmarks working */
 const ops=[...C.ops].sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
 const filed=ops.filter(o=>o.type!=="PLANNED");
@@ -25,6 +25,7 @@ const opLink=o=>`<a href="index.html#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o
 const mechBtn=id=>M[id]?chip("mech",id,M[id].name):"";
 const locBtn=id=>L[id]?chip("loc",id,L[id].name):"";
 const pilotBtn=id=>P[id]?chip("pilot",id,P[id].name.replace(/\u201c[^\u201d]*\u201d/g,"").replace(/\s+/g," ").trim()):"";
+const personBtn=id=>N[id]?chip("person",id,N[id].name):"";
 const pill=(t,c)=>`<span class="pill" style="border-color:var(--${c});color:var(--${c})">${esc(t)}</span>`;
 const mechPill=m=>pill(m.state,/^OPERATIONAL/.test(m.state)?"lime":"rust");
 const hpNow=m=>m.hpNow==null?m.hp:m.hpNow;
@@ -69,7 +70,7 @@ function showUnit(id){const l=L[id];if(!l||!panel())return;const here=filed.filt
  mark("loc",id);
  panel().innerHTML=`<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`+table(
   th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th("IN ORBIT",l.parent?locBtn(l.parent):"None")+
-  th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
+  th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personBtn(p.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
   th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))}
 function showMech(id){const m=M[id];if(!m||!panel())return;const mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id),nf="NOT FILED";
  mark("mech",id);
@@ -85,15 +86,21 @@ function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",p.mech?mechBtn(p.mech):"None assigned")+
   th("TRIGGERS",esc(p.triggers||""))+th("TALENTS",esc(p.talents||""))+th("GEAR",esc(p.gear||""))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}
-function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):showUnit(id)}
-document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot]");if(!t)return;
+function showPerson(id){const p=N[id];if(!p||!panel())return;
+ mark("person",id);
+ panel().innerHTML=`<div class="tag">PERSONNEL RECORD</div><h3 class="mission-title">${esc(p.name)}</h3>`+table(
+  th("ROLE",esc(p.role))+th("FACTION",F[p.faction]?esc(F[p.faction].name):"")+th("STATUS",pill(p.status,p.status==="MISSING"?"rust":"lime"))+
+  th("LAST KNOWN",locBtn(p.lastKnown))+th("KNOWN OPS",p.ops.map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>")||"None recorded")+th("NOTES",esc(p.notes)));}
+function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):kind==="person"?showPerson(id):showUnit(id)}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot],[data-person]");if(!t)return;
  if(e.target.closest("a"))return;
- const k=t.dataset.mech?"mech":t.dataset.pilot?"pilot":"loc",v=t.dataset.mech||t.dataset.pilot||t.dataset.loc;
+ const k=t.dataset.mech?"mech":t.dataset.pilot?"pilot":t.dataset.person?"person":"loc",v=t.dataset.mech||t.dataset.pilot||t.dataset.person||t.dataset.loc;
  if(t.closest("#record-detail")){show(k,v);return}
  if(t.matches("article[data-pilot],article[data-mech]")){toggleRecord(t.dataset.pilot?"pilot":"mech",v);return}
  if(k==="mech"||k==="pilot")return;
  showAtMap(k,v);
- if(t.closest(".holo-svg"))el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+ if(k==="person")panel().scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+ else if(t.closest(".holo-svg"))el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 const latest=filed[0];
 if(el("hero-tagline")&&C.meta&&C.meta.tagline)el("hero-tagline").textContent=C.meta.tagline;
 const upcoming=ops.filter(o=>o.type==="PLANNED").pop();
@@ -146,7 +153,7 @@ if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padSt
  el("mech-list").innerHTML=C.mechs.map(m=>{const mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),nf="NOT FILED";
  return `<article class="card patrol" data-mech="${esc(m.id)}"><div class="card-pad mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph)}</span></div>`}</div><div class="mech-id"><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><a class="mech-title" href="mech.html#${esc(m.id)}">${esc(m.name)}</a>${table(th("PILOT",esc(P[m.pilot]?P[m.pilot].name.replace(/\u201c([^\u201d]*)\u201d/,"$1"):"UNASSIGNED"))+th("ROLE",esc(m.role||""))+th("STATE",`${esc(m.state??"")}${m.missing?` \u00b7 ${esc(m.missing)}`:""}`)+th("LOADOUT",esc(m.loadout||""))+th("SYSTEMS",esc(m.systems||"")))}<div style="margin-top:8px">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div><div class="mech-matrix">${table(th("STATIONED",at?esc(L[at].name):C.meta.station?esc(C.meta.station):"")+th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:nf)+th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+th("HEAT · REPAIR",`${esc(m.heat??"—")} · ${esc(m.repair??"—")}`)+th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva)} · ${esc(m.spd)} · ${esc(m.edef)} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech)} · ${esc(m.limitedBonus??"—")}`)+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+(last?th("LAST OUTCOME",esc(last.outcome)):""))}</div></div></article>`}).join("")}
 if(el("faction-list"))el("faction-list").innerHTML=C.factions.map(x=>{const n=filed.filter(o=>o.client===x.id).length;
- return `<div class="faction"><span>${esc(x.name)}</span><span class="muted" style="margin-left:auto;font:13px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
+ return `<div class="faction"><span>${esc(x.name)} ${C.personnel.filter(p=>p.faction===x.id).map(p=>personBtn(p.id)).join(" ")}</span><span class="muted" style="margin-left:auto;font:13px var(--mono);padding-right:10px">${n} OPERATION${n===1?"":"S"}</span><span class="standing">${esc(x.standing)}</span></div>`}).join("")
 function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div></div>`+
