@@ -56,7 +56,9 @@ UI.fitLevel();
 /* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
    pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
 const tabs=[...document.querySelectorAll(".tab")];
-const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});if(n==="map")UI.fitLevel()};
+const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on})};
+/* archive.js calls this when a record opens, so its pane is not left in a hidden panel. */
+UI.pickTab=pickTab;
 document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)pickTab(t.dataset.tab)});
 const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
 /* Map a site to the centre of the 1000x480 viewBox. The far grid stays at 1x so the sector frame reads as instrumentation around the zoomed system. */

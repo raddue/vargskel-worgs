@@ -68,7 +68,8 @@ const toggleRecord=(host,id)=>{
  if(card&&panel().parentElement===card.querySelector(`[data-detail-host="${host}"]`)){panel().classList.add("pane-out");setTimeout(()=>{if(!panel().classList.contains("pane-out"))return;panelHome().append(panel());panel().classList.remove("pane-out","pane-in")},120);return true}
  return showAtRecord(host,id);
 };
-const showAtMap=(kind,id)=>{panelHome().append(panel());show(kind,id);animatePane()};
+/* #record-detail only exists in the map panel, so a chip on the relations or personnel tab has to bring the map forward or its record renders where nobody can see it. */
+const showAtMap=(kind,id)=>{if(UI.pickTab)UI.pickTab("map");panelHome().append(panel());show(kind,id);animatePane()};
 /* Two frames share one map. SYSTEM is the star's bodies and their orbit rings; THEATER is one body's
    surface and approaches, at its own scale. The closed set below is why an unknown kind throws. */
 const KINDS={

@@ -369,6 +369,13 @@ if (!/role="tablist"/.test(intelPage)) problems.push('intel.html: the page needs
 if (!/class="pagebar"/.test(intelPage)) problems.push("intel.html: needs the sticky .pagebar that carries the h1 and the tabs");
 if (/class="hero"/.test(intelPage)) problems.push("intel.html: the hero must be gone now that the pagebar carries the page identity");
 ["SYSTEM", "THEATER"].forEach(l => { if (!new RegExp(`data-level="${l}"`).test(intelPage)) problems.push(`intel.html: the map head strip needs a data-level="${l}" button`); });
+/* #record-detail lives in the map panel, so a record opened from another tab has to reveal that panel;
+   and switching tabs must not re-fit, which would wipe the frame and the camera the user set. */
+const archText = fs.readFileSync(__dirname + "/archive.js", "utf8");
+if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expose UI.pickTab so a record opened from another tab can reveal the map panel");
+const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
+if (/fitLevel/.test(pickTabLine)) problems.push("intel.html: switching tabs must not call fitLevel — it resets the frame and the user's zoom");
+if (!/const showAtMap=\(kind,id\)=>\{if\(UI\.pickTab\)UI\.pickTab\("map"\)/.test(archText)) problems.push("archive.js: showAtMap must activate the map tab, since #record-detail only exists in that panel");
 ["insertion", "rendezvous", "extraction"].forEach(k => {
   const l = C.locations.find(x => x.id === sites[k]);
   if (!l) return problems.push(`op ${op0.id}.sites.${k} must name an existing location`);
