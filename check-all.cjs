@@ -80,6 +80,18 @@ if (!fs.existsSync(__dirname + "/assets/tizona.png")) problems.push('Tizona port
 });
 if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter portrait missing from assets');
 if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scooteroo artwork missing from assets');
+/* INTEL is a page of its own: the map and the faction ledger live on intel.html, and every
+   page's nav must reach it, so a link cannot quietly rot back into an index anchor. */
+const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html"];
+navPages.forEach(p => {
+  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  if (!/href="intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
+});
+const intelPage = fs.readFileSync(__dirname + "/intel.html", "utf8");
+if (!/id="holomap"/.test(intelPage)) problems.push("intel.html must carry the holomap section the map builds into");
+if (!/id="faction-list"/.test(intelPage)) problems.push("intel.html must carry the faction ledger");
+const indexPath = fs.readFileSync(__dirname + "/index.html", "utf8");
+if (/id="holomap"|id="faction-list"/.test(indexPath)) problems.push("index.html must not keep its own holomap or faction ledger now that intel.html owns them");
 /* Golden roster records live in tools/roster-snapshot.json; after a deliberate data change run
    node check-all.cjs --update-snapshot and review the JSON diff. Every field present in the snapshot must match. */
 const snapPath = __dirname + "/tools/roster-snapshot.json";
@@ -161,8 +173,8 @@ C.factions.forEach(f => {
 
 if (problems.length) {
 }
-/* Read once: index.html carries the map/record-detail hosts, archive.js runs against the stub DOM later. */
-const page = fs.readFileSync(__dirname + "/index.html", "utf8");
+/* Read once: intel.html carries the map/record-detail hosts, archive.js runs against the stub DOM later. */
+const page = fs.readFileSync(__dirname + "/intel.html", "utf8");
 const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
 /* Per-mech session state mapped from COMPCON exports: keep it short, uppercase and safe to render. */
 for (const m of C.mechs) {
@@ -178,10 +190,10 @@ const faces = [...theme.matchAll(/url\(([^)]+\.woff2)\)/g)].map(m => m[1]);
 if (!faces.length) problems.push("theme.css: no self-hosted font faces declared");
 faces.forEach(f => { if (!fs.existsSync(__dirname + "/" + f)) problems.push(`theme.css: missing font file ${f}`); });
 
-if (!page.includes('id="record-detail"')) problems.push('index.html: in-place record detail pane missing');
+if (!page.includes('id="record-detail"')) problems.push('intel.html: in-place record detail pane missing');
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
-if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
+if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map still exposes chassis selection controls');
 /* The index holomap is built by an inline script that mount() cannot run, so its key and the
    current-op marker are asserted in source until the page gets a render-level check. */
 /* Two-level holomap. The builder is pure (UI.holomap), so both frames are asserted as markup
