@@ -14,9 +14,9 @@ const exportHp=()=>{const hp=Object.fromEntries(items.filter(e=>e.dataset.k.ends
  exportEl.textContent=CAMPAIGN.mechs.map(m=>`${m.id} -> ${hp[m.id]??(m.hpNow??m.hp)}`).join("\n")};
 const clamp=e=>{const n=Number(e.value);e.value=e.value!==""&&Number.isFinite(n)?String(Math.max(0,Math.min(Number(e.max),Math.trunc(n)))):e.defaultValue};
 const save=()=>{exportHp();if(!ok)return;
- try{localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(items.map(e=>[e.dataset.k,read(e)]))))}
+ try{localStorage.setItem(KEY,JSON.stringify({updated:CAMPAIGN.meta.updated,data:Object.fromEntries(items.map(e=>[e.dataset.k,read(e)]))}))}
  catch{ok=false;status.textContent="TRACKING WILL NOT PERSIST · LOCAL STORAGE UNAVAILABLE"}};
-if(ok){try{const data=JSON.parse(localStorage.getItem(KEY)||"{}");items.forEach(e=>{if(Object.hasOwn(data,e.dataset.k))write(e,data[e.dataset.k])})}catch{}}
+if(ok){try{const saved=JSON.parse(localStorage.getItem(KEY)||"null");if(saved?.updated===CAMPAIGN.meta.updated&&saved.data&&typeof saved.data==="object")items.forEach(e=>{if(Object.hasOwn(saved.data,e.dataset.k))write(e,saved.data[e.dataset.k])});else if(saved)status.textContent="CAMPAIGN UPDATED · TRACKING RESET TO NEW BASELINE"}catch{}}
 items.filter(e=>e.type==="number").forEach(clamp);
 items.forEach(e=>{e.addEventListener("input",()=>{if(e.type!=="number")save()});e.addEventListener("change",()=>{if(e.type==="number")clamp(e);save()})});
 document.getElementById("reset").addEventListener("click",()=>{

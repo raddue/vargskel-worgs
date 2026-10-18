@@ -24,14 +24,14 @@ function control(k, value, type = "number", checked = false) {
   return { dataset: { k }, type, value, defaultValue: value, max: "12", checked, defaultChecked: checked,
     addEventListener: (event, fn) => { handlers[event] = fn; }, fire: event => handlers[event]() };
 }
-function run(storage) {
-  const hp = control("sweet-cheeks.hp", "12"), note = control("sweet-cheeks.note", "", "text"), tick = control("sweet-cheeks.structure.1", "on", "checkbox", true);
+function run(storage, hpNow = 12, updated = "5016U D071") {
+  const hp = control("sweet-cheeks.hp", String(hpNow)), note = control("sweet-cheeks.note", "", "text"), tick = control("sweet-cheeks.structure.1", "on", "checkbox", true);
   const items = [hp, note, tick];
   const nodes = { "save-state": { textContent: "" }, "lance-export": { textContent: "" },
     reset: { addEventListener(_, fn) { this.click = fn; } }, pip: { textContent: "" } };
   const document = { querySelectorAll: () => items, querySelector: selector => selector.includes("sweet-cheeks") ? nodes.pip : null, getElementById: id => nodes[id] };
   const box = { document, localStorage: storage, confirm: () => true,
-    CAMPAIGN: { mechs: [{ id: "sweet-cheeks", hp: 12 }, { id: "alba", hp: 10 }] } };
+    CAMPAIGN: { meta: { updated }, mechs: [{ id: "sweet-cheeks", hp: 12, hpNow }, { id: "alba", hp: 10 }] } };
   vm.runInNewContext(fs.readFileSync(__dirname + "/../lance-state.js", "utf8"), box);
   return { hp, note, tick, nodes };
 }
@@ -56,6 +56,13 @@ b.nodes.reset.click();
 assert.equal(b.hp.value, "12"); assert.equal(b.note.value, ""); assert.equal(b.tick.checked, true);
 assert.match(b.nodes.pip.textContent, /12\/12 HP/);
 assert.equal(saved.has("vw-lance-v1"), false);
+let old = run(storage);
+old.note.value = "watch flank"; old.note.fire("input");
+let fresh = run(storage, 7, "5016U D072");
+assert.equal(fresh.hp.value, "7", "new campaign baseline must supersede saved HP");
+assert.equal(fresh.note.value, "", "old session notes must not bleed into updated campaign");
+assert.match(fresh.nodes["lance-export"].textContent, /sweet-cheeks -> 7/);
+assert.match(fresh.nodes["save-state"].textContent, /CAMPAIGN UPDATED/);
 const blocked = run({ setItem() { throw Error("blocked"); }, removeItem() {}, getItem() { return null; } });
 assert.match(blocked.nodes["save-state"].textContent, /WILL NOT PERSIST/);
 console.log("lance board and local state ok");
