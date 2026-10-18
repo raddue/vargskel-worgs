@@ -182,6 +182,10 @@ if (!page.includes('id="record-detail"')) problems.push('index.html: in-place re
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
+/* The index holomap is built by an inline script that mount() cannot run, so its key and the
+   current-op marker are asserted in source until the page gets a render-level check. */
+["holo-key", "k-cur", "CURRENT OP", "PLANNED LEG", "TRAVELLED"].forEach(s => { if (!page.includes(s)) problems.push(`index.html: holomap key missing "${s}"`); });
+if (!page.includes('l.id===cur?" cur":""') || !page.includes(", current operation")) problems.push("index.html: holomap has no current-op marker or label");
 
 /* Rendered, not source: assertions read the markup tools/render.cjs produces by running each page's
    scripts against a stub DOM. A stray literal left inside a card template (e.g. a mis-counted paren)
