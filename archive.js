@@ -66,12 +66,72 @@ const toggleRecord=(host,id)=>{
  return showAtRecord(host,id);
 };
 const showAtMap=(kind,id)=>{panelHome().append(panel());show(kind,id);animatePane()};
-function showUnit(id){const l=L[id];if(!l||!panel())return;const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id);
- mark("loc",id);
- panel().innerHTML=`<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`+table(
+/* Two frames share one map. SYSTEM is the star's bodies and their orbit rings; THEATER is one body's
+   surface and approaches, at its own scale. The closed set below is why an unknown kind throws. */
+const KINDS={
+ PLANET:{k:"k-planet",s:`<circle class="shape" r="13"/>`},
+ MOON:{k:"k-moon",s:`<circle class="shape" r="7"/>`},
+ STATION:{k:"k-station",s:`<rect class="shape" x="-7" y="-7" width="14" height="14"/>`},
+ "WRECK FIELD":{k:"k-wreck",s:`<polygon class="shape" points="0,-9 9,0 0,9 -9,0"/>`},
+ CITY:{k:"k-city",s:`<polygon class="shape" points="0,-9 9,-3 9,6 -9,6 -9,-3"/>`},
+ DISTRICT:{k:"k-district",s:`<polygon class="shape" points="-8,-6 8,-6 8,6 -8,6"/>`},
+ FOB:{k:"k-fob",s:`<polygon class="shape" points="0,-9 9,7 -9,7"/>`},
+ ZONE:{k:"k-zone",s:`<circle class="shape" r="9" fill="none" stroke-dasharray="2 3"/>`},
+ ORBITAL:{k:"k-orbital",s:`<polygon class="shape" points="0,-4 11,0 0,4 -11,0"/>`}
+};
+const LEVELS={SYSTEM:{head:"SECTOR HOLOMAP",sub:"CRESSIDIUM SYSTEM"},THEATER:{head:"THEATER HOLOMAP",sub:"NOV ELYSIA AND APPROACHES"}};
+let frame=null;
+/* Pure: returns the markup for one frame. Ops legs are drawn only where both ends are on the frame. */
+function holomap(level){
+ if(level!=="SYSTEM"&&level!=="THEATER")throw new Error(`holomap: ${level} is not a level`);
+ const here=C.locations.filter(l=>l.level===level),X=l=>l.x*10,Y=l=>l.y*4.8,cur=C.ops[0]&&C.ops[0].loc;
+ here.forEach(l=>{if(!KINDS[l.kind])throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no marker`)});
+ const on=id=>{const l=L[id];return !!l&&l.level===level};
+ const legs=level==="THEATER"?["dock",...[...C.ops].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(o=>o.loc)]:[];
+ const legsOn=legs.filter(on);
+ const lines=legsOn.slice(1).map((id,i)=>{const a=L[legsOn[i]],b=L[id],plan=!b.visited;
+  return `<line x1="${X(a)}" y1="${Y(a)}" x2="${X(b)}" y2="${Y(b)}" stroke="var(${plan?"--muted":"--lime"})" stroke-width="1.5" stroke-dasharray="${plan?"4 6":"6 6"}" opacity=".7"/>`}).join("");
+ const zones=level==="THEATER"?C.factions.filter(f=>f.zone).map(f=>`<ellipse cx="${f.zone.x*10}" cy="${f.zone.y*4.8}" rx="${f.zone.rx}" ry="${f.zone.ry}" fill="var(--${esc(f.zone.c)})" fill-opacity=".05" stroke="var(--${esc(f.zone.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/><text class="zl" x="${Math.min(910,Math.max(90,f.zone.x*10))}" y="${f.zone.y*4.8+f.zone.ry+14}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`).join(""):"";
+ const rings=here.filter(l=>l.parent&&on(l.parent)).map(l=>{const p=L[l.parent];
+  return `<circle cx="${X(p)}" cy="${Y(p)}" r="${Math.round(Math.hypot(X(l)-X(p),Y(l)-Y(p)))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
+ /* A framed site is not its own node in the frame above it: it hangs under the body it sits on. */
+ const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
+ const nodes=here.map(l=>{const hosts=hostsOf(l.id);
+  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.kind==="PLANET"?36:30}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.kind==="PLANET"?48:42)+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
+ const kinds=here.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
+ const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
+  +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
+  +(on(cur)?`<li><span class="k-shape k-cur"></span>CURRENT OP</li>`:"")
+  +(legsOn.some(id=>L[id].visited)?`<li><span class="k-line"></span>TRAVELLED</li>`:"")
+  +(legsOn.some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
+  +(rings?`<li><span class="k-orbit"></span>ORBIT</li>`:"")
+  +(level==="THEATER"?`<li><button class="k-level" type="button" data-level="SYSTEM" aria-label="Back out to the sector view">SYSTEM VIEW</button></li>`:"");
+ return {world:zones+rings+lines+nodes,key};
+}
+/* The frame the campaign is actually on: ops land on the theater, so that is what opens. */
+const startLevel=()=>{const l=L[C.ops[0]&&C.ops[0].loc];return l&&l.level==="THEATER"?"THEATER":"SYSTEM"};
+function fitLevel(level){
+ const at=level||startLevel(),m=holomap(at),world=el("holo-world");
+ frame=at;
+ if(!world)return m;          /* pages without a map still get the pane chips */
+ world.innerHTML=m.world;world.style.transform="";
+ const key=document.querySelector(".holo-key");if(key)key.innerHTML=m.key;
+ const head=el("route-heading");if(head)head.textContent=LEVELS[at].head;
+ const sub=el("holo-sub");if(sub)sub.textContent=LEVELS[at].sub;
+ const card=document.querySelector(".holo");if(card){card.classList.toggle("theater",at==="THEATER");card.classList.toggle("system",at==="SYSTEM")}
+ return m;
+}
+function unitFile(id){const l=L[id];if(!l)return "";
+ const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id),enter=C.locations.filter(x=>x.frame===id);
+ return `<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`
+  +(l.notes?`<div class="muted">${esc(l.notes)}</div>`:"")+table(
   th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th("IN ORBIT",l.parent?locBtn(l.parent):"None")+
   th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personBtn(p.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
-  th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))}
+  th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))
+  +(enter.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${enter.map(x=>`<button class="chip" type="button" data-loc="${esc(x.id)}">ENTER THEATER · ${esc(x.name)}</button>`).join("")}</div>`:"")}
+function showUnit(id){const l=L[id];if(!l||!panel())return;if(l.level&&l.level!==frame)fitLevel(l.level);
+ mark("loc",id);
+ panel().innerHTML=unitFile(id)}
 function showMech(id){const m=M[id];if(!m||!panel())return;const mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id),nf="NOT FILED";
  mark("mech",id);
  panel().innerHTML=`<div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h3 class="mission-title">${esc(m.name)}</h3>`+table(
@@ -201,7 +261,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
     :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,holomap,fitLevel,unitFile,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

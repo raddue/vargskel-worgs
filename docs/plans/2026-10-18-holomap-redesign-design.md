@@ -203,8 +203,7 @@ Existing assertions the rewrite touches, listed so they are not discovered late:
 - `archive.js` — pure `holomap(level)` builder (`X/Y`, `shape`, `nodes`, `rings`, `zones`,
   `lines` all move), pure `unitFile(id)` split out of `showUnit`, `fitLevel`, level state,
   the cross-frame select rule, `UI` export.
-- `index.html` — thin wiring only: call `fitLevel`/insert `{world,key}`, camera listeners,
-  the key's static shell.
+- `index.html` — thin wiring only: call `fitLevel`, camera listeners, the key's static shell.
 - `campaign.js` — location records: reclassify, add `level`/`parent`/`frame`, add the
   theater sites, add `level` to faction zones, rename `dock` to FOB Saber.
 - `style.css` — `.orbit-ring`, `.body`, `.plot-grid`, `.orbit-band`, per-level key chips.

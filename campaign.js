@@ -19,20 +19,44 @@ window.CAMPAIGN = {
     station: "UNS RIO GRANDE"
   },
 
+  /* Two levels share one map. SYSTEM is the star's bodies and their orbits; THEATER is Nov Elysia's
+     surface and approaches. Coordinates are per level, so the two frames are not drawn to one scale.
+     Each record's notes is the prose it was drawn from, and its pane shows it. */
   locations: [
-    { id: "dock",   name: "DOCK / FOB",  kind: "STATION",     x: 12, y: 62, visited: true },
-    { id: "elysia", name: "NOV ELYSIA",  kind: "PLANET",      x: 38, y: 44, visited: false, faction: "vestan" },
-    { id: "pell",   name: "PELL",        kind: "MOON", parent: "elysia", x: 45, y: 34, visited: false },
-    { id: "kessen", name: "KESSEN RELAY", kind: "STATION",    x: 60, y: 68, visited: false, faction: "leandric" },
-    { id: "harrow", name: "HARROW'S GATE", kind: "STATION",   x: 74, y: 36, visited: false },
-    { id: "cairn",  name: "CAIRN DRIFT", kind: "WRECK FIELD", x: 86, y: 64, visited: false, faction: "union" },
-    { id: "tarn",   name: "TARN",        kind: "PLANET",      x: 92, y: 22, visited: false }
+    { level: "SYSTEM",  id: "cressidium", name: "CRESSIDIUM", kind: "PLANET", x: 30, y: 52, visited: true,
+      notes: "The frontier city under Vestan control sits on this world; the lance is mustered in orbit above it." },
+    { level: "SYSTEM",  id: "pell",   name: "PELL",         kind: "MOON", parent: "cressidium", x: 39, y: 39, visited: false,
+      notes: "Nov Elysia's moon, tide-locked over the city's night side." },
+    { level: "SYSTEM",  id: "kessen", name: "KESSEN RELAY", kind: "STATION", parent: "cressidium", x: 52, y: 29, visited: false, faction: "leandric",
+      notes: "Leandric traffic relay holding Cressidium's inner lane." },
+    { level: "SYSTEM",  id: "tarn",   name: "TARN",         kind: "PLANET", x: 86, y: 24, visited: false,
+      notes: "The system's outer world, and the only other one charted." },
+    { level: "SYSTEM",  id: "harrow", name: "HARROW'S GATE", kind: "STATION", parent: "tarn", x: 78, y: 38, visited: false,
+      notes: "Customs station that holds the Tarn approach." },
+    { level: "SYSTEM",  id: "cairn",  name: "CAIRN DRIFT",  kind: "WRECK FIELD", x: 66, y: 76, visited: false, faction: "union",
+      notes: "Debris belt where Union hulls are cut apart under contract." },
+
+    { level: "THEATER", id: "elysia",   name: "NOV ELYSIA", kind: "CITY", frame: "cressidium", x: 38, y: 44, visited: true, faction: "vestan",
+      notes: "The frontier city under Vestan control; the delegation went missing in its central district." },
+    { level: "THEATER", id: "district", name: "CENTRAL DISTRICT", kind: "DISTRICT", parent: "elysia", x: 45, y: 33, visited: true, faction: "vestan",
+      notes: "Where the talks collapsed, and where both Union principals were last seen alive." },
+    { level: "THEATER", id: "dock",     name: "FOB SABER",  kind: "FOB", x: 12, y: 62, visited: true, faction: "vestan",
+      notes: "FOB SABER RENDEZVOUS: the lance's staging ground outside the city perimeter." },
+    { level: "THEATER", id: "dropzone", name: "KINGFISHER PAD", kind: "ZONE", x: 24, y: 52, visited: false, faction: "vestan",
+      notes: "Dropship Kingfisher 2-2's pad, and the ground it has to keep open for CASEVAC." },
+    { level: "THEATER", id: "rio",      name: "UNS RIO GRANDE", kind: "ORBITAL", frame: "cressidium", x: 50, y: 8, visited: false, faction: "union",
+      notes: "HIGH ORBIT OVER NOV ELYSIA: the lance's own hull, holding station and squawking for extraction." },
+    { level: "THEATER", id: "coast",    name: "LEANDRIC COAST", kind: "ZONE", frame: "cressidium", x: 78, y: 72, visited: false, faction: "leandric",
+      notes: "Leandric States Alliance holding along the southern shore." },
+    { level: "THEATER", id: "vsaf",     name: "VSAF APPROACH", kind: "ZONE", frame: "cressidium", x: 62, y: 48, visited: false, faction: "vestan",
+      notes: "VSAF moving on the city's eastern approach: the corridor the lance is meant to hold open." }
   ],
 
+  /* Zones are surface claims, so they belong to the THEATER frame; the sector frame draws none. */
   factions: [
-    { id: "vestan",   name: "Vestan Civic Council",     standing: "NEUTRAL", zone: { x: 38, y: 44, rx: 170, ry: 115, c: "cyan" } },
-    { id: "leandric", name: "Leandric States Alliance", standing: "UNKNOWN", zone: { x: 60, y: 68, rx: 120, ry: 80,  c: "lime" } },
-    { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { x: 86, y: 64, rx: 100, ry: 90,  c: "rust" } }
+    { id: "vestan",   name: "Vestan Civic Council",     standing: "NEUTRAL",    zone: { x: 38, y: 44, rx: 170, ry: 115, c: "cyan" } },
+    { id: "leandric", name: "Leandric States Alliance", standing: "UNKNOWN",    zone: { x: 78, y: 72, rx: 110, ry: 70,  c: "lime" } },
+    { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { x: 46, y: 26, rx: 90,  ry: 60,  c: "rust" } }
   ],
 
   personnel: [

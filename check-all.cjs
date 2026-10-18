@@ -49,7 +49,7 @@ else {
    must exist: a numeric id or a missing array used to blank the whole archive
    while this checker still printed "ok". */
 const required = {
-  locations: ["name", "kind", "x", "y"],
+  locations: ["name", "kind", "x", "y", "level"],
   factions: ["name", "standing"],
   personnel: ["name", "role", "status", "notes", "img"],
   pilots: ["name", "background", "status"],
@@ -184,8 +184,61 @@ if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") pro
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
 /* The index holomap is built by an inline script that mount() cannot run, so its key and the
    current-op marker are asserted in source until the page gets a render-level check. */
-["holo-key", "k-cur", "CURRENT OP", "PLANNED LEG", "TRAVELLED", "holo-world", "holo-reset"].forEach(s => { if (!page.includes(s)) problems.push(`index.html: holomap key missing "${s}"`); });
-if (!page.includes('l.id===cur?" cur":""') || !page.includes(", current operation")) problems.push("index.html: holomap has no current-op marker or label");
+/* Two-level holomap. The builder is pure (UI.holomap), so both frames are asserted as markup
+   rather than as source substrings — which is all the inline script in index.html allowed. */
+{
+  const vm = require("node:vm");
+  const box = { document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener: () => {} }, matchMedia: () => ({ matches: false, addEventListener: () => {} }), CSS: { escape: s => String(s) }, location: { hash: "" }, console };
+  box.window = box;
+  vm.createContext(box);
+  let booted = true;
+  try { vm.runInContext(fs.readFileSync(__dirname + "/campaign.js", "utf8"), box); vm.runInContext(fs.readFileSync(__dirname + "/archive.js", "utf8"), box); }
+  catch (e) { booted = false; problems.push(`archive.js will not load under a stub DOM, so no frame can be checked: ${e.message}`); }
+  const HOLO = booted && (box.UI || (box.window && box.window.UI)), D = booted && box.CAMPAIGN;
+  if (booted && (!HOLO || typeof HOLO.holomap !== "function")) problems.push("archive.js: UI.holomap(level) missing, so the holomap cannot be checked per level");
+  else if (booted && D) {
+    const idsOn = lvl => D.locations.filter(l => l.level === lvl).map(l => l.id);
+    const drawn = lvl => { let out; try { out = HOLO.holomap(lvl); } catch (e) { problems.push(`UI.holomap("${lvl}") threw: ${e.message}`); return { ids: [], key: "", world: "" } }
+      if (!out || typeof out.world !== "string" || typeof out.key !== "string") { problems.push(`UI.holomap("${lvl}") must return {world,key} strings`); return { ids: [], key: "", world: "" } }
+      return { ids: [...out.world.matchAll(/data-loc="([^"]+)"/g)].map(m => m[1]), key: out.key, world: out.world }; };
+    const fames = { SYSTEM: drawn("SYSTEM"), THEATER: drawn("THEATER") };
+    Object.keys(fames).forEach(lvl => { const { ids } = fames[lvl], want = idsOn(lvl);
+      if (!want.length) problems.push(`campaign.js: no ${lvl} locations, so that frame cannot be checked`);
+      want.forEach(id => { if (!ids.includes(id)) problems.push(`UI.holomap("${lvl}") omits ${lvl} location ${id}`); });
+      ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${lvl}") draws ${id}, which campaign.js does not mark ${lvl}`); }); });
+    if (!fames.THEATER.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("THEATER") key has no SYSTEM VIEW chip');
+    if (fames.SYSTEM.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("SYSTEM") key offers SYSTEM VIEW, which is where it already is');
+    /* A site framed onto a body must hang under that body, not float as a sector node of its own. */
+    D.locations.filter(l => l.frame).forEach(k => {
+      const host = D.locations.find(x => x.id === k.frame);
+      if (!host) return;
+      if (host.level === "SYSTEM") {
+        if (!fames.SYSTEM.world.includes(k.name + " SITE")) problems.push(`UI.holomap("SYSTEM") must show ${k.name} as a chip under ${k.frame}, not leave the site unmentioned`);
+        if (fames.SYSTEM.ids.includes(k.id)) problems.push(`UI.holomap("SYSTEM") must not draw ${k.name} as a node of its own in the sector frame`);
+      }
+      if (fames.THEATER.ids.includes(host.id)) problems.push(`UI.holomap("THEATER") must not draw ${host.id}: it is a body of the sector frame`);
+    });
+    const pane = typeof HOLO.unitFile === "function" ? String(HOLO.unitFile("cressidium")) : "";
+    if (!pane.includes("ENTER THEATER")) problems.push('UI.unitFile("cressidium") has no ENTER THEATER chip, so the theater is pointer-only');
+    const by = Object.fromEntries(D.locations.map(l => [l.id, l])), KINDS = ["PLANET", "MOON", "STATION", "WRECK FIELD", "CITY", "DISTRICT", "FOB", "ZONE", "ORBITAL"];
+    D.locations.forEach(l => { if (l.level !== "SYSTEM" && l.level !== "THEATER") problems.push(`location ${l.id}: level must be SYSTEM or THEATER, got ${JSON.stringify(l.level)}`);
+      if (!KINDS.includes(l.kind)) problems.push(`location ${l.id}: kind ${JSON.stringify(l.kind)} is outside the closed set`);
+      if (l.parent && by[l.parent] && by[l.parent].level !== l.level) problems.push(`location ${l.id}: parent ${l.parent} is on another level`);
+      if (l.frame && (!by[l.frame] || by[l.frame].level !== "SYSTEM")) problems.push(`location ${l.id}: frame ${l.frame} must name a SYSTEM location`); });
+    if (by.cressidium?.kind !== "PLANET") problems.push("cressidium must be a PLANET: the prose calls Nov Elysia a city on it");
+    if (by.elysia?.kind !== "CITY") problems.push("elysia must be a CITY, not a planet");
+    if (by.pell?.parent !== "cressidium") problems.push("pell must orbit cressidium, not the city");
+    if (!by.dock || !by.elysia) problems.push("dock and elysia ids must survive: index.html builds a route from dock and ops carry loc elysia");
+    const src = fs.readFileSync(__dirname + "/campaign.js", "utf8");
+    [["elysia", "frontier city under Vestan control"], ["district", "central district"], ["dock", "FOB SABER RENDEZVOUS"], ["dropzone", "Dropship Kingfisher 2-2"], ["rio", "HIGH ORBIT OVER NOV ELYSIA"], ["coast", "Leandric States Alliance holding"], ["vsaf", "VSAF moving on"]].forEach(([id, quote]) => { if (!src.includes(quote)) problems.push(`location ${id}: grounding quote is not source text: "${quote}"`); });
+    const bad = extra => { D.locations.push(Object.assign({ id: "zz", name: "ZZ", kind: "PLANET", x: 50, y: 50, level: "SYSTEM" }, extra)); let threw = false; try { HOLO.holomap("SYSTEM"); } catch (e) { threw = true } D.locations.pop(); return threw; };
+    if (!bad({ kind: "NOPE" })) problems.push("UI.holomap must throw on an unknown kind instead of drawing a wreck field");
+    /* A record with no level belongs to neither frame; that is a data fault, which the level check above reports. */
+    const threw = lvl => { try { HOLO.holomap(lvl); return false } catch { return true } };
+    if (!threw("SURFACE")) problems.push('UI.holomap must throw on an unknown level argument, not draw an empty frame');
+    if (!threw(undefined)) problems.push("UI.holomap must throw when asked for no level at all");
+  }
+}
 
 /* Rendered, not source: assertions read the markup tools/render.cjs produces by running each page's
    scripts against a stub DOM. A stray literal left inside a card template (e.g. a mis-counted paren)
