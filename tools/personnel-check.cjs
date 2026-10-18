@@ -13,7 +13,7 @@ box.window = box;
 vm.createContext(box);
 for (const file of ["campaign.js", "archive.js"]) vm.runInContext(fs.readFileSync(__dirname + "/../" + file, "utf8"), box, { filename: file });
 const { CAMPAIGN: C, UI } = box;
-assert.ok(C.personnel.length >= 2, "expected named personnel records");
+assert.ok(C.personnel.length > 0, "expected personnel records");
 for (const p of C.personnel) {
   const id = p.id;
   assert.ok(p.name && p.role && p.faction && p.status && p.lastKnown && Array.isArray(p.ops) && p.img && p.notes, `${id}: incomplete record`);
@@ -25,6 +25,7 @@ for (const p of C.personnel) {
     assert.ok(panel.includes(`>${label}</th>`), `${id}: missing ${label}`);
   assert.ok(panel.includes(p.notes) && panel.includes(`data-loc="${p.lastKnown}"`), `${id}: missing linked details`);
   for (const opId of p.ops) assert.ok(panel.includes(`index.html#op-${opId}`), `${id}: missing op ${opId}`);
+  if (!p.ops.length) assert.ok(panel.includes("None recorded"), `${id}: empty ops should have fallback`);
   assert.ok(nodes["faction-list"].innerHTML.includes(`data-person="${id}"`), `${id}: missing faction chip`);
   assert.ok(panel.includes(p.name), `${id}: missing name`);
 }

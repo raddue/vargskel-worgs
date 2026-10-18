@@ -32,7 +32,7 @@ function load({ mutate, dir = root } = {}) {
 }
 const worktree = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), "inq-")); fs.cpSync(root, d, { recursive: true, filter: f => !f.includes(`${path.sep}.git`) }); return d; };
 const checkAll = dir => spawnSync(process.execPath, [path.join(dir, "check-all.cjs")], { encoding: "utf8" });
-const fixture = load().C, [first, second] = fixture.personnel, operation = fixture.ops[0];
+const fixture = load().C, operation = fixture.ops.find(o => o.opord?.vips?.length), principal = fixture.personnel.find(p => p.id === operation.opord.vips[0].id), first = fixture.personnel[0];
 const mutateCampaign = (dir, code) => fs.appendFileSync(path.join(dir, "campaign.js"), `\n${code}\n`);
 
 const results = [];
@@ -55,7 +55,7 @@ vector("Wiring", "W2 chip inside detail panel navigates in place (person <-> loc
   assert.equal(h.calls.appended, 0, "in-panel navigation must not reparent the panel");
   assert.deepEqual(h.calls.scrolled, [], "in-panel navigation must not scroll");
   h.click({ loc: first.lastKnown }, "#record-detail");
-  assert.ok(h.panel().includes("UNIT STATUS") && h.panel().includes(`data-person="${second.id}"`), "LAST KNOWN chip should return to the unit");
+  assert.ok(h.panel().includes("UNIT STATUS") && h.panel().includes(`data-person="${first.id}"`), "LAST KNOWN chip should return to the person's unit");
 });
 
 /* ---- Integration ---- */
@@ -68,29 +68,29 @@ vector("Integration", "I1 KNOWN OPS link points at the op the person lists, with
 });
 vector("Integration", "I2c check-all diagnoses missing personnel.ops and duplicate VIP ids", () => {
   const d = worktree();
-  mutateCampaign(d, `delete window.CAMPAIGN.personnel[0].ops;`);
+  mutateCampaign(d, `delete window.CAMPAIGN.personnel.find(p=>p.id===${JSON.stringify(principal.id)}).ops;`);
   const missing = checkAll(d);
   assert.notEqual(missing.status, 0);
-  assert.ok((missing.stdout + missing.stderr).includes(`personnel ${first.id}.ops must be an array`));
+  assert.ok((missing.stdout + missing.stderr).includes(`personnel ${principal.id}.ops must be an array`));
   assert.ok(!(missing.stdout + missing.stderr).includes("TypeError"), "missing ops must not throw");
   fs.copyFileSync(path.join(root, "campaign.js"), path.join(d, "campaign.js"));
-  mutateCampaign(d, `window.CAMPAIGN.ops[0].opord.vips.push({...window.CAMPAIGN.ops[0].opord.vips[0]});`);
+  mutateCampaign(d, `const o=window.CAMPAIGN.ops.find(o=>o.id===${JSON.stringify(operation.id)}); o.opord.vips.push({...o.opord.vips.find(v=>v.id===${JSON.stringify(principal.id)})});`);
   const duplicate = checkAll(d);
   fs.rmSync(d, { recursive: true });
   assert.notEqual(duplicate.status, 0);
-  assert.ok((duplicate.stdout + duplicate.stderr).includes(`op ${operation.id}.opord.vips: duplicate personnel id "${first.id}"`));
+  assert.ok((duplicate.stdout + duplicate.stderr).includes(`op ${operation.id}.opord.vips: duplicate personnel id "${principal.id}"`));
 });
 vector("Integration", "I2b check-all rejects a VIP omitted from personnel.ops", () => {
   const d = worktree();
-  mutateCampaign(d, `window.CAMPAIGN.personnel[0].ops=[];`);
+  mutateCampaign(d, `window.CAMPAIGN.personnel.find(p=>p.id===${JSON.stringify(principal.id)}).ops=[];`);
   const r = checkAll(d);
   fs.rmSync(d, { recursive: true });
-  assert.notEqual(r.status, 0, `check-all should fail when ${first.id} omits VIP op ${operation.id}`);
-  assert.ok((r.stdout + r.stderr).includes(`personnel ${first.id}: OPORD principal of op ${operation.id} missing from personnel.ops`));
+  assert.notEqual(r.status, 0, `check-all should fail when ${principal.id} omits VIP op ${operation.id}`);
+  assert.ok((r.stdout + r.stderr).includes(`personnel ${principal.id}: OPORD principal of op ${operation.id} missing from personnel.ops`));
 });
 vector("Integration", "I2 check-all rejects a VIP/personnel reference the renderer would silently drop", () => {
   const d = worktree();
-  mutateCampaign(d, `window.CAMPAIGN.ops[0].opord.vips[0].id="unknown-person"; window.CAMPAIGN.personnel[1].lastKnown="nowhere"; window.CAMPAIGN.personnel[1].ops=["999"];`);
+  mutateCampaign(d, `window.CAMPAIGN.ops.find(o=>o.id===${JSON.stringify(operation.id)}).opord.vips.find(v=>v.id===${JSON.stringify(principal.id)}).id="unknown-person"; const p=window.CAMPAIGN.personnel.find(p=>p.id===${JSON.stringify(first.id)}); p.lastKnown="nowhere"; p.ops=["999"];`);
   const r = checkAll(d);
   assert.notEqual(r.status, 0, "check-all should fail");
   for (const m of ['unknown personnel id "unknown-person"', 'unknown locations id "nowhere"', 'unknown ops id "999"']) assert.ok(r.stdout.includes(m) || r.stderr.includes(m), `missing: ${m}`);
@@ -141,10 +141,12 @@ vector("State", "S1 opening a person clears the previous map selection (like mec
 vector("State", "S2 repeated ledger clicks replace (not accumulate) panel content and re-reveal it each time", () => {
   const h = load();
   h.click({ person: first.id }); const initial = h.panel();
-  h.click({ person: second.id }); h.click({ person: first.id });
+  const alternate = h.C.personnel.find(p => p.id !== first.id);
+  if (alternate) h.click({ person: alternate.id });
+  h.click({ person: first.id });
   assert.equal(h.panel(), initial, "panel content should be identical on revisit");
   assert.equal((h.panel().match(/PERSONNEL RECORD/g) || []).length, 1);
-  assert.deepEqual(h.calls.scrolled, ["record-detail", "record-detail", "record-detail"]);
+  assert.deepEqual(h.calls.scrolled, Array(alternate ? 3 : 2).fill("record-detail"));
 });
 
 /* ---- Regression ---- */

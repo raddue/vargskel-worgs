@@ -90,7 +90,7 @@ function showPerson(id){const p=N[id];if(!p||!panel())return;
  mark("person",id);
  panel().innerHTML=`<div class="tag">PERSONNEL RECORD</div><h3 class="mission-title">${esc(p.name)}</h3>`+table(
   th("ROLE",esc(p.role))+th("FACTION",F[p.faction]?esc(F[p.faction].name):"")+th("STATUS",pill(p.status,p.status==="MISSING"?"rust":"lime"))+
-  th("LAST KNOWN",locBtn(p.lastKnown))+th("KNOWN OPS",p.ops.map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>"))+th("NOTES",esc(p.notes)));}
+  th("LAST KNOWN",locBtn(p.lastKnown))+th("KNOWN OPS",p.ops.map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>")||"None recorded")+th("NOTES",esc(p.notes)));}
 function show(kind,id){kind==="mech"?showMech(id):kind==="pilot"?showPilot(id):kind==="person"?showPerson(id):showUnit(id)}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[data-loc],[data-pilot],[data-person]");if(!t)return;
  if(e.target.closest("a"))return;
