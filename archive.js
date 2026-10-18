@@ -87,6 +87,7 @@ function showPilot(id){const p=P[id];if(!p||!panel())return;const mine=pilotOps(
   th("TRIGGERS",esc(p.triggers||""))+th("TALENTS",esc(p.talents||""))+th("GEAR",esc(p.gear||""))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}
 function showPerson(id){const p=N[id];if(!p||!panel())return;
+ mark("person",id);
  panel().innerHTML=`<div class="tag">PERSONNEL RECORD</div><h3 class="mission-title">${esc(p.name)}</h3>`+table(
   th("ROLE",esc(p.role))+th("FACTION",F[p.faction]?esc(F[p.faction].name):"")+th("STATUS",pill(p.status,p.status==="MISSING"?"rust":"lime"))+
   th("LAST KNOWN",locBtn(p.lastKnown))+th("KNOWN OPS",p.ops.map(id=>ops.find(o=>o.id===id)).filter(Boolean).map(opLink).join("<br>"))+th("NOTES",esc(p.notes)));}

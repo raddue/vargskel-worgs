@@ -28,7 +28,7 @@ const dupes = key => {
 const required = {
   locations: ["name", "kind", "x", "y"],
   factions: ["name", "standing"],
-  personnel: ["name", "role", "status"],
+  personnel: ["name", "role", "status", "notes"],
   pilots: ["name", "background", "status"],
   mechs: ["name", "frame", "role", "state", "glyph"],
   ops: ["title", "type", "status", "loc", "outcome", "date"],
@@ -90,7 +90,11 @@ C.personnel.forEach(p => {
   if (!Array.isArray(p.ops)) problems.push(`personnel ${p.id}.ops must be an array`);
   else p.ops.forEach(id => have(op, "ops", id, `personnel ${p.id}.ops`));
 });
-C.ops.forEach(o => (o.opord?.vips || []).forEach(v => have(person, "personnel", v.id, `op ${o.id}.opord.vips`)));
+C.ops.forEach(o => (o.opord?.vips || []).forEach(v => {
+  if (!have(person, "personnel", v.id, `op ${o.id}.opord.vips`)) return;
+  const img = C.personnel.find(p => p.id === v.id).img;
+  if (!img || !fs.existsSync(__dirname + "/" + img)) problems.push(`personnel ${v.id}: OPORD principal needs an img that exists, got ${JSON.stringify(img)}`);
+}));
 
 C.locations.forEach(l => {
   if (l.parent) have(loc, "locations", l.parent, `location ${l.id}.parent`);
