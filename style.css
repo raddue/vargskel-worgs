@@ -43,3 +43,7 @@
   .shell{max-width:none;padding:0}
   a[href^="http"]::after{content:" (" attr(href) ")";font-size:10px;color:#555}
 }
+/* chips carry record values (crew, chassis, mission links): print them as plain text, not hidden */
+@media print{
+  .chip{display:inline!important;border:0;background:none;padding:0;margin:0 .6em 0 0;color:inherit;cursor:auto}
+}
