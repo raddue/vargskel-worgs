@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path"), vm = require("node:vm");
 const { execSync, spawnSync } = require("node:child_process");
 const root = path.join(__dirname, "..");
-const BASE = "f6ac4c5"; /* commit before the personnel feature */
+const BASE = execSync("git merge-base origin/main HEAD", { cwd: root, encoding: "utf8" }).trim();
 
 /* Stub DOM harness: captures the delegated click listener, scroll calls and map-node selection. */
 function load({ mutate, dir = root } = {}) {
@@ -66,10 +66,19 @@ vector("Integration", "I1 KNOWN OPS link points at the op the person lists, with
     for (const id of p.ops) { const o = h.C.ops.find(x => x.id === id); assert.ok(h.panel().includes(`index.html#op-${id}`) && h.panel().includes(o.title), `${p.id}: op ${id} link`); }
   }
 });
+vector("Integration", "I2b check-all rejects a VIP omitted from personnel.ops", () => {
+  const d = worktree();
+  const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
+  fs.writeFileSync(path.join(d, "campaign.js"), src.replace('lastKnown: "elysia", ops: ["001"], img: "assets/captain', 'lastKnown: "elysia", ops: [], img: "assets/captain'));
+  const r = checkAll(d);
+  fs.rmSync(d, { recursive: true });
+  assert.notEqual(r.status, 0, "check-all should fail when farris omits VIP op 001");
+  assert.match(r.stdout + r.stderr, /personnel farris:.*001.*ops/, "missing VIP/person.ops mismatch");
+});
 vector("Integration", "I2 check-all rejects a VIP/personnel reference the renderer would silently drop", () => {
   const d = worktree();
   const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
-  fs.writeFileSync(path.join(d, "campaign.js"), src.replace('vips: [{ id: "farris" }', 'vips: [{ id: "faris" }').replace('lastKnown: "elysia", ops: ["001"], img: "assets/ambassador', 'lastKnown: "nowhere", ops: ["999"], img: "assets/ambassador'));
+  fs.writeFileSync(path.join(d, "campaign.js"), src.replace('{ id: "farris", blurb:', '{ id: "faris", blurb:').replace('lastKnown: "elysia", ops: ["001"], img: "assets/ambassador', 'lastKnown: "nowhere", ops: ["999"], img: "assets/ambassador'));
   const r = checkAll(d);
   assert.notEqual(r.status, 0, "check-all should fail");
   for (const m of ['unknown personnel id "faris"', 'unknown locations id "nowhere"', 'unknown ops id "999"']) assert.ok(r.stdout.includes(m) || r.stderr.includes(m), `missing: ${m}`);
@@ -132,7 +141,7 @@ vector("State", "S2 repeated ledger clicks replace (not accumulate) panel conten
 });
 
 /* ---- Regression ---- */
-vector("Regression", "R1 OPORD principals markup is byte-identical to the pre-personnel render", () => {
+vector("Regression", "R1 OPORD principals markup matches the base render", () => {
   const d = snapshot(BASE);
   const vipRow = dirRoot => { delete require.cache[require.resolve(path.join(dirRoot, "tools/render.cjs"))];
     const html = require(path.join(dirRoot, "tools/render.cjs")).mount("solstice-rain.html").html("opord");

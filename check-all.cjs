@@ -92,7 +92,10 @@ C.personnel.forEach(p => {
 });
 C.ops.forEach(o => (o.opord?.vips || []).forEach(v => {
   if (!have(person, "personnel", v.id, `op ${o.id}.opord.vips`)) return;
-  const img = C.personnel.find(p => p.id === v.id).img;
+  const p = C.personnel.find(p => p.id === v.id);
+  if (!p.ops.includes(o.id)) problems.push(`personnel ${v.id}: OPORD principal of op ${o.id} missing from personnel.ops`);
+  if (typeof v.blurb !== "string" || !v.blurb) problems.push(`op ${o.id}.opord.vips ${v.id}: missing blurb`);
+  const img = p.img;
   if (!img || !fs.existsSync(__dirname + "/" + img)) problems.push(`personnel ${v.id}: OPORD principal needs an img that exists, got ${JSON.stringify(img)}`);
 }));
 

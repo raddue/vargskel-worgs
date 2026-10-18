@@ -33,9 +33,19 @@ assert.ok(nodes["record-detail"].innerHTML.includes("NOTABLE PERSONNEL") && node
 const personChip = { dataset: { person: "farris" }, closest: () => null, matches: () => false };
 clicks[0]({ target: { closest: selector => selector.includes("[data-person]") ? personChip : null } });
 assert.ok(scrolled, "faction-ledger personnel chip must reveal off-screen detail panel");
-const op = mount("solstice-rain.html").html("opord");
+const opPage = mount("solstice-rain.html");
+const op = opPage.html("opord");
 for (const id of ["farris", "bannerjee"]) {
-  assert.ok(C.ops[0].opord.vips.some(v => v.id === id && Object.keys(v).length === 1), `${id}: VIP must reference personnel id`);
-  assert.ok(op.includes(byId[id].name) && op.includes(byId[id].notes) && op.includes(byId[id].img), `${id}: OPORD principal missing`);
+  const ref = C.ops[0].opord.vips.find(v => v.id === id);
+  assert.ok(ref?.blurb, `${id}: VIP must retain issued brief`);
+  assert.ok(op.includes(byId[id].name) && op.includes(ref.blurb) && op.includes(byId[id].img), `${id}: OPORD principal missing`);
 }
+const orderHost = { dataset: { op: "001" }, innerHTML: "" };
+const revised = { document: { getElementById: id => id === "opord" ? orderHost : null, querySelectorAll: () => [], addEventListener() {} }, matchMedia: () => ({ matches: true }), console };
+revised.window = revised;
+vm.createContext(revised);
+vm.runInContext(fs.readFileSync(__dirname + "/../campaign.js", "utf8"), revised);
+revised.CAMPAIGN.personnel[0].notes = "Updated dossier only";
+vm.runInContext(fs.readFileSync(__dirname + "/../archive.js", "utf8"), revised);
+assert.ok(orderHost.innerHTML.includes(C.ops[0].opord.vips[0].blurb) && !orderHost.innerHTML.includes("Updated dossier only"), "issued OPORD must not follow live notes");
 console.log("personnel render ok");

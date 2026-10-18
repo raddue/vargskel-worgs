@@ -133,7 +133,7 @@ function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=
  `<div class="card opord-toc"><div class="card-pad"><div class="tag">CONTENTS</div><nav aria-label="Operation order contents">`+
  d.paras.map((p,i)=>chip(`${pid}-p${i+1}`,`${i+1}. ${p[0]}`)).join("")+chip(`${pid}-a`,"A \u00b7 TASK ORG")+
  d.annexes.map((a,i)=>chip(`${pid}-a${i+2}`,`${letter(i+1)} \u00b7 ${a[0]}`)).join("")+`</nav></div></div>`+
- (d.vips?`<div class="card"><div class="card-pad"><div class="tag">EXTRACTION PRINCIPALS \u00b7 VISUAL ID</div><div class="vip-row">`+d.vips.map(ref=>{const v=N[ref.id];return v?`<figure class="vip"><img src="${esc(v.img)}" alt="${esc(v.name)}"><figcaption><b>${esc(v.name)}</b><span>${esc(v.role)}</span><p>${esc(v.notes)}</p></figcaption></figure>`:""}).join("")+`</div></div></div>`:"")+
+ (d.vips?`<div class="card"><div class="card-pad"><div class="tag">EXTRACTION PRINCIPALS \u00b7 VISUAL ID</div><div class="vip-row">`+d.vips.map(ref=>{const v=N[ref.id];return v?`<figure class="vip"><img src="${esc(v.img)}" alt="${esc(v.name)}"><figcaption><b>${esc(v.name)}</b><span>${esc(v.role)}</span><p>${esc(ref.blurb)}</p></figcaption></figure>`:""}).join("")+`</div></div></div>`:"")+
  `<div class="card"><div class="card-pad">`+d.paras.map((p,i)=>`<div class="opord-para" id="${esc(pid)}-p${i+1}"><h4>${i+1}. ${esc(p[0])}</h4>${opBody(p[1])}</div>`).join("")+`</div></div>`+
  opAnnex(letter(0),"TASK ORGANIZATION AND CALLSIGNS",opTaskOrg(o),`${pid}-a`)+
  d.annexes.map((a,i)=>opAnnex(letter(i+1),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`,`${pid}-a${i+2}`)).join("")+
