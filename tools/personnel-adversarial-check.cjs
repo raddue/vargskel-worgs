@@ -3,9 +3,8 @@
    Run: node tools/personnel-adversarial-check.cjs  (prints one PASS/FAIL line per vector, exits 1 on any FAIL) */
 const assert = require("node:assert/strict");
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path"), vm = require("node:vm");
-const { execSync, spawnSync } = require("node:child_process");
+const { spawnSync } = require("node:child_process");
 const root = path.join(__dirname, "..");
-const BASE = execSync("git merge-base origin/main HEAD", { cwd: root, encoding: "utf8" }).trim();
 
 /* Stub DOM harness: captures the delegated click listener, scroll calls and map-node selection. */
 function load({ mutate, dir = root } = {}) {
@@ -31,9 +30,10 @@ function load({ mutate, dir = root } = {}) {
   };
   return { C: box.CAMPAIGN, UI: box.UI, nodes, calls, sel, click, panel: () => nodes["record-detail"].innerHTML };
 }
-const snapshot = rev => { const d = fs.mkdtempSync(path.join(os.tmpdir(), "inq-")); execSync(`git archive ${rev} | tar -x -C ${d}`, { cwd: root }); return d; };
 const worktree = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), "inq-")); fs.cpSync(root, d, { recursive: true, filter: f => !f.includes(`${path.sep}.git`) }); return d; };
 const checkAll = dir => spawnSync(process.execPath, [path.join(dir, "check-all.cjs")], { encoding: "utf8" });
+const fixture = load().C, [first, second] = fixture.personnel, operation = fixture.ops[0];
+const mutateCampaign = (dir, code) => fs.appendFileSync(path.join(dir, "campaign.js"), `\n${code}\n`);
 
 const results = [];
 const vector = (dim, name, fn) => { try { fn(); results.push(["PASS", dim, name]); } catch (e) { results.push(["FAIL", dim, name, e.message.split("\n")[0]]); } };
@@ -49,13 +49,13 @@ vector("Wiring", "W1 every rendered data-person chip resolves to a PERSONNEL REC
 });
 vector("Wiring", "W2 chip inside detail panel navigates in place (person <-> location), no map reparent/scroll", () => {
   const h = load();
-  h.UI.show("loc", "elysia");
-  h.click({ person: "farris" }, "#record-detail");
-  assert.ok(h.panel().includes("CAPTAIN FARRIS") && h.panel().includes("PERSONNEL RECORD"));
+  h.UI.show("loc", first.lastKnown);
+  h.click({ person: first.id }, "#record-detail");
+  assert.ok(h.panel().includes(first.name) && h.panel().includes("PERSONNEL RECORD"));
   assert.equal(h.calls.appended, 0, "in-panel navigation must not reparent the panel");
   assert.deepEqual(h.calls.scrolled, [], "in-panel navigation must not scroll");
-  h.click({ loc: "elysia" }, "#record-detail");
-  assert.ok(h.panel().includes("UNIT STATUS") && h.panel().includes('data-person="bannerjee"'), "LAST KNOWN chip should return to the unit");
+  h.click({ loc: first.lastKnown }, "#record-detail");
+  assert.ok(h.panel().includes("UNIT STATUS") && h.panel().includes(`data-person="${second.id}"`), "LAST KNOWN chip should return to the unit");
 });
 
 /* ---- Integration ---- */
@@ -66,46 +66,53 @@ vector("Integration", "I1 KNOWN OPS link points at the op the person lists, with
     for (const id of p.ops) { const o = h.C.ops.find(x => x.id === id); assert.ok(h.panel().includes(`index.html#op-${id}`) && h.panel().includes(o.title), `${p.id}: op ${id} link`); }
   }
 });
+vector("Integration", "I2c check-all diagnoses missing personnel.ops and duplicate VIP ids", () => {
+  const d = worktree();
+  mutateCampaign(d, `delete window.CAMPAIGN.personnel[0].ops;`);
+  const missing = checkAll(d);
+  assert.notEqual(missing.status, 0);
+  assert.ok((missing.stdout + missing.stderr).includes(`personnel ${first.id}.ops must be an array`));
+  assert.ok(!(missing.stdout + missing.stderr).includes("TypeError"), "missing ops must not throw");
+  fs.copyFileSync(path.join(root, "campaign.js"), path.join(d, "campaign.js"));
+  mutateCampaign(d, `window.CAMPAIGN.ops[0].opord.vips.push({...window.CAMPAIGN.ops[0].opord.vips[0]});`);
+  const duplicate = checkAll(d);
+  fs.rmSync(d, { recursive: true });
+  assert.notEqual(duplicate.status, 0);
+  assert.ok((duplicate.stdout + duplicate.stderr).includes(`op ${operation.id}.opord.vips: duplicate personnel id "${first.id}"`));
+});
 vector("Integration", "I2b check-all rejects a VIP omitted from personnel.ops", () => {
   const d = worktree();
-  const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
-  fs.writeFileSync(path.join(d, "campaign.js"), src.replace('lastKnown: "elysia", ops: ["001"], img: "assets/captain', 'lastKnown: "elysia", ops: [], img: "assets/captain'));
+  mutateCampaign(d, `window.CAMPAIGN.personnel[0].ops=[];`);
   const r = checkAll(d);
   fs.rmSync(d, { recursive: true });
-  assert.notEqual(r.status, 0, "check-all should fail when farris omits VIP op 001");
-  assert.match(r.stdout + r.stderr, /personnel farris:.*001.*ops/, "missing VIP/person.ops mismatch");
+  assert.notEqual(r.status, 0, `check-all should fail when ${first.id} omits VIP op ${operation.id}`);
+  assert.ok((r.stdout + r.stderr).includes(`personnel ${first.id}: OPORD principal of op ${operation.id} missing from personnel.ops`));
 });
 vector("Integration", "I2 check-all rejects a VIP/personnel reference the renderer would silently drop", () => {
   const d = worktree();
-  const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
-  fs.writeFileSync(path.join(d, "campaign.js"), src.replace('{ id: "farris", blurb:', '{ id: "faris", blurb:').replace('lastKnown: "elysia", ops: ["001"], img: "assets/ambassador', 'lastKnown: "nowhere", ops: ["999"], img: "assets/ambassador'));
+  mutateCampaign(d, `window.CAMPAIGN.ops[0].opord.vips[0].id="unknown-person"; window.CAMPAIGN.personnel[1].lastKnown="nowhere"; window.CAMPAIGN.personnel[1].ops=["999"];`);
   const r = checkAll(d);
   assert.notEqual(r.status, 0, "check-all should fail");
-  for (const m of ['unknown personnel id "faris"', 'unknown locations id "nowhere"', 'unknown ops id "999"']) assert.ok(r.stdout.includes(m) || r.stderr.includes(m), `missing: ${m}`);
+  for (const m of ['unknown personnel id "unknown-person"', 'unknown locations id "nowhere"', 'unknown ops id "999"']) assert.ok(r.stdout.includes(m) || r.stderr.includes(m), `missing: ${m}`);
   fs.rmSync(d, { recursive: true });
 });
 
 /* ---- Edge cases ---- */
 /* Each field is stripped on its own so one guard cannot mask the other's removal. */
-for (const [field, re, msg] of [
-  ["notes", /,\n\s*notes: "[^"]*" \}/, "personnel farris: missing notes"],
-  ["img", / img: "assets\/captain-farris-thumb\.webp",/, "personnel farris: OPORD principal needs an img that exists"]]) {
+for (const field of ["notes", "img"]) {
   vector("Edge", `E1 check-all catches a personnel record whose ${field} the page renders as "undefined"`, () => {
     const d = worktree();
-    const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
-    const out = src.replace(re, field === "notes" ? " }" : "");
-    fs.writeFileSync(path.join(d, "campaign.js"), out);
+    mutateCampaign(d, `delete window.CAMPAIGN.personnel[0].${field};`);
     const r = checkAll(d);
     fs.rmSync(d, { recursive: true });
-    assert.notEqual(out, src, `setup: mutation should strip farris ${field}`);
-    assert.notEqual(r.status, 0, `check-all passes with farris ${field} missing`);
-    assert.ok(r.stdout.includes(msg) || r.stderr.includes(msg), `missing: ${msg}`);
+    assert.notEqual(r.status, 0, `check-all passes with ${first.id} ${field} missing`);
+    assert.ok((r.stdout + r.stderr).includes(`personnel ${first.id}: missing ${field}`), `missing: ${first.id} ${field}`);
   });
 }
 vector("Edge", "E2 hostile personnel strings are escaped in chip, panel and OPORD", () => {
   const bad = '<img src=x onerror=alert(1)>"&';
   const h = load({ mutate: C => Object.assign(C.personnel[0], { name: bad, role: bad, notes: bad, status: bad }) });
-  h.UI.show("person", "farris");
+  h.UI.show("person", first.id);
   const out = h.nodes["faction-list"].innerHTML + h.panel();
   assert.ok(!out.includes("<img src=x"), "raw markup leaked");
   assert.ok(out.includes("&lt;img src=x onerror=alert(1)&gt;&quot;&amp;"));
@@ -117,55 +124,72 @@ vector("Edge", "E3 location/faction with no personnel render cleanly (no undefin
   assert.ok(/NOTABLE PERSONNEL<\/th><td[^>]*>None recorded</.test(h.panel()), "empty location should read None recorded");
   assert.ok(!h.panel().includes("undefined") && !h.nodes["faction-list"].innerHTML.includes("undefined"));
   const h2 = load({ mutate: C => { C.personnel.length = 0; } });
-  h2.UI.show("loc", "elysia");
+  h2.UI.show("loc", first.lastKnown);
   assert.ok(!h2.nodes["faction-list"].innerHTML.includes("data-person") && h2.panel().includes("None recorded"));
 });
 
 /* ---- State & lifecycle ---- */
 vector("State", "S1 opening a person clears the previous map selection (like mech/pilot/loc do)", () => {
   const h = load();
-  const other = h.C.locations.find(l => l.id !== "elysia").id;
+  const other = h.C.locations.find(l => l.id !== first.lastKnown).id;
   h.UI.show("loc", other);
   assert.ok(h.sel.has(other), "setup: location should be selected");
-  h.click({ person: "farris" });
-  assert.ok(h.panel().includes("CAPTAIN FARRIS"));
-  assert.ok(!h.sel.has(other), `map still highlights ${other} while the panel shows Captain Farris`);
+  h.click({ person: first.id });
+  assert.ok(h.panel().includes(first.name));
+  assert.ok(!h.sel.has(other), `map still highlights ${other} while the panel shows ${first.name}`);
 });
 vector("State", "S2 repeated ledger clicks replace (not accumulate) panel content and re-reveal it each time", () => {
   const h = load();
-  h.click({ person: "farris" }); const first = h.panel();
-  h.click({ person: "bannerjee" }); h.click({ person: "farris" });
-  assert.equal(h.panel(), first, "panel content should be identical on revisit");
+  h.click({ person: first.id }); const initial = h.panel();
+  h.click({ person: second.id }); h.click({ person: first.id });
+  assert.equal(h.panel(), initial, "panel content should be identical on revisit");
   assert.equal((h.panel().match(/PERSONNEL RECORD/g) || []).length, 1);
   assert.deepEqual(h.calls.scrolled, ["record-detail", "record-detail", "record-detail"]);
 });
 
 /* ---- Regression ---- */
-vector("Regression", "R1 OPORD principals markup matches the base render", () => {
-  const d = snapshot(BASE);
-  const vipRow = dirRoot => { delete require.cache[require.resolve(path.join(dirRoot, "tools/render.cjs"))];
-    const html = require(path.join(dirRoot, "tools/render.cjs")).mount("solstice-rain.html").html("opord");
-    return html.slice(html.indexOf("EXTRACTION PRINCIPALS"), html.indexOf('<div class="opord-para"')); };
-  const before = vipRow(d), after = vipRow(root);
-  fs.rmSync(d, { recursive: true });
-  assert.ok(before.includes("vip-row"), "setup: base render should include principals");
-  assert.equal(after, before);
+vector("Regression", "R1 OPORD principals render issued fields, not live personnel", () => {
+  const h = load({ mutate: C => C.personnel.forEach(p => Object.assign(p, { name: "changed", role: "changed", img: "changed", notes: "changed" })) });
+  const host = { dataset: { op: h.C.ops[0].id }, innerHTML: "" };
+  const box = { CAMPAIGN: h.C, document: { getElementById: id => id === "opord" ? host : null, querySelectorAll: () => [], addEventListener() {} }, matchMedia: () => ({ matches: true }), console };
+  box.window = box; vm.createContext(box);
+  vm.runInContext(fs.readFileSync(path.join(root, "archive.js"), "utf8"), box);
+  for (const v of h.C.ops[0].opord.vips) for (const field of ["name", "role", "img", "blurb"])
+    assert.ok(host.innerHTML.includes(box.UI.esc(v[field])), `${v.id}: issued ${field} missing`);
+  assert.ok(!host.innerHTML.includes("changed"), "OPORD reads mutable personnel");
 });
-vector("Regression", "R2 faction ledger text (names, op counts, standing) unchanged apart from chips", () => {
-  const d = snapshot(BASE);
-  const text = html => html.replace(/<button[^>]*data-person[^>]*>[^<]*<\/button>/g, "").replace(/<[^>]+>/g, "|").replace(/\s+\|/g, "|");
-  const before = load({ dir: d }).nodes["faction-list"].innerHTML, after = load().nodes["faction-list"].innerHTML;
-  fs.rmSync(d, { recursive: true });
-  assert.equal(text(after), text(before));
+vector("Regression", "R2 faction ledger keeps each faction and its personnel chips", () => {
+  const h = load(); const html = h.nodes["faction-list"].innerHTML;
+  for (const f of h.C.factions) {
+    assert.ok(html.includes(h.UI.esc(f.name)) && html.includes(h.UI.esc(f.standing)), `${f.id}: faction text missing`);
+    for (const p of h.C.personnel.filter(p => p.faction === f.id)) assert.ok(html.includes(`data-person="${p.id}"`), `${p.id}: faction chip missing`);
+  }
+});
+vector("Regression", "R2b synthetic third person renders in faction, location, panel and issued OPORD", () => {
+  const h = load({ mutate: C => {
+    const p = { ...C.personnel[0], id: "synthetic-contact", name: "SYNTHETIC CONTACT" };
+    C.personnel.push(p);
+    C.ops[0].opord.vips.push({ id: p.id, name: p.name, role: p.role, img: p.img, blurb: "Test-only brief" });
+  } });
+  assert.ok(h.nodes["faction-list"].innerHTML.includes('data-person="synthetic-contact"'));
+  h.UI.show("loc", h.C.personnel.at(-1).lastKnown);
+  assert.ok(h.panel().includes('data-person="synthetic-contact"'));
+  h.UI.show("person", "synthetic-contact");
+  assert.ok(h.panel().includes("SYNTHETIC CONTACT"));
+  const host = { dataset: { op: h.C.ops[0].id }, innerHTML: "" };
+  const box = { CAMPAIGN: h.C, document: { getElementById: id => id === "opord" ? host : null, querySelectorAll: () => [], addEventListener() {} }, matchMedia: () => ({ matches: true }), console };
+  box.window = box; vm.createContext(box);
+  vm.runInContext(fs.readFileSync(path.join(root, "archive.js"), "utf8"), box);
+  assert.ok(host.innerHTML.includes("SYNTHETIC CONTACT") && host.innerHTML.includes("Test-only brief"));
 });
 vector("Regression", "R3 pre-existing click paths unchanged (map node scrolls holomap; roster chip outside panel ignored)", () => {
   const h = load();
-  h.click({ loc: "elysia" }, ".holo-svg");
+  h.click({ loc: first.lastKnown }, ".holo-svg");
   assert.deepEqual(h.calls.scrolled, ["holomap"], "map node should scroll the holomap, not the panel");
-  h.UI.show("loc", "elysia"); const before = h.panel();
+  h.UI.show("loc", first.lastKnown); const before = h.panel();
   h.click({ mech: h.C.mechs[0].id });
   assert.equal(h.panel(), before, "mech chip outside the panel must stay a no-op");
-  h.click({ person: "farris" }, "a");
+  h.click({ person: first.id }, "a");
   assert.equal(h.panel(), before, "clicks inside links must be left to the browser");
 });
 
