@@ -31,10 +31,11 @@
     <div class="pagebar">
       <div><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>INTELLIGENCE</h1></div>
       <div class="tabs" role="tablist" aria-label="Intelligence sections">
-        <button class="tab" type="button" role="tab" id="tl-map" aria-controls="tab-map" aria-selected="true" data-tab="map">MAP</button>
-        <button class="tab" type="button" role="tab" id="tl-relations" aria-controls="tab-relations" aria-selected="false" data-tab="relations">RELATIONS</button>
-        <button class="tab" type="button" role="tab" id="tl-personnel" aria-controls="tab-personnel" aria-selected="false" data-tab="personnel">PERSONNEL</button>
+        <a class="tab" role="tab" id="tl-map" aria-controls="tab-map" aria-selected="true" href="#map" data-tab="map">MAP</a>
+        <a class="tab" role="tab" id="tl-relations" aria-controls="tab-relations" aria-selected="false" href="#relations" data-tab="relations">RELATIONS</a>
+        <a class="tab" role="tab" id="tl-personnel" aria-controls="tab-personnel" aria-selected="false" href="#personnel" data-tab="personnel">PERSONNEL</a>
       </div>
+      <p class="tab-hint">Sector and theater holomap of the Cressidium contract — tap a site to read its file.</p>
     </div>
     <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><button class="level" type="button" data-level="SYSTEM">SYSTEM</button><button class="level" type="button" data-level="THEATER">THEATER</button></div><section id="holomap"></section></section>
     <section class="tabpanel" id="tab-relations" role="tabpanel" aria-labelledby="tl-relations" hidden><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
@@ -49,7 +50,7 @@
 const L=UI.byId(CAMPAIGN.locations);
 const X=l=>l.x*10,Y=l=>l.y*4.8;
 
-document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div><ul class="holo-key" aria-label="Map key"></ul><div id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></div></div></div>`;
+document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="columns holo-split"><div class="primary"><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div></div></div><ul class="holo-key" aria-label="Map key"></ul></div><aside class="aside" id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></aside></div>`;
 document.getElementById("readout").innerHTML=UI.situation().html;
 document.getElementById("people-list").innerHTML=UI.personnelList();
 UI.fitLevel();
@@ -94,6 +95,25 @@ box.addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv
 if(e.target.closest("#holo-back")){backOut();return}
 if(!e.target.closest("svg"))return;                       /* the reading pane has its own clicks */
 const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView();syncBack()});
+UI.syncBack=syncBack;
+/* The hash is the state, matching the house convention (index.html#op-NNN): #map, #relations,
+   #personnel, and #map/<locId> for the ground being read. replaceState keeps the back button clean
+   and stays inside try/catch because file:// throws. */
+const TABS=["map","relations","personnel"];
+const hashOf=()=>(location.hash||"").replace(/^#/,"");
+const tabFromHash=()=>{const n=hashOf().split("/")[0];return TABS.includes(n)?n:"map"};
+const locFromHash=()=>hashOf().indexOf("map/")===0?decodeURIComponent(hashOf().slice(4)):"";
+const setHash=(n,id)=>{try{history.replaceState(null,"","#"+n+(id?"/"+encodeURIComponent(id):""))}catch(e){}};
+/* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
+document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a"))setHash("map",t.dataset.loc)},true);
+let selected=false;
+const render=()=>{pickTab(tabFromHash());const id=locFromHash();
+ if(id){selected=true;UI.showAtMap("loc",id);zoomTo(id);return}                       /* unknown id falls through to SELECT A TARGET */
+ if(selected||tabFromHash()!=="map")return;
+ const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
+ if(site&&L[site]){selected=true;UI.showAtMap("loc",site);setHash("map",site)}};       /* the page opens as intelligence, not as a prompt */
+window.addEventListener("hashchange",render);
+render();
 })();
 </script>
 </body>

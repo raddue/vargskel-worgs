@@ -90,7 +90,10 @@ let frame=null;
 /* Pure: returns the markup for one frame. Ops legs are drawn only where both ends are on the frame. */
 function holomap(level){
  if(level!=="SYSTEM"&&level!=="THEATER")throw new Error(`holomap: ${level} is not a level`);
- const here=C.locations.filter(l=>l.level===level),X=l=>l.x*10,Y=l=>l.y*4.8,cur=C.ops[0]&&C.ops[0].loc;
+ const here=C.locations.filter(l=>l.level===level),X=l=>l.x*10,Y=l=>l.y*4.8;
+ /* Only an operation that has actually been flown is "current". Op 001 is planned and unbriefed, so a
+    green current-op ring on its area would claim live tracking the record cannot support. */
+ const cur=(o=>o&&o.type!=="PLANNED"&&o.status!=="UNBRIEFED"?o.loc:"")(C.ops[0]);
  here.forEach(l=>{if(!KINDS[l.kind])throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no marker`)});
  const on=id=>{const l=L[id];return !!l&&l.level===level};
  const legs=level==="THEATER"?["dock",...[...C.ops].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(o=>o.loc)]:[];
@@ -140,6 +143,9 @@ function fitLevel(level){
  const grid=el("holo-grid");if(grid)grid.textContent=m.grid;
  const svg=document.querySelector("#holomap svg");if(svg)svg.setAttribute("aria-label",m.aria);
  const card=document.querySelector(".holo");if(card){card.classList.toggle("theater",at==="THEATER");card.classList.toggle("system",at==="SYSTEM")}
+ /* The frame can also change from a chip in the reading pane, so the back control is synced here
+    rather than only in the map's own click handlers. */
+ if(UI.syncBack)UI.syncBack();
  return m;
 }
 function unitFile(id){const l=L[id];if(!l)return "";

@@ -87,7 +87,13 @@
 .maphead{display:flex;gap:6px;justify-content:flex-end;padding:14px 28px 0}
 .level{font:12px var(--mono);letter-spacing:.12em;padding:8px 14px;background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer}
 main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .level[data-level="SYSTEM"]{color:var(--text);border-color:var(--cyan)}
-#tab-map .holo-view{min-height:clamp(380px,64vh,760px)}
+#tab-map .holo-view{min-height:0}
+/* Map-first console: the reading pane sits beside the map on a laptop and drops under it at 1100px,
+   deliberately not 900px, so a 1024x768 landscape keeps a big map and 54px hit targets. */
+.holo-split{align-items:flex-start}
+.holo-split .aside{flex:0 0 400px;background:var(--panel);border:1px solid var(--line)}
+@media(max-width:1100px){.holo-split{flex-direction:column}.holo-split .aside{flex:1 1 auto;width:100%;min-width:0}}
+.tab-hint{margin:0 0 12px;color:var(--muted);font:13px var(--mono);letter-spacing:.06em;max-width:400px}
 .people{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:0 28px 28px}
 .badge-insertion,.badge-rendezvous,.badge-extraction,.badge-muster,.badge-hostile{display:inline-block;margin:2px 3px}
 .badge-hostile .chip{border-color:var(--rust);color:var(--rust)}

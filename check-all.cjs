@@ -376,6 +376,15 @@ if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expo
 const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
 if (/fitLevel/.test(pickTabLine)) problems.push("intel.html: switching tabs must not call fitLevel — it resets the frame and the user's zoom");
 if (!/const showAtMap=\(kind,id\)=>\{if\(UI\.pickTab\)UI\.pickTab\("map"\)/.test(archText)) problems.push("archive.js: showAtMap must activate the map tab, since #record-detail only exists in that panel");
+/* The hash is the state (design doc §Tabs): shareable selection, tabs as links, replaceState guarded,
+   the pane beside the map rather than under it, and no green current-op ring on a planned op. */
+["map", "relations", "personnel"].forEach(n => { if (!new RegExp(`class="tab"[^>]*href="#${n}"`).test(intelPage)) problems.push(`intel.html: the ${n} tab must be an anchor carrying href="#${n}"`); });
+if (!/try\{history\.replaceState/.test(intelPage)) problems.push("intel.html: selection must use history.replaceState inside try/catch (file:// throws)");
+if (!/addEventListener\("hashchange"/.test(intelPage)) problems.push("intel.html: hashchange must drive back/forward");
+if (!/class="columns holo-split"/.test(intelPage)) problems.push("intel.html: the map and the reading pane must share .columns.holo-split");
+if (!/\.holo-split/.test(fs.readFileSync(__dirname + "/style.css", "utf8"))) problems.push("style.css: needs the .holo-split rules that put the pane beside the map");
+if (!/UI\.syncBack=syncBack/.test(intelPage)) problems.push("intel.html: must expose UI.syncBack, so a frame change from the reading pane syncs the back control");
+if (!/type!=="PLANNED"&&o\.status!=="UNBRIEFED"/.test(archText)) problems.push("archive.js: the current-op ring must not mark a planned, unbriefed operation");
 ["insertion", "rendezvous", "extraction"].forEach(k => {
   const l = C.locations.find(x => x.id === sites[k]);
   if (!l) return problems.push(`op ${op0.id}.sites.${k} must name an existing location`);
