@@ -204,6 +204,28 @@ mechCards.forEach((card, i) => ["PILOT", "ROLE", "STATE", "LOADOUT", "SYSTEMS"].
 const cardHtml = mechCards[0] || "";
 if (!cardHtml) problems.push("archive.js: mech roster rendered no card");
 else if (/<\/(table|a|div|td|th)>[^<]/.test(cardHtml)) problems.push("archive.js: rendered mech card carries stray text between tags");
+/* Ledger panel: ledgerPanel is pure, so fixtures pin the per-pilot sums, the record holders,
+   the tie-break and the omitted stats without depending on what the real ledger holds. */
+const bay = mount("mechbay.html");
+const shortName = p => { const nw = p.name.replace(/\u201c([^\u201d]*)\u201d/, "$1").replace(/\s+/g, " ").trim().split(" "); return nw.length > 1 ? nw[0].charAt(0) + ". " + nw[nw.length - 1] : nw[0]; };
+if (!/^\d+ ENTRIES · \d+ PILOTS$/.test(bay.nodes["ledger-count"]?.textContent || "")) problems.push("mechbay.html: ledger count did not render");
+if (!(bay.nodes["ledger-body"] || {}).innerHTML) problems.push("mechbay.html: ledger panel did not render");
+const [leadPilot, chasePilot] = C.pilots, ledgerOp = C.ops[0].id;
+const panel = bay.window.UI.ledgerPanel([
+  { op: ledgerOp, date: "2026-01-01", pilot: leadPilot.id, dealt: 7, repairs: 1 },
+  { op: ledgerOp, date: "2026-01-02", pilot: chasePilot.id, dealt: 2, taken: 9, hacks: 2 },
+  { op: ledgerOp, date: "2026-01-03", pilot: leadPilot.id, taken: 9, hacks: 5 },
+]);
+const record = (label, pilot, total) => `<th scope="row">MOST ${label}</th><td>${bay.window.UI.esc(shortName(pilot))} · ${total}</td>`;
+if (panel.count !== "3 ENTRIES · 2 PILOTS") problems.push(`ledger panel: 3 rows over 2 pilots should read "3 ENTRIES · 2 PILOTS", got "${panel.count}"`);
+if (!panel.html.includes(record("DAMAGE DEALT", leadPilot, 7))) problems.push("ledger panel: damage dealt must sum a pilot's rows");
+if (!panel.html.includes(record("DAMAGE TAKEN", leadPilot, 9))) problems.push("ledger panel: a tied record must fall back to the dealt ordering");
+if (!panel.html.includes(record("HACKS", leadPilot, 5))) problems.push("ledger panel: every stat present in a row needs a record");
+["CORE USES", "KILLS", "MOVES"].forEach(l => { if (panel.html.includes("MOST " + l)) problems.push(`ledger panel: ${l} appears in no row, so it must not get a record`); });
+if (!panel.html.includes(`<td>${bay.window.UI.esc(shortName(leadPilot))}</td><td>2</td>`)) problems.push("ledger panel: career table must count each pilot's sessions");
+const blank = bay.window.UI.ledgerPanel([]);
+if (blank.count !== "0 ENTRIES · 0 PILOTS" || !blank.html.includes("No sessions logged yet")) problems.push("ledger panel: an empty ledger needs a zeroed count and the prompt to log a session");
+if (!bay.window.UI.ledgerPanel(C.ledger).count.startsWith(`${C.ledger.length} ENTRIES`)) problems.push(`ledger panel: count must match the real ${C.ledger.length} ledger row(s)`);
 /* ponytail: dossier imgs checked for alt only; archive.js emits no width/height yet. Add width+height
    to this check once archive.js sets intrinsic dimensions (tracked follow-up). */
 [["pilot.html", C.pilots], ["mech.html", C.mechs]].forEach(([pg, recs]) => recs.forEach(r => {
@@ -228,32 +250,17 @@ C.ops.forEach(o => {
   const titles = ((o.opord || {}).paras || []).map(p => p[0]);
   SMEAC.forEach(t => { if (!titles.includes(t)) problems.push(`op ${o.id}: opord missing paragraph "${t}"`); });
   if (!mount || !o.opord) return;
-  const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" }, ledgerBody = { innerHTML: "" }, ledgerCount = { textContent: "" };
+  const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" };
   if (!page.includes('id="conflict-history"')) problems.push(`${o.mission.href}: conflict-history host missing`);
   if (!Array.isArray(o.history) || !o.history.length || o.history.some(h => typeof h !== "string" || !h.length)) problems.push(`op ${o.id}: conflict history must be a non-empty list of paragraphs`);
-  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : id === "ledger-body" ? ledgerBody : id === "ledger-count" ? ledgerCount : null), querySelectorAll: () => [], addEventListener: () => {} };
+  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : null), querySelectorAll: () => [], addEventListener: () => {} };
   sandbox.matchMedia = () => ({ matches: true });
-  /* Dominant fixture rows exercise the ledger panel whether or not the real ledger is empty. */
-  const [leadPilot, chasePilot] = C.pilots;
-  const shortName = p => { const nw = p.name.replace(/\u201c([^\u201d]*)\u201d/, "$1").replace(/\s+/g, " ").trim().split(" "); return nw.length > 1 ? nw[0].charAt(0) + ". " + nw[nw.length - 1] : nw[0]; };
-  const before = C.ledger.length;
-  C.ledger.push({ op: o.id, date: "2026-01-01", pilot: leadPilot.id, dealt: 999, taken: 1, repairs: 1 });
-  C.ledger.push({ op: o.id, date: "2026-01-02", pilot: chasePilot.id, dealt: 2, taken: 998, hacks: 99 });
   vm.runInContext(ui, sandbox, { filename: "archive.js" });
   const html = host.innerHTML;
   SMEAC.forEach((t, i) => { if (!html.includes(`${i + 1}. ${t}`)) problems.push(`op ${o.id}: rendered OPORD missing heading "${i + 1}. ${t}"`); });
   if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing its first annex`);
   if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
   if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
-  const record = (label, pilot, total) => `<th scope="row">MOST ${label}</th><td>${shortName(pilot)} · ${total}</td>`;
-  if (!ledgerBody.innerHTML.includes(record("DAMAGE DEALT", leadPilot, 999))) problems.push("ledger panel: damage dealt record must come from the highest row total");
-  if (!ledgerBody.innerHTML.includes(record("DAMAGE TAKEN", chasePilot, 998))) problems.push("ledger panel: damage taken record must come from the ledger rows");
-  if (!ledgerBody.innerHTML.includes(record("HACKS", chasePilot, 99))) problems.push("ledger panel: every stat present in a row needs a record");
-  const realRows = C.ledger.slice(0, before);
-  if (!realRows.some(r => r.core != null) && ledgerBody.innerHTML.includes("MOST CORE USES")) problems.push("ledger panel: stats absent from every row must not get a record");
-  if (!ledgerBody.innerHTML.includes("<th>SESSIONS</th>")) problems.push("ledger panel: career totals table must render");
-  if (!ledgerCount.textContent.startsWith(`${before + 2} ENTRIES`)) problems.push(`ledger panel: entry count must match the rows (${ledgerCount.textContent})`);
-  C.ledger.length = before;
 });
 
 if (problems.length) {

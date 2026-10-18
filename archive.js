@@ -142,13 +142,16 @@ if(histHost){const o=C.ops.find(x=>String(x.id)===histHost.dataset.op);
    and record holders are derived here so the rows stay the only source of truth. */
 const LEDGER_STATS=[["dealt","DAMAGE DEALT"],["taken","DAMAGE TAKEN"],["structure","STRUCTURE DMG"],["repairs","REPAIRS"],["hacks","HACKS"],["kills","KILLS"],["heat","HEAT DMG"],["overcharge","OVERCHARGE"],["core","CORE USES"],["moves","MOVES"]];
 const shortName=id=>{const p=P[id];if(!p)return String(id);const nw=p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").replace(/\s+/g," ").trim().split(" ");return nw.length>1?nw[0].charAt(0)+". "+nw[nw.length-1]:nw[0]};
-const ledgerRows=()=>{const rows=new Map();(C.ledger||[]).forEach(e=>{const r=rows.get(e.pilot)||{n:0};r.n++;LEDGER_STATS.forEach(([k])=>{const v=Number(e[k]);if(e[k]!=null&&Number.isFinite(v))r[k]=(r[k]||0)+v});rows.set(e.pilot,r)});return [...rows].map(([pilot,r])=>({pilot,...r})).sort((a,b)=>(b.dealt||0)-(a.dealt||0)||(b.taken||0)-(a.taken||0))};
-if(el("ledger-body")){const rows=ledgerRows(),cols=LEDGER_STATS.filter(([k])=>rows.some(r=>r[k]));
- el("ledger-count").textContent=`${C.ledger.length} ENTRIES · ${rows.length} PILOTS`;
- el("ledger-body").innerHTML=rows.length?table(cols.map(([k,l])=>{const top=rows.slice().sort((a,b)=>(b[k]||0)-(a[k]||0))[0];return th("MOST "+esc(l),`${esc(shortName(top.pilot))} · ${top[k]}`)}).join("")||th("LEDGER","No stats logged yet"))+
-  `<div style="overflow-x:auto"><table class="threads-table"><thead><tr><th>PILOT</th><th>SESSIONS</th>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(shortName(r.pilot))}</td><td>${r.n}</td>${cols.map(([k])=>`<td>${r[k]??0}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`
- :`<p class="muted">No sessions logged yet. Log one with <code>node tools/apply-compcon.cjs --log "dusty dealt=14 taken=9" --write</code></p>`;
-}
+/* Pure over the rows it is given: returns the count text and the markup, so checks can
+   assert exact records with fixture rows instead of whatever the real ledger holds. */
+const ledgerPanel=log=>{const byPilot=new Map();log.forEach(e=>{const r=byPilot.get(e.pilot)||{n:0};r.n++;LEDGER_STATS.forEach(([k])=>{const v=Number(e[k]);if(e[k]!=null&&Number.isFinite(v))r[k]=(r[k]||0)+v});byPilot.set(e.pilot,r)});
+ const list=[...byPilot].map(([pilot,r])=>({pilot,...r})).sort((a,b)=>(b.dealt||0)-(a.dealt||0)||(b.taken||0)-(a.taken||0));
+ const cols=LEDGER_STATS.filter(([k])=>list.some(r=>r[k]));
+ return {count:`${log.length} ENTRIES · ${list.length} PILOTS`,html:list.length?table(cols.map(([k,l])=>{const top=list.slice().sort((a,b)=>(b[k]||0)-(a[k]||0))[0];return th("MOST "+esc(l),`${esc(shortName(top.pilot))} · ${top[k]}`)}).join("")||th("LEDGER","No stats logged yet"))+
+  `<div style="overflow-x:auto"><table class="threads-table"><thead><tr><th>PILOT</th><th>SESSIONS</th>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join("")}</tr></thead><tbody>${list.map(r=>`<tr><td>${esc(shortName(r.pilot))}</td><td>${r.n}</td>${cols.map(([k])=>`<td>${r[k]??0}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`
+ :`<p class="muted">No sessions logged yet. Log one with <code>node tools/apply-compcon.cjs --log "dusty dealt=14 taken=9" --write</code></p>`};
+};
+if(el("ledger-body")){const panel=ledgerPanel(C.ledger||[]);el("ledger-count").textContent=panel.count;el("ledger-body").innerHTML=panel.html;}
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
  host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
@@ -198,7 +201,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
     :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();
