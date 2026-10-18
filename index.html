@@ -58,7 +58,7 @@
 const L=UI.byId(CAMPAIGN.locations);
 const X=l=>l.x*10,Y=l=>l.y*4.8;
 
-document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg></div><ul class="holo-key" aria-label="Map key"></ul><div id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></div></div></div>`;
+document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div><ul class="holo-key" aria-label="Map key"></ul><div id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></div></div></div>`;
 UI.fitLevel();
 const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
 /* Map a site to the centre of the 1000x480 viewBox. The far grid stays at 1x so the sector frame reads as instrumentation around the zoomed system. */
@@ -69,9 +69,31 @@ svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const 
 svg.addEventListener("pointermove",e=>{if(rm.matches)return;const r=svg.getBoundingClientRect();
  far.style.transform=`translate(${(-((e.clientX-r.left)/r.width-.5)*24).toFixed(1)}px,${(-((e.clientY-r.top)/r.height-.5)*14).toFixed(1)}px)`});
 svg.addEventListener("pointerleave",()=>{far.style.transform=""});
-box.addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv){UI.fitLevel(lv.dataset.level);return}
+/* One control for both ways out: clear the camera zoom first, and a second press backs the frame out. */
+const back=document.getElementById("holo-back");
+const zoomed=()=>!!world.style.transform;
+const inTheater=()=>{const h=document.querySelector(".holo");return !!h&&h.classList.contains("theater")};
+const syncBack=()=>{if(!back)return;back.hidden=!(zoomed()||inTheater());back.textContent=zoomed()?"RESET VIEW":"SYSTEM VIEW"};
+const backOut=()=>{if(zoomed())resetView();else if(inTheater())UI.fitLevel("SYSTEM");else return;syncBack()};
+/* Two fingers on the map are a map zoom, not a page zoom: the svg claims the gesture in CSS. */
+let pd=0;
+const spread=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+const nearest=(x,y)=>{let best="",bd=1/0;svg.querySelectorAll("[data-loc]").forEach(n=>{const r=n.getBoundingClientRect(),d=Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2));if(d<bd){bd=d;best=n.dataset.loc}});return best};
+svg.addEventListener("touchstart",e=>{if(e.touches.length===2)pd=spread(e.touches)},{passive:true});
+svg.addEventListener("touchmove",e=>{if(e.touches.length!==2)return;
+ e.preventDefault();
+ if(!pd){pd=spread(e.touches);return}
+ const d=spread(e.touches),intent=UI.pinchIntent(d/pd);pd=d;
+ if(intent==="out")backOut();
+ else if(intent==="in"&&!zoomed()){const a=e.touches[0],b=e.touches[1],id=nearest((a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2);if(id)zoomTo(id)}},{passive:false});
+svg.addEventListener("touchend",()=>{pd=0});
+/* Safari fires non-standard gesture events for a page pinch; the map owns its own pinch. */
+["gesturestart","gesturechange"].forEach(t=>svg.addEventListener(t,e=>e.preventDefault()));
+syncBack();
+box.addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv){UI.fitLevel(lv.dataset.level);syncBack();return}
+if(e.target.closest("#holo-back")){backOut();return}
 if(!e.target.closest("svg"))return;                       /* the reading pane has its own clicks */
-const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView()});
+const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView();syncBack()});
 })();
 </script>
 

@@ -114,6 +114,9 @@ function holomap(level){
   +(level==="THEATER"?`<li><button class="k-level" type="button" data-level="SYSTEM" aria-label="Back out to the sector view">SYSTEM VIEW</button></li>`:"");
  return {world:zones+rings+lines+nodes,key,grid:LEVELS[level].grid,aria:LEVELS[level].aria};
 }
+/* Pinch ratios are hysteretic: a gesture has to travel 1.35x or 0.74x before it counts as a zoom,
+   so a sloppy two-finger tap, or a drift part-way through a gesture, fires nothing. */
+const pinchIntent=ratio=>ratio>=1.35?"in":ratio<=.74?"out":"";
 /* The frame the campaign is actually on: ops land on the theater, so that is what opens. */
 const startLevel=()=>{const l=L[C.ops[0]&&C.ops[0].loc];return l&&l.level==="THEATER"?"THEATER":"SYSTEM"};
 function fitLevel(level){
@@ -273,7 +276,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
     :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,holomap,fitLevel,unitFile,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,pinchIntent,holomap,fitLevel,unitFile,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

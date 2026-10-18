@@ -213,6 +213,12 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
     if (!/Theater holomap/.test(fames.THEATER.aria) || !/Sector holomap/.test(fames.SYSTEM.aria)) problems.push("each frame must announce itself: holomap(level).aria must name that frame");
     if (fames.THEATER.aria === fames.SYSTEM.aria) problems.push("the two frames must not share one aria-label");
     if (!fames.SYSTEM.key.includes('class="k-orbit"')) problems.push('UI.holomap("SYSTEM") key must list ORBIT: the sector frame draws orbit rings');
+    /* Pinch is the one map gesture a stub cannot perform, so its decision function is kept pure. */
+    if (typeof HOLO.pinchIntent !== "function") problems.push("archive.js: UI.pinchIntent(ratio) missing, so the pinch gesture cannot be checked");
+    else [[2, "in"], [1.4, "in"], [1.34, ""], [1, ""], [.8, ""], [.74, "out"], [.5, "out"]].forEach(([r, want]) => {
+      const got = HOLO.pinchIntent(r);
+      if (got !== want) problems.push(`UI.pinchIntent(${r}) = "${got}", want "${want}": pinch thresholds must stay hysteretic`);
+    });
     if (fames.THEATER.key.includes('class="k-orbit"')) problems.push('UI.holomap("THEATER") must not offer an ORBIT chip: a district does not orbit its city');
     /* A site framed onto a body must hang under that body, not float as a sector node of its own. */
     D.locations.filter(l => l.frame).forEach(k => {

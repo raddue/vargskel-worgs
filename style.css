@@ -59,3 +59,8 @@
 .k-level{font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:2px 7px;cursor:pointer}
 .k-level:hover,.k-level:focus-visible{background:var(--chip-hover)}
 #record-detail .mech-thumb{margin:10px 0 14px}
+.holo-view{position:relative}
+.holo-svg{touch-action:pan-y}
+.holo-back{position:absolute;top:8px;right:8px;z-index:4;font-size:11px;letter-spacing:.1em;background:var(--bg);color:var(--cyan);border:1px solid var(--cyan);padding:3px 8px;cursor:pointer}
+.holo-back:hover,.holo-back:focus-visible{background:var(--chip-hover)}
+.holo-back[hidden]{display:none}
