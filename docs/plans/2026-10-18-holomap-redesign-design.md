@@ -9,128 +9,185 @@ source: "design"
 
 ## Problem
 
-The map draws one frame for two different scales, and mislabels what it draws.
+The map draws one frame for two scales and mislabels what it draws.
 
 `campaign.js` treats Nov Elysia as a city — "frontier city under Vestan control and only
-real foothold Union has on planet", and the OPORD hero reads `THEATER: Nov Elysia ·
-Cressidium`. The map disagrees: Nov Elysia carries `kind: PLANET`, Pell carries
-`parent: elysia` so a moon orbits a city, and Cressidium — the planet the campaign is
-actually fought on — is not on the map at all. Tarn, Harrow's Gate, Kessen Relay and
-Cairn Drift each appear once in prose but are drawn with the same weight as the places in
-play. Everything referenced by the operation (central district, FOB Saber, high orbit,
-Leandric coast, Vestan industrial districts) has no marker.
+real foothold Union has on planet" — and lists `ops[0].loc` as `elysia`. The map disagrees:
+Nov Elysia carries `kind: "PLANET"`, Pell carries `parent: "elysia"` so a moon orbits a
+city, and Cressidium — the planet named in the OPORD hero (`THEATER: Nov Elysia ·
+Cressidium`) — has no record at all.
 
-Investigating reference counts confirmed the weight: Nov Elysia has 10 prose mentions and
-is the operation's `loc`; Pell has 3; every other site has one.
+Reference counts, corrected: **Tarn, Harrow's Gate, Kessen Relay and Cairn Drift appear in
+zero prose.** The two hits each in `campaign.js` are their own `id` and `name` fields, and
+"Pell has 3" counted `id`, `name`, and "Rocket-Pro**pell**ed". The four are dictionary
+entries drawn with the same weight as places in play. The only names prose actually uses
+are Nov Elysia (the city), Pell (its moon), FOB Saber and the central district — and
+**FOB Saber has no record**: the standing record is `dock` (`DOCK / FOB`).
 
 ## Decision
 
-**Two levels, click-through.** A system frame shows celestial bodies and installations
-with true-parent orbits; selecting the planet descends into a theatre frame of the
-fighting itself. This reuses the camera built for #24 rather than adding a mechanism.
+**Two levels, click-through.** A Cressidium system frame shows bodies and installations
+with true-parent orbits; the theatre frame shows the fighting. Selecting the planet
+descends a level; `SYSTEM VIEW` climbs back out.
 
-Selecting a body at system level either zooms to it in place (installations, the wreck)
-or descends a level (the planet). A `SYSTEM VIEW` chip in the map key climbs back out.
+Two structural commitments fall out of the review, and both come first:
 
-## Level 1 — Cressidium system (frame 1000×480)
+1. **The map builder moves out of `index.html` into `archive.js` as a pure function**,
+   `UI.holomap(level)`, returning markup exactly like `ledgerPanel` does.
+   Today the builder lives in the inline IIFE at `index.html:58-83` (`X/Y`, `rings`,
+   `shape`, `nodes`, `zoomTo`), and `mount("index.html")` cannot run under the harness —
+   the stub's `querySelector` returns `null`, so it throws at `index.html:72`.
+   That is why `check-all.cjs:185-188` asserts on source substrings instead of rendered
+   markup. Until the builder is pure, none of this design is testable.
+2. **Theatre records carry an owner**, `frame: "cressidium"`, and the descent reads it.
+   `parent` stays orbit-only and same-level only, so it cannot express "this theatre
+   belongs to that planet" and the descent is not hardcoded to an id.
+
+## Level 1 — Cressidium system (viewBox 1000×480)
 
 | Site | kind | parent |
 |---|---|---|
-| Cressidium | planet | — |
-| Pell | moon | cressidium |
-| Tarn | planet | — |
-| Harrow's Gate | station | tarn |
-| Kessen Relay | station | cressidium |
-| Cairn Drift | wreck field | — (debris belt) |
+| Cressidium | `PLANET` | — |
+| Pell | `MOON` | `cressidium` |
+| Tarn | `PLANET` | — |
+| Harrow's Gate | `STATION` | `tarn` |
+| Kessen Relay | `STATION` | `cressidium` |
+| Cairn Drift | `WRECK FIELD` | — (debris belt) |
 
-Drawn as an orrery: no grid, orbit rings as true parent circles, a star, distance
-read as relative position on the ring. Selecting Cressidium descends; a breadcrumb in the
-section head reads `CRESSIDIUM SYSTEM`.
+Markup: `#holo-world` holds `.orbit-ring` per parented site and `.body` per planet, no
+`#holo-grid`. Selecting Cressidium opens its pane. Tarn descending to a frame of its own
+is deferred — nothing is placed there in prose.
 
-## Level 2 — Nov Elysia theatre (frame 1000×480)
+## Level 2 — Nov Elysia theatre (viewBox 1000×480)
 
-**Provisional: grounded only.** Every site below is named in prose already; no invented
-landmarks. Adding invented geography later is purely additive, so this choice stays
-reversible.
+**Provisional: grounded only.** Every site is named in prose. Adding invented geography
+later is additive work on a data table.
 
-| Site | kind | grounded in |
-|---|---|---|
-| Nov Elysia | city | "frontier city under Vestan control" |
-| Central District | district | "missing in central district" |
-| FOB Saber | fob | "FOB SABER RENDEZVOUS INSTRUCTIONS" |
-| Drop Zone Kingfisher | zone | "insertion onto Nov Elysia aboard Dropship Kingfisher 2-2" |
-| UNS Rio Grande | orbital | "high orbit over Nov Elysia" |
-| Leandric Edge | zone | "Leandric States Alliance holding coast and trade lanes" |
-| VSAF Advance | zone | "VSAF moving on city" |
+| Site | id | kind | grounded in (exact substring of `campaign.js`) |
+|---|---|---|---|
+| Nov Elysia | `elysia` | `CITY` | `frontier city under Vestan control` |
+| Central District | `district` | `DISTRICT` | `central district` |
+| FOB Saber | `dock` | `FOB` | `FOB SABER RENDEZVOUS` |
+| Drop Zone Kingfisher | `dropzone` | `ZONE` | `Dropship Kingfisher 2-2` |
+| UNS Rio Grande | `rio` | `ORBITAL` | `HIGH ORBIT OVER NOV ELYSIA` |
+| Leandric Edge | `coast` | `ZONE` | `Leandric States Alliance holding coast` |
+| VSAF Advance | `vsaf` | `ZONE` | `VSAF moving on the city` |
 
-Drawn as a tactical plot: grid, a surface/coast boundary, a shaded high-orbit band at
-the top holding the Rio Grande, and the advance line as a dashed hostile route. Selecting
-an orbital descends no further; the detail pane under the map remains the leaf.
+`elysia` keeps its id — `check-all.cjs:98` asserts `op.loc === "elysia"`, and the city
+reading is what makes that assertion true. `dock` keeps its id because
+`index.html:61` hardcodes `routes=["dock",…]`; the route dock→elysia then reads as the
+insertion leg. Renaming the record's `name` to `FOB SABER` is safe; changing its `id`
+is not. Every `grounded in` value must be a literal substring of `campaign.js`, which is
+itself an assertion.
+
+Markup: same frame, `.plot-grid` present, `.orbit-band` across the top holding the
+orbital, the advance line drawn dashed and hostile. The detail pane stays the leaf.
 
 ## Data model
 
-Two fields added to each `C.locations` record, nothing else:
+Added to each `C.locations` record:
 
-- `level: "system" | "theater"` — which frame the site belongs to. Absent is invalid.
-- `parent: string | null` — the id whose orbit ring the site hangs on, or `null`.
+- `level: "SYSTEM" | "THEATER"` — uppercase, matching `kind` casing. Absent is invalid.
+- `parent: string | null` — an id on the **same level**, orbit ring only, else `null`.
+- `frame: string` — **theatre records only**: the system-level id owning this theatre.
+  `frame` replaces the rejected idea of pointing `parent` across levels.
 
-`kind` stays a closed set, extended with `city`, `district`, `fob`, `zone`, `orbital`.
-`x`/`y` are per-level screen coordinates, so both frames share the 1000×480 space.
+`kind` stays a closed, uppercase set extended with `CITY`, `DISTRICT`, `FOB`, `ZONE`,
+`ORBITAL`. `shape()` currently ends in a diamond default, so an unknown or lowercased
+kind renders silently as a wreck field; unknown kinds must instead throw in the builder,
+and every kind must have a shape and a key chip for its level.
 
-Grain test: one record is one marker on one level. A site appearing on both levels would
-be two records, which is why nothing is duplicated today.
+`x`/`y` are percentages of the viewBox, scaled by `X = x*10` and `Y = y*4.8`. One record
+is one marker on one level; a site on both levels would be two records.
+
+Levels of the other drawn layers, decided:
+
+- `factions[].zone` gains `level`. Vestan and Leandric zones are `THEATER`; a zone drawn
+  in both frames today is a bug, not a feature.
+- Route lines gain `level`; the dock→elysia leg is `THEATER`, so the system frame draws
+  no routes.
+- The `CURRENT OP` ring is drawn only on the level owning `C.ops[0].loc`.
 
 ## Interaction
 
-Level state (`system` | `theater`) plus the existing camera. Descending or climbing
-re-renders the frame's sites and resets the camera; zooming within a level is unchanged
-from #24. The map key swaps its chip set per level. Breadcrumb: `CRESSIDIUM SYSTEM` /
-`NOV ELYSIA THEATRE`. Under `prefers-reduced-motion` both the descent and the camera jump
-instead of gliding. The detail pane stays the keyboard and screen-reader route to a
-site's file, so no file is reachable only by descending.
+Level state lives beside the camera. Descending and climbing **reset the camera to
+identity**, then swap the frame — the camera is one CSS transform with a `.55s`
+transition, so resetting it while content swaps would start the new frame at 2.6× and
+shrink it, which is not a descent. Within-frame zoom is unchanged from #24.
+
+Descending rebuilds `#holo-world` and the map key only. `#record-detail` lives inside
+`#holomap`'s innerHTML, so rebuilding `#holomap` wholesale destroys the pane.
+
+Descent trigger: an explicit **`ENTER THEATRE` chip in Cressidium's pane**, which is
+keyboard-reachable and assertable, with a click on the body as a shortcut. A click alone
+would fire both the `archive.js` handler (opening the Cressidium pane) and the svg camera
+handler, and leave the pane showing a body the theatre frame does not draw.
+
+Cross-frame selection has a rule: the detail pane's chips can open a site from the other
+level (`personnel.lastKnown`, in-orbit links). Selecting such a site switches level first,
+then selects, so `zoomTo` never pans to coordinates that are not drawn and `mark()`
+always finds a node.
+
+Reachability: the pane's `NEARBY SITES` lists same-`level` sites rather than only
+`parent` children, so moving Pell to `cressidium` does not strand it, and the theatre is
+reachable by keyboard through the `ENTER THEATRE` chip rather than only by descending.
+No file is reachable only by descending.
+
+Under `prefers-reduced-motion` the frame swap is instant; there is no glide to skip.
 
 ## Invariants
 
 Checkable by inspection:
 
-- Every location has a `level` in the closed set; `parent`, when set, names another
-  location on the same level.
-- No orbit ring is drawn without a parent in the same level.
-- The `kind` vocabulary is closed; every kind has a shape and a key chip for its level.
-- `Cressidium` is `kind: planet`; `Nov Elysia` is `kind: city`; `Pell.parent ===
-  "cressidium"`.
+- Every location has a `level` in the closed set; `parent`, when set, names a location on
+  the same level; `frame`, when set, names a `SYSTEM` location.
+- Every kind is uppercase and in the closed set; the builder throws on an unknown kind.
+- Every kind has a shape and a key chip on each level it appears on.
+- No zone, route or `CURRENT OP` ring renders on a level it does not declare.
+- `Cressidium.kind === "PLANET"`, `Nov Elysia.kind === "CITY"`,
+  `Pell.parent === "cressidium"`, `dock.id === "dock"`, `elysia.id === "elysia"`.
+- `UI.holomap(level)` is pure: given `C`, it returns a string and touches no DOM.
 
-Requires tests:
+Requires tests (assertions over `UI.holomap("SYSTEM")` and `UI.holomap("THEATER")`,
+which is only possible after the builder move):
 
-- Both frames render their full site list through the stub-DOM harness in `check-all.cjs`,
-  which calls the level switch directly rather than through a click.
-- Descending from the system frame and climbing back both restore a full site list.
-- `tools/*-check.cjs` assertions that count locations or name labels still pass after the
-  rename (`ROUTE TRAVELLED` and friends already moved once in #18).
+- Each frame renders exactly its own site list, and neither leaks the other's ids.
+- Each frame's key holds that level's chips, and `ENTER THEATRE` appears in the system
+  frame while `SYSTEM VIEW` appears in the theatre frame.
+- Every `grounded in` string is a substring of `campaign.js`.
+- The builder throws on an unknown kind and on a missing `level`.
+
+Existing assertions the rewrite will touch, listed so they are not discovered late:
+`check-all.cjs:187-188` exact substrings `holo-reset`, `TRAVELLED`, `PLANNED LEG`, and
+`'l.id===cur?" cur":""'`; `check-all.cjs:98` `op.loc !== "elysia"`; and the
+`required.locations` check, which gains `level`. Untested strings the rename touches:
+the `SECTOR VIEW` button and its `aria-label`, and the `SECTOR HOLOMAP` / `RIM SECTOR`
+heads. No script under `tools/` counts locations or names labels, so the earlier claim
+that they would need updating was wrong.
 
 ## Files touched
 
-- `campaign.js` — location records: rename the planet, reclassify, add `level`/`parent`,
-  author the theatre sites.
-- `archive.js` — map build and render: per-level site selection, orrery vs plot layers,
-  per-level key, breadcrumb.
-- `index.html` — level wiring alongside the camera; key markup per level.
-- `style.css` — orrery and plot layer treatments; per-level key chips.
-- `check-all.cjs` — assertions for both frames and the invariants above.
+- `archive.js` — new pure `holomap(level)` builder (moves `X/Y`, `shape`, `nodes`,
+  `rings` out of `index.html`), plus `UI` export.
+- `index.html` — thin wiring only: level state, camera, listeners; builder call.
+- `campaign.js` — location records: reclassify, add `level`/`parent`/`frame`, add the
+  theatre sites, add `level` to faction zones, rename `dock` to FOB Saber.
+- `style.css` — `.orbit-ring`, `.body`, `.plot-grid`, `.orbit-band`, per-level key chips.
+- `check-all.cjs` — builder assertions replacing the string assertions it can drop.
 
 ## Acceptance
 
-- The system frame shows Cressidium, Pell, Tarn, and the installations with honest orbits.
-- Selecting Cressidium descends to the theatre frame showing the seven grounded sites;
-  `SYSTEM VIEW` climbs back out and restores the system frame.
+- `UI.holomap("SYSTEM")` returns Cressidium, Pell, Tarn, Harrow's Gate, Kessen Relay,
+  Cairn Drift; `UI.holomap("THEATER")` returns the seven theatre sites; neither leaks.
+- The `ENTER THEATRE` chip descends and `SYSTEM VIEW` climbs, both keyboard-reachable,
+  both with the camera reset.
 - The semantic bug is gone: planets are Cressidium and Tarn, Nov Elysia is a city, Pell
-  orbits Cressidium.
+  orbits Cressidium, and the map no longer blanks (the `dock` id survives).
 - `node check-all.cjs` passes with the new assertions.
-- Deployed to Pages and verified live.
+- Deployed to Pages; the live page carries both frames.
 
 ## Open questions
 
-- The theatre content question (grounded only vs. invented landmarks) was presented and
-  left unanswered; grounded only is provisional and reversible.
-- Whether Tarn should also descend to a frame of its own — deferred, nothing is placed
-  there in prose.
+- Theatre content (grounded only vs. invented landmarks): presented, unanswered;
+  grounded only is provisional and additive to change.
+- Tarn descending to its own frame: deferred, nothing placed there in prose.
