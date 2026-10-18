@@ -77,18 +77,22 @@ vector("Integration", "I2 check-all rejects a VIP/personnel reference the render
 });
 
 /* ---- Edge cases ---- */
-vector("Edge", "E1 check-all catches a personnel record whose notes/img the page renders as \"undefined\"", () => {
-  const d = worktree();
-  const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
-  fs.writeFileSync(path.join(d, "campaign.js"), src.replace(/ img: "assets\/captain-farris-thumb\.webp",\n\s*notes: "[^"]*" \}/, " }"));
-  const h = load({ dir: d });
-  h.UI.show("person", "farris");
-  const rendersUndefined = h.panel().includes(">undefined<");
-  const r = checkAll(d);
-  fs.rmSync(d, { recursive: true });
-  assert.ok(rendersUndefined, "setup: mutation should strip farris notes/img");
-  assert.notEqual(r.status, 0, "check-all passes while showPerson/OPORD render literal \"undefined\" for notes/img");
-});
+/* Each field is stripped on its own so one guard cannot mask the other's removal. */
+for (const [field, re, msg] of [
+  ["notes", /,\n\s*notes: "[^"]*" \}/, "personnel farris: missing notes"],
+  ["img", / img: "assets\/captain-farris-thumb\.webp",/, "personnel farris: OPORD principal needs an img that exists"]]) {
+  vector("Edge", `E1 check-all catches a personnel record whose ${field} the page renders as "undefined"`, () => {
+    const d = worktree();
+    const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
+    const out = src.replace(re, field === "notes" ? " }" : "");
+    fs.writeFileSync(path.join(d, "campaign.js"), out);
+    const r = checkAll(d);
+    fs.rmSync(d, { recursive: true });
+    assert.notEqual(out, src, `setup: mutation should strip farris ${field}`);
+    assert.notEqual(r.status, 0, `check-all passes with farris ${field} missing`);
+    assert.ok(r.stdout.includes(msg) || r.stderr.includes(msg), `missing: ${msg}`);
+  });
+}
 vector("Edge", "E2 hostile personnel strings are escaped in chip, panel and OPORD", () => {
   const bad = '<img src=x onerror=alert(1)>"&';
   const h = load({ mutate: C => Object.assign(C.personnel[0], { name: bad, role: bad, notes: bad, status: bad }) });
