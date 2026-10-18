@@ -35,7 +35,7 @@ window.CAMPAIGN = {
     { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
       talents: "Hacker 1, Leader 1, Spotter 1",
-      gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, Omnihook, Personal Drone" },
+      gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, SSC Sylph Undersuit, Personal Drone" },
     { id: "dusty",  name: "HANSEN “DUSTY” MCGRAW", background: "PILOT · LL0 · OUTLAW", status: "ACTIVE", mech: "tombstone", img: "assets/dusty.png",
       triggers: "Charm (+2), Spot (+2), Survive (+2), Take Someone Out (+2)",
       talents: "Gunslinger 1, Vanguard 1, Skirmisher 1",
