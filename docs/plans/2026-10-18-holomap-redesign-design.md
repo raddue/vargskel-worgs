@@ -112,11 +112,12 @@ one marker on one level.
 
 Levels of the other drawn layers:
 
-- **Zones:** `factions[].zone` gains `level`, and the zone centre moves with it. Vestan and
-  Leandric are `THEATER`; Union is `THEATER` as well, since its zone is drawn around the
-  city and the delegation. Leandric's centre moves off `kessen` (60,68) — a system
-  installation — to theater coordinates, because a zone centred on a system site is exactly
-  the scale-mixing this redesign removes.
+- **Zones:** `factions[].zone` gains `level`, and the zone centre moves with it. All three
+  zones are `THEATER`. Two of them currently sit on system sites — `campaign.js:34` centres
+  Leandric on `kessen` (60,68) and `campaign.js:35` centres Union on Cairn Drift (86,64) — so
+  both move to theater coordinates. Vestan's centre (38,44) already coincides with the city
+  and stays. A zone centred on a system site is exactly the scale-mixing this redesign
+  removes.
 - **Routes:** routes have no record of their own (`routes` is built from `"dock"` plus
   `ops[].loc`), so a route's level is **derived from its endpoints**. Both endpoints here
   are theater, so the system frame draws no routes; a future cross-level route is a data
@@ -125,10 +126,12 @@ Levels of the other drawn layers:
 
 ## Interaction
 
-Level state lives in `UI` beside the map. `UI.fitLevel(level)` is the single switch point:
-it sets the level, resets the camera, returns `UI.holomap(level)`, and `index.html` inserts
-`{world, key}` into the existing shell. `#record-detail` lives inside `#holomap`'s
-innerHTML, so `#holomap` is never rebuilt wholesale — only `#holo-world` and the key.
+Level state lives in `UI` beside the map. `UI.fitLevel(level)` is the single switch point and
+the only mutator: it sets the level, resets the camera, and writes `{world, key}` into
+`#holo-world` and the key element itself — the pane path in `archive.js` calls it and has
+nothing to insert a return value with. `UI.holomap(level)` stays the pure part, and it is what
+the tests call. `#record-detail` lives inside `#holomap`'s innerHTML, so `#holomap` is never
+rebuilt wholesale.
 
 Descending or climbing **disables the camera transition, resets the transform to identity,
 swaps the frame body, then restores the transition on the next frame**. Awaiting
@@ -184,7 +187,8 @@ Existing assertions the rewrite touches, listed so they are not discovered late:
 
 - `check-all.cjs:187` — all seven substrings break once the template moves: `holo-key`,
   `k-cur`, `CURRENT OP`, `PLANNED LEG`, `TRAVELLED`, `holo-world`, `holo-reset`.
-- `check-all.cjs:188` — `", current operation"`.
+- `check-all.cjs:188` — both `'l.id===cur?" cur":""'` and `", current operation"`, since the
+  current-op marker is built in the template that moves.
 - `check-all.cjs:181` — `page.includes('id="record-detail"')`, kept true by never
   rebuilding `#holomap`.
 - `check-all.cjs:98` — `sr.loc !== "elysia"` stays **unchanged**, since the id is kept.
