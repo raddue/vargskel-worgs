@@ -135,6 +135,7 @@ function fitLevel(level){
 function unitFile(id){const l=L[id];if(!l)return "";
  const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id),enter=C.locations.filter(x=>x.frame===id);
  return `<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`
+  +(l.img?`<div class="mech-thumb">${pic(l.img,l.name)}</div>`:"")
   +(l.notes?`<div class="muted">${esc(l.notes)}</div>`:"")+table(
   th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th(l.parent?(["MOON","STATION","ORBITAL"].includes(l.kind)?"IN ORBIT":"WITHIN"):"IN ORBIT",l.parent?locBtn(l.parent):"None")+
   th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personBtn(p.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+

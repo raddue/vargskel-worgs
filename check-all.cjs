@@ -72,8 +72,8 @@ if (!C.mechs.some(m => m.name === "SWEET CHEEKS") || !C.mechs.some(m => m.name =
 if (!fs.existsSync(__dirname + "/assets/spook.png")) problems.push('Spook portrait missing from assets');
 if (!fs.existsSync(__dirname + "/assets/skaldr.png")) problems.push('Skaldr artwork missing from assets');
 if (!fs.existsSync(__dirname + "/assets/tizona.png")) problems.push('Tizona portrait missing from assets');
-/* Every roster image needs its webp thumb (roster cards render <picture> webp-first). */
-[...C.pilots, ...C.mechs].forEach(x => {
+/* Every roster and location image needs its webp thumb (cards render <picture> webp-first). */
+[...C.pilots, ...C.mechs, ...C.locations].forEach(x => {
   if (!x.img) return;
   const thumb = x.img.replace(/\.\w+$/, "-thumb.webp");
   if (!fs.existsSync(__dirname + "/" + thumb)) problems.push(`${x.id}: missing ${thumb} for ${x.img}; regen: magick ${x.img} -resize 480x ${thumb}`);
