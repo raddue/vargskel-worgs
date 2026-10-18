@@ -57,11 +57,15 @@ document.getElementById("people-list").innerHTML=UI.personnelList();
 UI.fitLevel();
 /* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
    pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
+let currentLoc="";   /* the ground the pane is about, so a tab round trip puts it back in the URL */
 const tabs=[...document.querySelectorAll(".tab")];
-const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});if(tabFromHash()!==n)setHash(n)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
+const pickTab=(n,push)=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});const was=tabFromHash();if(n==="map")setHash("map",currentLoc,!!push&&was!==n);else if(was!==n)setHash(n,"",push)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
 /* archive.js calls this when a record opens, so its pane is not left in a hidden panel. */
 UI.pickTab=pickTab;
-document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)pickTab(t.dataset.tab)});
+/* The tab anchors carry a bare #map/#relations/#personnel href, and that default navigation
+ would follow our own write and override it with a bare #map, dropping the selected ground.
+ pickTab writes the URL itself (push on a tab change), so the anchor action is stopped. */
+document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(!t)return;e.preventDefault();pickTab(t.dataset.tab,true)});
 const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
 /* Map a site to the centre of the 1000x480 viewBox. The far grid stays at 1x so the sector frame reads as instrumentation around the zoomed system. */
 const zoomTo=id=>{const l=L[id];if(l)world.style.transform=`translate(${(500-Z*X(l)).toFixed(1)}px,${(240-Z*Y(l)).toFixed(1)}px) scale(${Z})`};
@@ -106,17 +110,20 @@ UI.syncBack=syncBack;
 const TABS=["map","relations","personnel"];
 const hashOf=()=>(location.hash||"").replace(/^#/,"");
 const tabFromHash=()=>{const n=hashOf().split("/")[0];return TABS.includes(n)?n:"map"};
-const locFromHash=()=>{if(hashOf().indexOf("map/")!==0)return "";try{return decodeURIComponent(hashOf().slice(4))}catch(e){return ""}};   /* a malformed %-escape is not a crash path */
-const setHash=(n,id)=>{try{history.replaceState(null,"","#"+n+(id?"/"+encodeURIComponent(id):""))}catch(e){}};
+const locRaw=()=>hashOf().indexOf("map/")===0?hashOf().slice(4):"";   /* ground as typed, even a malformed %-escape */
+const locFromHash=()=>{const r=locRaw();if(!r)return "";try{return decodeURIComponent(r)}catch(e){return ""}};   /* a malformed %-escape is not a crash path */
+const setHash=(n,id,push)=>{try{const u="#"+n+(n==="map"&&id?"/"+encodeURIComponent(id):"");if(u!==location.hash){const h=push?history.pushState:history.replaceState;h.call(history,null,"",u)}}catch(e){}};   /* a tab click pushes, a selection replaces */
 /* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
-document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a"))setHash("map",t.dataset.loc)},true);
+document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a")){currentLoc=t.dataset.loc;setHash("map",currentLoc)}else if(e.target.closest("[data-person],[data-mech],[data-pilot]"))currentLoc=""},true);
 const resetPane=()=>{const d=document.getElementById("record-detail");if(d)d.innerHTML=NO_SEL};
 let selected=false;
-const render=()=>{pickTab(tabFromHash());const id=locFromHash();
- if(id&&L[id]){selected=true;UI.showAtMap("loc",id);zoomTo(id);syncBack();return}
- if(id)resetPane();                                                                   /* an unknown id is not a selection */
+const render=()=>{const raw=locRaw(),id=locFromHash(),loc=id&&L[id]?id:"";
+ if(loc)currentLoc=loc;else if(raw)currentLoc="";   /* a tab with no ground keeps the one the pane still shows */
+ pickTab(tabFromHash(),false);
+ if(loc){selected=true;UI.showAtMap("loc",loc);zoomTo(loc);syncBack();return}
+ if(raw){selected=true;UI.mark("loc","");resetPane();resetView();syncBack();return}   /* an unresolved ground is not a selection: no auto-select overrules it */
  if(!selected&&tabFromHash()==="map"){const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
-  if(site&&L[site]){selected=true;UI.showAtMap("loc",site);setHash("map",site)}}     /* the page opens as intelligence, not as a prompt */
+ if(site&&L[site]){selected=true;currentLoc=site;UI.showAtMap("loc",site);setHash("map",site)}}   /* the page opens as intelligence, not as a prompt */
  syncBack()};
 window.addEventListener("hashchange",render);
 render();

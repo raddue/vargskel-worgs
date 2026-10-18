@@ -377,6 +377,21 @@ const consoleCss = fs.readFileSync(__dirname + "/style.css", "utf8");
    never sees them, and a measured click left the frame unchanged. */
 if (/box\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the [data-level] delegate must not be scoped to #holomap — the frame buttons sit outside it and never fire");
 if (!/getElementById\("tab-map"\)\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the frame buttons delegate must live on the #tab-map panel");
+/* An unresolvable ground - an unknown id, or a %-escape that decodes to nothing - must fall
+   through to the SELECT TARGET prompt; the arrival auto-select must not overrule it, or a cold
+   load of #map/nope shows a real site and rewrites the URL to it. */
+if (!/if\(raw\)\{selected=true/.test(intelPage)) problems.push("intel.html: an unresolved ground in the hash must land on SELECT A TARGET, not the op site");
+/* locRaw keeps the escape text as typed, so a bad escape is a failed resolve rather than an
+   absent id: absent left the previous record up and made a reload disagree with the URL. */
+if (!/const locRaw=/.test(intelPage)) problems.push("intel.html: a malformed %-escape must resolve as a failed ground, not an absent one");
+/* Design: the hash is shareable and hashchange handles back/forward. A tab click pushes a
+   history entry; render() from a hashchange must not push another, or Back never leaves the tab. */
+if (!/pickTab\(t\.dataset\.tab,true\)/.test(intelPage)) problems.push("intel.html: a tab click must push a history entry, or Back cannot leave the tab");
+if (!/e\.preventDefault\(\);pickTab\(t\.dataset\.tab,true\)/.test(intelPage)) problems.push("intel.html: the tab anchor href would follow our own write and override it with a bare tab hash, so the click must stop the anchor action");
+if (!/pickTab\(tabFromHash\(\),false\)/.test(intelPage)) problems.push("intel.html: render() must not push on hashchange, or Back loops");
+/* The pane is never re-rendered on a tab switch, so the round trip must restore the ground it
+   still shows; it used to land on a bare #map while NOV ELYSIA stayed up. */
+if (!/setHash\("map",currentLoc/.test(intelPage)) problems.push("intel.html: returning to MAP must put the selected ground back in the URL");
 /* Measured at 1024x768 before this rule: a stacked .primary shrink-wrapped to a 300x144 svg. */
 if (!/\.holo-split>\.primary\{width:100%\}/.test(consoleCss)) problems.push("style.css: a collapsed .holo-split must give .primary width:100%, or the svg falls back to its 300px default");
 if (!/\.pagebar\{display:none\}/.test(consoleCss)) problems.push("style.css: print must drop the pagebar");
@@ -386,8 +401,8 @@ if (/#holomap\{display:none/.test(consoleCss)) problems.push("style.css: print m
    user-supplied string, so a malformed escape must fall back rather than throw. */
 if (!/back\.hidden=!zoomed\(\)/.test(intelPage)) problems.push("intel.html: the back control is camera-only, so its label cannot go stale");
 if (!/try\{return decodeURIComponent/.test(intelPage)) problems.push("intel.html: a malformed percent-encoded hash must fall back, not throw");
-if (!/if\(tabFromHash\(\)!==n\)setHash\(n\)/.test(intelPage)) problems.push("intel.html: revealing MAP for a record must move the hash with it, or a reload hides the map again");
-if (!/if\(id\)resetPane\(\)/.test(intelPage)) problems.push("intel.html: an unknown id in the hash must fall back to SELECT A TARGET instead of leaving a stale record");
+if (!/const was=tabFromHash\(\);if\(n==="map"\)setHash\("map",currentLoc/.test(intelPage)) problems.push("intel.html: a tab change must write the hash and restoring MAP must carry the selected ground back, or a reload hides the map");
+if (!/if\(raw\)\{selected=true;UI\.mark\("loc",""\);resetPane\(\)/.test(intelPage)) problems.push("intel.html: unknown id in hash must fall back SELECT TARGET instead leaving stale record");
 if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expose UI.pickTab so a record opened from another tab can reveal the map panel");
 const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
 if (/fitLevel/.test(pickTabLine)) problems.push("intel.html: switching tabs must not call fitLevel — it resets the frame and the user's zoom");
@@ -395,7 +410,8 @@ if (!/const showAtMap=\(kind,id\)=>\{if\(UI\.pickTab\)UI\.pickTab\("map"\)/.test
 /* The hash is the state (design doc §Tabs): shareable selection, tabs as links, replaceState guarded,
    the pane beside the map rather than under it, and no green current-op ring on a planned op. */
 ["map", "relations", "personnel"].forEach(n => { if (!new RegExp(`class="tab"[^>]*href="#${n}"`).test(intelPage)) problems.push(`intel.html: the ${n} tab must be an anchor carrying href="#${n}"`); });
-if (!/try\{history\.replaceState/.test(intelPage)) problems.push("intel.html: selection must use history.replaceState inside try/catch (file:// throws)");
+if (!/const setHash=\(n,id,push\)=>\{try\{/.test(intelPage)) problems.push("intel.html: hash writes must stay inside try/catch (file:// throws)");
+if (!/push\?history\.pushState:history\.replaceState/.test(intelPage)) problems.push("intel.html: a tab click must push and a record reveal must replace, or Back loses the tab");
 if (!/addEventListener\("hashchange"/.test(intelPage)) problems.push("intel.html: hashchange must drive back/forward");
 if (!/class="columns holo-split"/.test(intelPage)) problems.push("intel.html: the map and the reading pane must share .columns.holo-split");
 if (!/\.holo-split/.test(fs.readFileSync(__dirname + "/style.css", "utf8"))) problems.push("style.css: needs the .holo-split rules that put the pane beside the map");
