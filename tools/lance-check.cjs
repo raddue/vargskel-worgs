@@ -63,6 +63,11 @@ assert.equal(fresh.hp.value, "7", "new campaign baseline must supersede saved HP
 assert.equal(fresh.note.value, "", "old session notes must not bleed into updated campaign");
 assert.match(fresh.nodes["lance-export"].textContent, /sweet-cheeks -> 7/);
 assert.match(fresh.nodes["save-state"].textContent, /CAMPAIGN UPDATED/);
+fresh.note.value = "new note"; fresh.note.fire("input");
+let unbumped = run(storage, 9, "5016U D072");
+assert.equal(unbumped.hp.value, "9", "baseline HP change without updated bump must discard stale HP");
+assert.equal(unbumped.note.value, "", "changed baseline clears old session state");
+assert.match(unbumped.nodes["lance-export"].textContent, /sweet-cheeks -> 9/);
 const blocked = run({ setItem() { throw Error("blocked"); }, removeItem() {}, getItem() { return null; } });
 assert.match(blocked.nodes["save-state"].textContent, /WILL NOT PERSIST/);
 console.log("lance board and local state ok");
