@@ -27,9 +27,10 @@ for (const m of C.mechs) {
   if (!m.img) assert.match(hosts['mech-list'].innerHTML, new RegExp(`data-mech="${m.id}"[^]*?class="plate"><span class="mech-silhouette">`), `${m.id} centered glyph plate`);
 }
 for (const page of ['index.html', 'solstice-rain.html']) {
-  assert.match(read(page), /<div class="hero-art"><div class="plate"><img\b/, `${page} hero plate`);
+  assert.match(read(page), /<div class="hero-art"><div class="plate plate-raw"><img\b/, `${page} raw hero plate`);
 }
 const css = read('style.css');
-for (const rule of ['.plate{', '.plate img{', '.plate::before{', '.plate::after{', '.plate-raw']) assert.ok(css.includes(rule), `${rule} missing`);
-assert.doesNotMatch(css, /\.hero-planet\s*\{|\[data-mech="scooteroo"\].*?img\s*\{|\.mech-thumb img\s*\{[^}]*object-fit:contain/, 'old art exceptions remain');
+for (const rule of ['.plate{', '.plate img{', '.plate::before{', '.plate::after{', '.plate-raw', '.plate-raw img{object-fit:contain}', '.hero-art .plate{position:absolute;inset:0}', '.plate-raw .hero-planet{mix-blend-mode:screen}']) assert.ok(css.includes(rule), `${rule} missing`);
+assert.match(read('solstice-rain.html'), /class="hero-mech-img hero-planet"/, 'planet blend hook missing');
+assert.doesNotMatch(css, /\[data-mech="scooteroo"\].*?img\s*\{|\.mech-thumb img\s*\{[^}]*object-fit:contain/, 'old art exceptions remain');
 console.log('plate check PASS');
