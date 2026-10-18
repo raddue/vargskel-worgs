@@ -372,6 +372,22 @@ if (/class="hero"/.test(intelPage)) problems.push("intel.html: the hero must be 
 /* #record-detail lives in the map panel, so a record opened from another tab has to reveal that panel;
    and switching tabs must not re-fit, which would wipe the frame and the camera the user set. */
 const archText = fs.readFileSync(__dirname + "/archive.js", "utf8");
+const consoleCss = fs.readFileSync(__dirname + "/style.css", "utf8");
+/* The frame buttons sit in the map head strip, outside #holomap: a delegate bound to the map host
+   never sees them, and a measured click left the frame unchanged. */
+if (/box\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the [data-level] delegate must not be scoped to #holomap — the frame buttons sit outside it and never fire");
+if (!/getElementById\("tab-map"\)\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the frame buttons delegate must live on the #tab-map panel");
+/* Measured at 1024x768 before this rule: a stacked .primary shrink-wrapped to a 300x144 svg. */
+if (!/\.holo-split>\.primary\{width:100%\}/.test(consoleCss)) problems.push("style.css: a collapsed .holo-split must give .primary width:100%, or the svg falls back to its 300px default");
+if (!/\.pagebar\{display:none\}/.test(consoleCss)) problems.push("style.css: print must drop the pagebar");
+if (!/\.tabpanel\[hidden\]\{display:block!important\}/.test(consoleCss)) problems.push("style.css: print must show an inactive panel rather than hiding it");
+if (/#holomap\{display:none/.test(consoleCss)) problems.push("style.css: print must not hide the map host");
+/* The back control is camera-only now, so its label cannot describe a stale frame; and the hash is a
+   user-supplied string, so a malformed escape must fall back rather than throw. */
+if (!/back\.hidden=!zoomed\(\)/.test(intelPage)) problems.push("intel.html: the back control is camera-only, so its label cannot go stale");
+if (!/try\{return decodeURIComponent/.test(intelPage)) problems.push("intel.html: a malformed percent-encoded hash must fall back, not throw");
+if (!/if\(tabFromHash\(\)!==n\)setHash\(n\)/.test(intelPage)) problems.push("intel.html: revealing MAP for a record must move the hash with it, or a reload hides the map again");
+if (!/if\(id\)resetPane\(\)/.test(intelPage)) problems.push("intel.html: an unknown id in the hash must fall back to SELECT A TARGET instead of leaving a stale record");
 if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expose UI.pickTab so a record opened from another tab can reveal the map panel");
 const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
 if (/fitLevel/.test(pickTabLine)) problems.push("intel.html: switching tabs must not call fitLevel — it resets the frame and the user's zoom");
@@ -406,7 +422,12 @@ else {
   C.factions.forEach(x => { if (!facTable.includes(intel.esc(x.name))) problems.push(`relations table must name faction ${x.id}`); });
   C.locations.filter(l => l.faction).forEach(l => { if (!facTable.includes(l.id)) problems.push(`relations table must carry a chip for the held site ${l.id}`); });
   C.personnel.forEach(p => { if (!facTable.includes(p.id)) problems.push(`relations table must carry a chip for ${p.id}`); });
-  if (!/class="standing"/.test(facTable)) problems.push("relations table must keep the standing pill per faction");
+  /* D2: zone colour appears as coloured standing pills, so each faction's standing must be a pill
+     tinted with that faction's own zone colour — the single lime .standing class is what this replaces. */
+  C.factions.forEach(x => {
+    const want = new RegExp(`class="pill" style="border-color:var\\(--${x.zone.c}\\)[^>]*>${x.standing}<`);
+    if (!want.test(facTable)) problems.push(`relations table must show ${x.id}'s standing ${x.standing} as a pill in its zone colour --${x.zone.c}`);
+  });
 }
 const situation = intel.situation ? intel.situation() : null;
 if (!situation) problems.push("archive.js: UI.situation must return the preflight readout and badge map");
@@ -421,6 +442,21 @@ else {
   hostile.forEach(l => { if (!said.includes(l.id)) problems.push(`situation badges must mark hostile site ${l.id}`); });
   const muster = C.locations.filter(l => l.name === ((C.meta || {}).station || ""));
   muster.forEach(l => { if (!said.includes(l.id)) problems.push(`situation badges must mark the muster site ${l.id}`); });
+  /* The readout is one strip of cells (~44px in the design), not a table of rows: the map's fold
+     budget on a laptop and a phone both depend on it, and the plan's grounds are map badges now. */
+  if (!/class="readout-strip"/.test(situation.html || "")) problems.push("situation readout must be one strip of cells, not a table of rows");
+  if (!said.includes(`OP ${op0.id} · ${op0.title}`)) problems.push("situation readout must lead with the op id and title (OP 001 · SOLSTICE RAIN)");
+  if (op0.outcome && !said.includes(intel.esc(op0.outcome))) problems.push("situation readout must carry the operation's own outcome line");
+  const areaBadge = situation.badges.find(b => b.role === "area");
+  if (!areaBadge) problems.push(`situation badges must mark the op area ${op0.loc} with its missing count`);
+  else if (!areaBadge.label.includes(`OP AREA · ${missing} MISSING`)) problems.push(`the op-area badge must read OP AREA · ${missing} MISSING, not "${areaBadge.label}"`);
+  /* One ground can hold two badge roles: the muster hull is also the extraction destination. A Map
+     keyed by loc kept only the last push, which silently dropped a role. */
+  const dual = muster[0];
+  if (dual && sites.extraction === dual.id) {
+    const roles = situation.badges.filter(b => b.loc === dual.id).map(b => b.role);
+    ["muster", "extraction"].forEach(r => { if (!roles.includes(r)) problems.push(`${dual.id} is both the muster hull and the extraction destination: its badges must keep both roles (missing ${r})`); });
+  }
   if (/LIVE|TRACK(ING|ED)|REAL-?TIME/i.test(said)) problems.push("situation wording must say planned, last known or recorded, never imply live tracking");
 }
 /* ponytail: dossier imgs checked for alt only; archive.js emits no width/height yet. Add width+height

@@ -48,16 +48,17 @@
 <script>
 (()=>{
 const L=UI.byId(CAMPAIGN.locations);
+const NO_SEL=`<div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div>`;
 const X=l=>l.x*10,Y=l=>l.y*4.8;
 
-document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="columns holo-split"><div class="primary"><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div></div></div><ul class="holo-key" aria-label="Map key"></ul></div><aside class="aside" id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite"><div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div></div></aside></div>`;
+document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="columns holo-split"><div class="primary"><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div></div></div><ul class="holo-key" aria-label="Map key"></ul></div><aside class="aside" id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite">${NO_SEL}</div></aside></div>`;
 document.getElementById("readout").innerHTML=UI.situation().html;
 document.getElementById("people-list").innerHTML=UI.personnelList();
 UI.fitLevel();
 /* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
    pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
 const tabs=[...document.querySelectorAll(".tab")];
-const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on})};
+const pickTab=n=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});if(tabFromHash()!==n)setHash(n)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
 /* archive.js calls this when a record opens, so its pane is not left in a hidden panel. */
 UI.pickTab=pickTab;
 document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(t)pickTab(t.dataset.tab)});
@@ -66,16 +67,17 @@ const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=sv
 const zoomTo=id=>{const l=L[id];if(l)world.style.transform=`translate(${(500-Z*X(l)).toFixed(1)}px,${(240-Z*Y(l)).toFixed(1)}px) scale(${Z})`};
 const resetView=()=>{world.style.transform=""};
 svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc]");if(!t)return;
- e.preventDefault();UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc)});
+ e.preventDefault();setHash("map",t.dataset.loc);UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc);syncBack()});
 svg.addEventListener("pointermove",e=>{if(rm.matches)return;const r=svg.getBoundingClientRect();
  far.style.transform=`translate(${(-((e.clientX-r.left)/r.width-.5)*24).toFixed(1)}px,${(-((e.clientY-r.top)/r.height-.5)*14).toFixed(1)}px)`});
 svg.addEventListener("pointerleave",()=>{far.style.transform=""});
 /* One control for both ways out: clear the camera zoom first, and a second press backs the frame out. */
 const back=document.getElementById("holo-back");
 const zoomed=()=>!!world.style.transform;
-const inTheater=()=>{const h=document.querySelector(".holo");return !!h&&h.classList.contains("theater")};
-const syncBack=()=>{if(!back)return;back.hidden=!(zoomed()||inTheater());back.textContent=zoomed()?"RESET VIEW":"SYSTEM VIEW"};
-const backOut=()=>{if(zoomed())resetView();else if(inTheater())UI.fitLevel("SYSTEM");else return;syncBack()};
+/* Camera only: the frame has its own SYSTEM VIEW button in the map key, so this control never has to
+   describe which frame is showing — which is exactly what let its label go stale. */
+const syncBack=()=>{if(back)back.hidden=!zoomed()};
+const backOut=()=>{if(!zoomed())return;resetView();syncBack()};
 /* Two fingers on the map are a map zoom, not a page zoom: the svg claims the gesture in CSS. */
 let pd=0;
 const spread=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
@@ -91,7 +93,9 @@ svg.addEventListener("touchend",()=>{pd=0});
 /* Safari fires non-standard gesture events for a page pinch; the map owns its own pinch. */
 ["gesturestart","gesturechange"].forEach(t=>svg.addEventListener(t,e=>e.preventDefault()));
 syncBack();
-box.addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv){UI.fitLevel(lv.dataset.level);syncBack();return}
+/* The SYSTEM|THEATER buttons sit in the map head strip, outside #holomap: a delegate bound to the map
+   host never sees them, so the frame buttons do nothing. Bound to the panel instead. */
+document.getElementById("tab-map").addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv){UI.fitLevel(lv.dataset.level);syncBack();return}
 if(e.target.closest("#holo-back")){backOut();return}
 if(!e.target.closest("svg"))return;                       /* the reading pane has its own clicks */
 const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView();syncBack()});
@@ -102,16 +106,18 @@ UI.syncBack=syncBack;
 const TABS=["map","relations","personnel"];
 const hashOf=()=>(location.hash||"").replace(/^#/,"");
 const tabFromHash=()=>{const n=hashOf().split("/")[0];return TABS.includes(n)?n:"map"};
-const locFromHash=()=>hashOf().indexOf("map/")===0?decodeURIComponent(hashOf().slice(4)):"";
+const locFromHash=()=>{if(hashOf().indexOf("map/")!==0)return "";try{return decodeURIComponent(hashOf().slice(4))}catch(e){return ""}};   /* a malformed %-escape is not a crash path */
 const setHash=(n,id)=>{try{history.replaceState(null,"","#"+n+(id?"/"+encodeURIComponent(id):""))}catch(e){}};
 /* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
 document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a"))setHash("map",t.dataset.loc)},true);
+const resetPane=()=>{const d=document.getElementById("record-detail");if(d)d.innerHTML=NO_SEL};
 let selected=false;
 const render=()=>{pickTab(tabFromHash());const id=locFromHash();
- if(id){selected=true;UI.showAtMap("loc",id);zoomTo(id);return}                       /* unknown id falls through to SELECT A TARGET */
- if(selected||tabFromHash()!=="map")return;
- const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
- if(site&&L[site]){selected=true;UI.showAtMap("loc",site);setHash("map",site)}};       /* the page opens as intelligence, not as a prompt */
+ if(id&&L[id]){selected=true;UI.showAtMap("loc",id);zoomTo(id);syncBack();return}
+ if(id)resetPane();                                                                   /* an unknown id is not a selection */
+ if(!selected&&tabFromHash()==="map"){const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
+  if(site&&L[site]){selected=true;UI.showAtMap("loc",site);setHash("map",site)}}     /* the page opens as intelligence, not as a prompt */
+ syncBack()};
 window.addEventListener("hashchange",render);
 render();
 })();

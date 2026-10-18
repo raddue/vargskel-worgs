@@ -111,9 +111,12 @@ function holomap(level){
  const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
     hostile areas and the muster hull. situation() owns the roles, the map only draws them. */
- const marks=new Map(situation().badges.map(b=>[b.loc,b.role]));
- const nodes=here.map(l=>{const hosts=hostsOf(l.id),role=marks.get(l.id);
-  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}${role?" badge-"+role:""}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${role?", "+esc(role)+" ground":""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}</g>`}).join("");
+ /* One ground can hold two roles — the Rio Grande is both the extraction destination and the
+    recorded muster hull — so a location maps to a list of badges, not to whichever was pushed last. */
+ const marks=new Map();
+ situation().badges.forEach(b=>{const a=marks.get(b.loc)||[];a.push(b);marks.set(b.loc,a)});
+ const nodes=here.map(l=>{const hosts=hostsOf(l.id),bs=marks.get(l.id)||[];
+  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}${bs.map((b,i)=>`<text class="badge-label" y="${-30-i*12}" text-anchor="middle">${esc(b.label)}</text>`).join("")}</g>`}).join("");
  const kinds=here.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
   +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
@@ -303,26 +306,26 @@ function factionTable(){
   return `<tr><th scope="row">${esc(x.name)}</th>`+
    `<td>${held.map(l=>locBtn(l.id)).join(" ")||"No site recorded"}</td>`+
    `<td>${C.personnel.filter(p=>p.faction===x.id).map(p=>personBtn(p.id)).join(" ")||"—"}</td>`+
-   `<td class="muted">${n} OPERATION${n===1?"":"S"}</td><td><span class="standing">${esc(x.standing)}</span></td></tr>`}).join(""))}
+   `<td class="muted">${n} OPERATION${n===1?"":"S"}</td><td>${pill(x.standing,(x.zone||{}).c||"muted")}</td></tr>`}).join(""))}
 /* The readout is the preflight picture: what the plan names, who is unaccounted for at the op area,
    and which ground is hostile. No row of it is observation, and the wording says so. */
 function situation(){
  const o=filed[0]||ops[0]||{},s=o.sites||{},missing=C.personnel.filter(p=>p.status==="MISSING"&&p.lastKnown===o.loc);
  const badges=[];
- [["INSERTION","insertion"],["RENDEZVOUS","rendezvous"],["EXTRACTION","extraction"]].forEach(([label,k])=>{if(s[k])badges.push({loc:s[k],role:k,label:label})});
+ [["PLANNED INSERTION","insertion"],["FRIENDLY RENDEZVOUS","rendezvous"],["EXTRACTION DESTINATION","extraction"]].forEach(([label,k])=>{
+  if(!s[k])return;const at=L[s[k]];
+  badges.push({loc:s[k],role:k,label:label+(k==="rendezvous"&&at&&!at.visited?" · NOT VISITED":"")})});
  C.locations.filter(l=>l.faction&&(F[l.faction]||{}).standing==="HOSTILE").forEach(l=>badges.push({loc:l.id,role:"hostile",label:"HOSTILE"}));
- C.locations.filter(l=>l.name===C.meta.station).forEach(l=>badges.push({loc:l.id,role:"muster",label:"MUSTER"}));
- const badge=b=>{const l=L[b.loc];
-  return `<span class="badge-${esc(b.role)}">${chip("loc",b.loc,`${b.label} · ${l?l.name:b.loc}`)}</span>`};
- const row=role=>badges.filter(b=>b.role===role).map(badge).join(" ");
- return {html:`<div class="readout"><div class="tag">PREFLIGHT READOUT</div>`+table(
-   th("OPERATION",esc(o.title||"None filed"))+th("MISSION STATE",`${esc(o.type||"—")} · ${esc(o.status||"—")}`)+
-   th("OPERATING AREA",o.loc&&L[o.loc]?locBtn(o.loc):"—")+
-   th("UNACCOUNTED",`${missing.length} MISSING${missing.length?" · "+missing.map(p=>esc(p.name)).join(" · "):""}`)+
-   th("SITES ON THE PLAN",row("insertion")+" "+row("rendezvous")+" "+row("extraction"))+
-   th("HOSTILE GROUND",row("hostile")||"None recorded")+
-   th("MUSTER",row("muster")||"None recorded"))+
-  `<div class="muted" style="margin-top:8px">Read as the plan of record and last known reports, not as observation: every row comes from the operation order or the site's own file.</div></div>`,
+ C.locations.filter(l=>l.name===C.meta.station).forEach(l=>badges.push({loc:l.id,role:"muster",label:"RECORDED MUSTER"}));
+ if(o.loc&&missing.length)badges.push({loc:o.loc,role:"area",label:`OP AREA · ${missing.length} MISSING`});
+ /* One strip of four cells, the ~44px the design budgets: the plan's grounds are the map's own
+    badges now, so the readout stops repeating them as a second table and the map keeps the fold. */
+ return {html:`<div class="readout"><div class="tag">PREFLIGHT READOUT</div><div class="readout-strip">`+
+   `<div><span class="ro-k">OPERATION</span><span class="ro-v">OP ${esc(o.id||"—")} · ${esc(o.title||"None filed")}</span></div>`+
+   `<div><span class="ro-k">MISSION STATE</span><span class="ro-v">${esc(o.type||"—")} · ${esc(o.status||"—")}</span></div>`+
+   `<div><span class="ro-k">AREA</span><span class="ro-v">${o.loc&&L[o.loc]?locBtn(o.loc):"—"}</span></div>`+
+   `<div><span class="ro-k">OUTCOME</span><span class="ro-v">${esc(o.outcome||"—")}</span></div></div>`+
+  `<div class="muted ro-note">Read as the plan of record and last known reports, not as observation: every row comes from the operation order or the site's own file.</div></div>`,
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
