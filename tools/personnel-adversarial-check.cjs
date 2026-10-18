@@ -32,6 +32,7 @@ function load({ mutate, dir = root } = {}) {
   return { C: box.CAMPAIGN, UI: box.UI, nodes, calls, sel, click, panel: () => nodes["record-detail"].innerHTML };
 }
 const snapshot = rev => { const d = fs.mkdtempSync(path.join(os.tmpdir(), "inq-")); execSync(`git archive ${rev} | tar -x -C ${d}`, { cwd: root }); return d; };
+const worktree = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), "inq-")); fs.cpSync(root, d, { recursive: true, filter: f => !f.includes(`${path.sep}.git`) }); return d; };
 const checkAll = dir => spawnSync(process.execPath, [path.join(dir, "check-all.cjs")], { encoding: "utf8" });
 
 const results = [];
@@ -66,7 +67,7 @@ vector("Integration", "I1 KNOWN OPS link points at the op the person lists, with
   }
 });
 vector("Integration", "I2 check-all rejects a VIP/personnel reference the renderer would silently drop", () => {
-  const d = snapshot("HEAD");
+  const d = worktree();
   const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
   fs.writeFileSync(path.join(d, "campaign.js"), src.replace('vips: [{ id: "farris" }', 'vips: [{ id: "faris" }').replace('lastKnown: "elysia", ops: ["001"], img: "assets/ambassador', 'lastKnown: "nowhere", ops: ["999"], img: "assets/ambassador'));
   const r = checkAll(d);
@@ -77,7 +78,7 @@ vector("Integration", "I2 check-all rejects a VIP/personnel reference the render
 
 /* ---- Edge cases ---- */
 vector("Edge", "E1 check-all catches a personnel record whose notes/img the page renders as \"undefined\"", () => {
-  const d = snapshot("HEAD");
+  const d = worktree();
   const src = fs.readFileSync(path.join(d, "campaign.js"), "utf8");
   fs.writeFileSync(path.join(d, "campaign.js"), src.replace(/ img: "assets\/captain-farris-thumb\.webp",\n\s*notes: "[^"]*" \}/, " }"));
   const h = load({ dir: d });
