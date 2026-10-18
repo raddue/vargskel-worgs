@@ -42,26 +42,11 @@ Object.entries(required).forEach(([key, fields]) => {
   });
 });
 
-const tombstone = C.mechs.find(m => m.id === "tombstone");
-if (!tombstone || Object.entries({ hp: 10, structure: 4, stress: 4, armor: 0, repair: 5, heat: 6, hull: 0, agi: 2, sys: 0, eng: 0, size: 1, spd: 5, eva: 10, edef: 8, sens: 10, save: 10, attackBonus: 0, tech: "+0", limitedBonus: 0, loadout: "Main: Pistol · Flex: Charged Blade · Heavy: Thermal Lance", systems: "Pattern-A Jericho Deployable Cover, COMP/CON-Class Assistant Unit, EVA Module, Expanded Compartment" }).some(([k,v]) => tombstone[k] !== v)) problems.push('Tombstone stats do not match supplied stat block');
-const sweetcheeks = C.mechs.find(m => m.id === "sweet-cheeks");
-if (!sweetcheeks || Object.entries({ name: "SWEET CHEEKS", frame: "GMS CHOMOLUNGMA", pilot: "daemon", size: 1, hp: 12, structure: 4, stress: 4, armor: 0, repair: 4, heat: 6, hull: 0, agi: 0, sys: 2, eng: 0, eva: 8, spd: 4, tech: "+3", edef: 12, sens: 15, save: 11, attackBonus: 0, limitedBonus: 0 }).some(([k,v]) => sweetcheeks[k] !== v)) problems.push('Sweet Cheeks stats do not match supplied stat block');
-const dusty = C.pilots.find(p => p.id === "dusty");
-if (!dusty || Object.entries({ name: "HANSEN “DUSTY” MCGRAW", background: "PILOT · LL0 · OUTLAW", triggers: "Charm (+2), Spot (+2), Survive (+2), Take Someone Out (+2)", talents: "Gunslinger 1, Vanguard 1, Skirmisher 1", gear: "Mobility Hardsuit, Heavy Signature, Medium Signature, Wilderness Survival Kit, Antiphoton Visor, Smart Scope" }).some(([k,v]) => dusty[k] !== v)) problems.push('Dusty pilot record does not match supplied profile');
 if (C.pilots.length !== 6 || C.mechs.length !== 6 || C.ops.length !== 1 || C.events.length || C.threads.length) problems.push('campaign should have six pilots/mechs, one Solstice Rain operation, and no historical events/threads');
 if (!C.pilots.some(p => p.name === "RURIK “DAEMON” VARGSKEL" && p.img === "assets/rurik_vargskel.png") || !fs.existsSync(__dirname + "/assets/rurik_vargskel.png") || !C.pilots.some(p => p.id === "sten" && p.name === "STEN “HAMMER” VARGSKEL" && p.mech === "skaldr" && p.img === "assets/sten.png") || !fs.existsSync(__dirname + "/assets/sten.png") || !C.pilots.some(p => p.name === "HANSEN “DUSTY” MCGRAW") || !C.pilots.some(p => p.id === "spook" && p.name === "NICOLOSO “SPOOK” BENIKO" && p.mech === "alba")) problems.push('roster must keep Rurik, Sten with Skaldr, Dusty, Guillaume, Danila, and Spook with Alba');
 if (!C.mechs.some(m => m.name === "SWEET CHEEKS") || !C.mechs.some(m => m.name === "TOMBSTONE") || !C.mechs.some(m => m.pilot === "sten" && m.id === "skaldr") || !C.mechs.some(m => m.id === "alba" && m.pilot === "spook" && m.name === "ALBA")) problems.push('roster must keep Sweet Cheeks, Tombstone, Wayward, Scooteroo, Skaldr, and Alba');
-const spook = C.pilots.find(p => p.id === "spook"), alba = C.mechs.find(m => m.id === "alba");
-if (!spook || Object.entries({ name: "NICOLOSO “SPOOK” BENIKO", background: "PILOT · LL0 · SABOTEUR", mech: "alba", img: "assets/spook.png", triggers: "Act Unseen or Unheard (+2), Blow Something Up (+2), Stay Cool (+2), Take Someone Out (+2)", talents: "Crack Shot 1, Infiltrator 1, Skirmisher 1", gear: "Stealth Hardsuit, Heavy Signature, Archaic Melee, Camo Cloth, SSC Sylph Undersuit, Thermite Charge" }).some(([k,v]) => spook[k] !== v)) problems.push('Spook pilot record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/spook.png")) problems.push('Spook portrait missing from assets');
-if (!alba || Object.entries({ name: "ALBA", frame: "GMS EVEREST", pilot: "spook", size: 1, hull: 0, agi: 2, sys: 0, eng: 0, structure: 4, hp: 12, armor: 0, stress: 4, heat: 6, repair: 5, attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 5, eva: 10, edef: 8, sens: 10, save: 10, loadout: "Main: Missile Rack · Flex: Pistol / Tactical Knife · Heavy: Anti-Materiel Rifle", systems: "Personalizations, Rapid Burst Jump Jet System, EVA Module, Pattern-A Jericho Deployable Cover" }).some(([k,v]) => alba[k] !== v)) problems.push('Alba mech record does not match supplied stat block');
-const sten = C.pilots.find(p => p.id === "sten"), skaldr = C.mechs.find(m => m.id === "skaldr");
-if (!sten || Object.entries({ name: "STEN “HAMMER” VARGSKEL", background: "PILOT · LL0 · MECHANIC", mech: "skaldr", triggers: "Assault (+2), Hack or Fix (+2), Survive (+2), Threaten (+2)", talents: "Bonded 1, Grease Monkey 1, Executioner 1", gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Tertiary Arm, Corrective, Dataplating" }).some(([k,v]) => sten[k] !== v)) problems.push('Sten pilot record does not match export');
-if (!skaldr || Object.entries({ name: "SKALDR", frame: "GMS EVEREST", pilot: "sten", img: "assets/skaldr.png", size: 1, hull: 2, agi: 0, sys: 0, eng: 0, hp: 16, structure: 4, stress: 4, armor: 0, heat: 6, repair: 6, attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10, loadout: "Main: Shotgun · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade", systems: "Stable Structure, Type-3 Projected Shield, Personalizations, Custom Paint Job" }).some(([k,v]) => skaldr[k] !== v)) problems.push('Skaldr mech record does not match export');
 if (!fs.existsSync(__dirname + "/assets/skaldr.png")) problems.push('Skaldr artwork missing from assets');
-const guillaume = C.pilots.find(p => p.id === "guillaume"), sagarmatha = C.mechs.find(m => m.id === "xxxg-01h");
-if (!guillaume || Object.entries({ name: "GUILLAUME “TIZONA” ARAGONEAU", background: "PILOT · LL0 · COLONIST", mech: "xxxg-01h", img: "assets/tizona.png", triggers: "Act Unseen or Unheard (+2), Survive (+2), Take Someone Out (+2), Word on the Street (+2)", gear: "Light Hardsuit, Light Signature, Light A/C, Extra Rations, Sleeping Bag, Wilderness Survival Kit", talents: "Heavy Gunner 1, Spaceborn 1, House Guard 1" }).some(([k,v]) => guillaume[k] !== v)) problems.push('Guillaume pilot record does not match supplied profile');
-if (!sagarmatha || Object.entries({ name: "WAYWARD", frame: "GMS SAGARMATHA", pilot: "guillaume", size: 2, hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 1, stress: 4, heat: 6, repair: 5, attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10, loadout: "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun", systems: "Spaceborn EVA, Custom Paint Job, Pattern-A Smoke Charges, Stable Structure, Personalizations" }).some(([k,v]) => sagarmatha[k] !== v)) problems.push('Wayward mech record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/tizona.png")) problems.push('Tizona portrait missing from assets');
 /* Every roster image needs its webp thumb (roster cards render <picture> webp-first). */
 [...C.pilots, ...C.mechs].forEach(x => {
@@ -69,11 +54,22 @@ if (!fs.existsSync(__dirname + "/assets/tizona.png")) problems.push('Tizona port
   const thumb = x.img.replace(/\.\w+$/, "-thumb.webp");
   if (!fs.existsSync(__dirname + "/" + thumb)) problems.push(`${x.id}: missing ${thumb} for ${x.img}; regen: magick ${x.img} -resize 480x ${thumb}`);
 });
-const danila = C.pilots.find(p => p.id === "danila"), scooteroo = C.mechs.find(m => m.id === "scooteroo");
-if (!danila || Object.entries({ name: "DANILA “SCOOTER” HOWTER-BOWDEN", background: "PILOT · LL0 · WORKER", mech: "scooteroo", img: "assets/scooter.png", triggers: "Blow Something Up (+2), Invent or Create (+2), Spot (+2), Stay Cool (+2)", gear: "Heavy Hardsuit, Heavy A/C, Light Signature, Sound System, Tertiary Arm, Extra Rations", talents: "Siege Specialist 1, Grease Monkey 1, Walking Armory 1" }).some(([k,v]) => danila[k] !== v)) problems.push('Danila pilot record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter portrait missing from assets');
-if (!scooteroo || Object.entries({ name: "SCOOTEROO", frame: "GMS EVEREST", pilot: "danila", img: "assets/scooteroo.png", size: 1, hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 0, stress: 4, heat: 6, repair: 6, attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10, loadout: "Main: Shotgun · Flex: Rocket-Propelled Grenade · Heavy: Howitzer", systems: "Ammo Case I, Type-3 Projected Shield, Manipulators, Stable Structure, EVA Module" }).some(([k,v]) => scooteroo[k] !== v)) problems.push('Scooteroo mech record does not match supplied profile');
 if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scooteroo artwork missing from assets');
+/* Golden roster records live in tools/roster-snapshot.json; after a deliberate data change run
+   node check-all.cjs --update-snapshot and review the JSON diff. Every field present in the snapshot must match. */
+const snapPath = __dirname + "/tools/roster-snapshot.json";
+const pick = (rec, keys) => Object.fromEntries(keys.map(k => [k, rec ? rec[k] : undefined]));
+let snap = JSON.parse(fs.readFileSync(snapPath, "utf8"));
+if (process.argv.includes("--update-snapshot")) {
+  snap = Object.fromEntries(Object.entries(snap).map(([key, recs]) => [key, Object.fromEntries(Object.entries(recs).map(([id, r]) => [id, pick(C[key].find(x => x.id === id), Object.keys(r))]))]));
+  fs.writeFileSync(snapPath, JSON.stringify(snap, null, 1) + "\n");
+}
+Object.entries(snap).forEach(([key, recs]) => Object.entries(recs).forEach(([id, want]) => {
+  const got = C[key].find(x => x.id === id);
+  if (!got) return problems.push(`${key} ${id}: snapshot record missing from campaign.js`);
+  Object.entries(want).forEach(([k, v]) => { if (got[k] !== v) problems.push(`${key} ${id}.${k}: ${JSON.stringify(got[k])} != snapshot ${JSON.stringify(v)}`); });
+}));
 const sr = C.ops[0];
 if (!sr || sr.title !== "SOLSTICE RAIN" || sr.loc !== "elysia" || !sr.summary) problems.push('only operation should be SOLSTICE RAIN at Nov Elysia with an overview');
 if (!sr || !sr.mission || !sr.mission.href || !fs.existsSync(__dirname + "/" + sr.mission.href)) problems.push('Solstice Rain must link to an existing current-mission page');
@@ -123,8 +119,6 @@ if (problems.length) {
 }
 const page = fs.readFileSync(__dirname + "/index.html", "utf8");
 const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
-const pilotsPage = fs.readFileSync(__dirname + "/pilots.html", "utf8");
-const mechPage = fs.readFileSync(__dirname + "/mechbay.html", "utf8");
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
 const theme = fs.readFileSync(__dirname + "/theme.css", "utf8");
 const faces = [...theme.matchAll(/url\(([^)]+\.woff2)\)/g)].map(m => m[1]);
@@ -132,34 +126,38 @@ if (!faces.length) problems.push("theme.css: no self-hosted font faces declared"
 faces.forEach(f => { if (!fs.existsSync(__dirname + "/" + f)) problems.push(`theme.css: missing font file ${f}`); });
 
 if (!page.includes('id="record-detail"')) problems.push('index.html: in-place record detail pane missing');
-if (!ui.includes('data-detail-host="pilot"') || !ui.includes('data-detail-host="mech"')) problems.push('archive.js: roster detail hosts missing');
-const crewCard = ui.match(/el\("crew-list"\)\.innerHTML=C\.pilots\.map\(p=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
-if (!crewCard || crewCard.includes('p.img&&p.triggers') || crewCard.includes('!p.img&&') || !crewCard.includes('p.triggers?')) problems.push('archive.js: all pilot cards must show triggers beside portrait or initial once');
-const mechCard = ui.match(/el\("mech-list"\)\.innerHTML=C\.mechs\.map\(m=>`([\s\S]*?)`\)\.join\(""\)/)?.[1] || "";
-if (!mechCard.includes('th("PILOT"') || !mechCard.includes('th("LOADOUT"') || !mechCard.includes('th("SYSTEMS"') || /STRUCT|STRESS|HEAT|EVA /.test(mechCard)) problems.push('archive.js: mech roster card must show key/value rows (PILOT/ROLE/STATE/LOADOUT/SYSTEMS) and leave numeric stats to the mech detail');
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
-if (!ui.includes('showAtRecord') || !ui.includes('toggleRecord')) problems.push('archive.js: in-place, toggleable roster selection handler missing');
-if (!ui.includes('CURRENT MISSION')) problems.push('archive.js: operation card does not render the current-mission link');
-if (!ui.includes('showUnit')) problems.push('archive.js: unit-level location details missing');
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map still exposes chassis selection controls');
-if (!pilotsPage.includes('id="crew-list"') || !pilotsPage.includes('archive.js')) problems.push('pilots.html: crew roster list or shared archive script missing');
-if (!mechPage.includes('id="mech-list"') || !mechPage.includes('archive.js')) problems.push('mechbay.html: chassis register list or shared archive script missing');
-const pilotDossierPage = fs.readFileSync(__dirname + "/pilot.html", "utf8");
-const mechDossierPage = fs.readFileSync(__dirname + "/mech.html", "utf8");
-if (!ui.includes('pilotDossier') || !ui.includes('mechDossier')) problems.push('archive.js: per-pilot / per-mech dossier renderers missing');
-if (!pilotDossierPage.includes('id="dossier"') || !pilotDossierPage.includes('archive.js')) problems.push('pilot.html: dossier host or shared archive script missing');
-if (!mechDossierPage.includes('id="dossier"') || !mechDossierPage.includes('archive.js')) problems.push('mech.html: dossier host or shared archive script missing');
 
-/* Rendered, not source: a stray literal left inside a card template (e.g. a mis-counted paren)
-   reaches the page as text between tags, which the source regex above cannot see. */
-const listHost = { innerHTML: "" };
-sandbox.document = { getElementById: id => (id === "mech-list" ? listHost : id === "mech-count" ? { textContent: "" } : null), querySelectorAll: () => [], addEventListener: () => {} };
-sandbox.matchMedia = () => ({ matches: false });
-vm.runInContext("(function(){" + ui + "\n})()", sandbox, { filename: "archive.js" }); // IIFE: archive.js declares top-level consts, so a bare second run would collide with the OPORD pass below
-const cardHtml = listHost.innerHTML.split("</article>")[0] || "";
+/* Rendered, not source: assertions read the markup tools/render.cjs produces by running each page's
+   scripts against a stub DOM. A stray literal left inside a card template (e.g. a mis-counted paren)
+   reaches the page as text between tags, which a source regex cannot see; minified source also made
+   template-text matches report false positives. */
+const { mount } = require("./tools/render.cjs");
+const cardsOf = h => h.split("</article>").filter(c => c.includes("<article"));
+const crewPage = mount("pilots.html"), crewCards = cardsOf(crewPage.html("crew-list"));
+if (crewCards.length !== C.pilots.length) problems.push(`pilots.html: crew-list rendered ${crewCards.length} cards, want ${C.pilots.length}`);
+C.pilots.forEach(p => {
+  const card = crewCards.find(c => c.includes(`data-pilot="${p.id}"`)) || "";
+  if (!card) return problems.push(`pilots.html: no rendered card for pilot ${p.id}`);
+  ["TRIGGERS", "TALENTS", "GEAR"].forEach(r => { if (!card.includes(`>${r}</th>`)) problems.push(`pilots.html: ${p.id} card missing ${r} row`); });
+  if (!card.includes(crewPage.window.UI.esc(p.name))) problems.push(`pilots.html: ${p.id} card missing pilot name`);
+  if (!card.includes(`href="pilot.html#${p.id}"`)) problems.push(`pilots.html: ${p.id} card missing pilot.html#${p.id} link`);
+});
+const mechCards = cardsOf(mount("mechbay.html").html("mech-list"));
+if (mechCards.length !== C.mechs.length) problems.push(`mechbay.html: mech-list rendered ${mechCards.length} cards, want ${C.mechs.length}`);
+mechCards.forEach((card, i) => ["PILOT", "ROLE", "STATE", "LOADOUT", "SYSTEMS"].forEach(r => { if (!card.includes(`>${r}</th>`)) problems.push(`mechbay.html: mech card ${i} missing ${r} row`); }));
+const cardHtml = mechCards[0] || "";
 if (!cardHtml) problems.push("archive.js: mech roster rendered no card");
 else if (/<\/(table|a|div|td|th)>[^<]/.test(cardHtml)) problems.push("archive.js: rendered mech card carries stray text between tags");
+/* ponytail: dossier imgs checked for alt only; archive.js emits no width/height yet. Add width+height
+   to this check once archive.js sets intrinsic dimensions (tracked follow-up). */
+[["pilot.html", C.pilots], ["mech.html", C.mechs]].forEach(([pg, recs]) => recs.forEach(r => {
+  const html = mount(pg, "#" + r.id).html("dossier");
+  if (!html || html.includes("NOT FOUND")) return problems.push(`${pg}#${r.id}: dossier rendered empty`);
+  (html.match(/<img\b[^>]*>/g) || []).forEach(img => { if (!/\balt="[^"]+"/.test(img)) problems.push(`${pg}#${r.id}: rendered img lacks alt: ${img}`); });
+}));
 
 /* Crew-facing OPORD: every op with a mission page carries the five-paragraph order, and the
    page mounts the shared renderer. archive.js runs against a stub DOM here so the check reads
