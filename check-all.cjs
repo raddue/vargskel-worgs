@@ -144,6 +144,7 @@ const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
 if (!page.includes('href="lance.html"') || !fs.readFileSync(__dirname + "/solstice-rain.html", "utf8").includes('href="lance.html"')) problems.push("lance.html: readiness and OPORD links missing");
 if (!lance.includes('src="lance-state.js"')) problems.push("lance.html: local state script missing");
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/lance-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("lance.html: rendered board/state check failed");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/build-detail.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs");
 for (const [name, html] of [["lance.html", lance], ["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */

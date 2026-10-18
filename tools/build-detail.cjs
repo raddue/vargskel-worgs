@@ -4,7 +4,7 @@
    Only items referenced by campaign.js are emitted. Run: node tools/build-detail.cjs [lancer-data lib dir] */
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const ROOT = path.join(__dirname, "..");
-const LIB = process.env.LANCER_DATA || process.argv[2] || "/tmp/ld/lancer-data-3.1.7/lib";
+const LIB = process.env.LANCER_DATA || (!process.argv[2]?.startsWith("--") ? process.argv[2] : "") || "/tmp/ld/lancer-data-3.1.7/lib";
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
 const W = load("weapons.json"), S = load("systems.json"), T = load("talents.json"),
   G = load("pilot_gear.json"), F = load("frames.json"), SK = load("skills.json"), TG = load("tags.json");
@@ -93,8 +93,14 @@ const realMissing = missing.filter(m => !ALIAS_SKIP.some(a => m.endsWith(a)));
 const header = `/* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
    GPL-3.0-or-later (github.com/massif-press/lancer-data). Subset: only items fielded by
    this campaign; reformatted for display. Campaign content itself is not lancer-data derived. */`;
-fs.writeFileSync(path.join(ROOT, "detail.js"),
-  header + "\nwindow.DETAIL = " + JSON.stringify(DETAIL, null, 1) + ";\n");
+const out = header + "\nwindow.DETAIL = " + JSON.stringify(DETAIL, null, 1) + ";\n";
+if (process.argv.includes("--check")) {
+  const cur = fs.readFileSync(path.join(ROOT, "detail.js"), "utf8");
+  if (cur !== out) { console.error("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs"); process.exit(1); }
+  console.log("detail.js up to date");
+} else {
+  fs.writeFileSync(path.join(ROOT, "detail.js"), out);
+}
 const n = k => Object.keys(DETAIL[k]).length;
 console.log(`detail.js: weapons ${n("weapons")}, systems ${n("systems")}, talents ${n("talents")}, gear ${n("gear")}, frames ${n("frames")}, skills ${n("skills")}`);
 console.log("frames without lancer-data detail (render falls back):", frameless.join(", ") || "none");

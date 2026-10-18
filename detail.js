@@ -268,33 +268,23 @@ window.DETAIL = {
     }
    ]
   },
-  "Bonded": {
-   "terse": "Bond with a partner and protect them from harm",
+  "Combined Arms": {
+   "terse": "Become more effective when using both Ranged and Melee weapons in close quarters",
    "ranks": [
     {
      "rank": 1,
-     "name": "I’m Your Huckleberry",
-     "description": "When you take this talent, choose another pilot (hopefully a PC, but NPCs are fine if your GM allows it) to be your Bondmate. Any mech skill checks and saves either character makes while you are adjacent gain +1 Accuracy. If both characters have this talent, this increases to +2 Accuracy, but additional characters with this talent can’t increase it any further.<br>Between missions, you can replace your Bondmate with a new one, but only if your relationship with them has changed."
+     "name": "Shield of Blades",
+     "description": "As long as you’re Engaged, you and any allies adjacent to you count as having soft cover."
     }
    ]
   },
-  "Grease Monkey": {
-   "terse": "Get more out of Limited systems, repairs, and the Stabilize action",
+  "Duelist": {
+   "terse": "Improve your Main Melee attacks and gain Blademaster Dice when you hit",
    "ranks": [
     {
      "rank": 1,
-     "name": "Unsanctioned Capacity Upgrade",
-     "description": "While resting, you can spend 2 Repairs to replenish 1 use of all Limited weapons and systems."
-    }
-   ]
-  },
-  "Executioner": {
-   "terse": "Improve Heavy and Superheavy Melee attacks with more opportunities to deal damage",
-   "ranks": [
-    {
-     "rank": 1,
-     "name": "Backswing Cut",
-     "description": "1/round, when you hit with a Heavy or Superheavy melee weapon, you can make another melee attack with the same weapon as a free action against a different character within Threat and line of sight. This attack deals half damage, if successful."
+     "name": "Partisan",
+     "description": "Gain +1 Accuracy on the first melee attack you make with a Main Melee weapon on your turn."
     }
    ]
   },
@@ -315,6 +305,16 @@ window.DETAIL = {
      "rank": 1,
      "name": "Jackhammer",
      "description": "If you have a Cannon, as a quick action, you can fire a jackhammer round from an underslung launcher, automatically dealing 10 AP Kinetic damage to a Size 1 section of any object within Range (e.g., cover, deployable equipment, buildings, or terrain). Any characters adjacent to your target are knocked back from it by 2 spaces and take 2 Kinetic damage."
+    }
+   ]
+  },
+  "Grease Monkey": {
+   "terse": "Get more out of Limited systems, repairs, and the Stabilize action",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Unsanctioned Capacity Upgrade",
+     "description": "While resting, you can spend 2 Repairs to replenish 1 use of all Limited weapons and systems."
     }
    ]
   },
@@ -374,11 +374,11 @@ window.DETAIL = {
    "tags": "Gear",
    "effect": "Dataplating is a general term for any comm-linked jewelry, subdermal netting, wearable jaw, brow, or maxillary plates, etc., that allows subvocal communication and persistent heads-up and augmented reality displays without wearing a helm. Dataplates can quickly translate nearly any language, and allow users to communicate with each other all but silently."
   },
-  "Omnihook": {
+  "SSC Sylph Undersuit": {
    "type": "Gear",
    "bonuses": "",
    "tags": "Gear",
-   "effect": "A portable – if bulky – omninet terminal that allows for communication, data transfer, and limited hot-spotting. Omnihooks are extremely valuable, although most mech squads have at least one. Tuning an omnihook requires a high level of skill, so they are usually mounted or carried by designated operators."
+   "effect": "Discovered on Acrimea IV, a biome cultivar world controlled by Smith-Shimano Corpro (SSC), the sylph is an organic lifeform that can seemingly survive in nearly any environment. Using breeding-analogous methods defined by established bioengineering doctrines, SSC developed the sylph undersuit – sterile, living sylphs grown as envelopes and fitted to their owners. The sylph bonds to its wearer, forming a symbiotic relationship: the sylph is sustained by the host’s waste products, in return protecting the host from a range of hostile environmental factors.<br>These semi-biological, skin-tight undersuits can be worn for extended periods. They are translucent, semi-liquid, and able to be stored when not in use, conforming to whatever container they are placed in. They clean the host’s body, aid natural healing processes, and eliminate waste. As desired, segments can become opaque, change color, or take on a new texture. Sylph undersuits can cover the host’s head, sealing against vacuum, providing protection against radiation, and filtering air or liquids, even providing the ability to breathe water for a limited time."
   },
   "Personal Drone": {
    "type": "Gear",
@@ -416,23 +416,17 @@ window.DETAIL = {
    "tags": "Gear",
    "effect": "A powerful electronic scope that provides high-resolution magnification up to two miles, and automatically adjusts its reticle for wind, gravity, and pressure. Smart scopes can project their field of vision and all data to the HUD of any networked user. They can also pair with other thermal, optical, or simulated-vision devices to further enhance targeting."
   },
-  "Heavy Hardsuit": {
+  "Light Hardsuit": {
    "type": "Armor",
-   "bonuses": "+3 HP, +2 ARMOR, 6 EVASION (sets), 8 EDEF (sets), 3 SPEED (sets)",
+   "bonuses": "+3 HP, 10 EVASION (sets), 10 EDEF (sets), 4 SPEED (sets)",
    "tags": "Personal Armor",
-   "effect": "The heaviest hardsuits. They are always powered and up-armored with thick, composite armor. Heavy hardsuits often feature integrated weapons, powerful mobility suites, and – by augmenting their user’s strength – allow their user to field much heavier weapons than normal infantry can typically carry. Heavy hardsuits are in decline now that half-size chassis are popular, but they are still common among private militaries and middle-tier Diasporan armed forces."
+   "effect": "Light hardsuits are usually made from reactive, cloth-like weaves, with limited plating and few powered components to maximize mobility. Like other hardsuits, they can be sealed against vacuum, and protect against a decent amount of radiation and other harmful particles."
   },
-  "Heavy A/C": {
+  "Archaic Melee": {
    "type": "Weapon",
    "bonuses": "",
-   "tags": "Inaccurate, Pilot Weapon",
-   "effect": "Heavy weapons are designed with the augmented strength of hardsuits in mind and include war hammers, mallets, rams, pikes, and heavy two-handed assault swords."
-  },
-  "Tertiary Arm": {
-   "type": "Gear",
-   "bonuses": "",
-   "tags": "Gear",
-   "effect": "A powered third arm mounted on a bracket on the hardsuit. Tertiary arms are powered and controlled using the same neural bridge processes that allow hardsuits to respond to user input. They can be equipped with manipulators to allow for fine motor control, weapons to enhance combat efficacy, or specialty tools."
+   "tags": "Archaic, Pilot Weapon",
+   "effect": "These weapons were made using pre-Union alloys and technology, and might be anything from industrial-era steel swords through to stone axes. While they remain widely used on some worlds, archaic weapons used by pilots are usually relics, heirlooms, or ceremonial weapons."
   },
   "Corrective": {
    "type": "Gear",
@@ -440,11 +434,17 @@ window.DETAIL = {
    "tags": "Limited {VAL} 1, Gear",
    "effect": "This clear, plastic-like sheet can be placed over the wounds of severely injured pilots. It instantly begins to stabilize them, injecting medicine and deploying nanites to stitch wounds shut."
   },
-  "Light Hardsuit": {
-   "type": "Armor",
-   "bonuses": "+3 HP, 10 EVASION (sets), 10 EDEF (sets), 4 SPEED (sets)",
-   "tags": "Personal Armor",
-   "effect": "Light hardsuits are usually made from reactive, cloth-like weaves, with limited plating and few powered components to maximize mobility. Like other hardsuits, they can be sealed against vacuum, and protect against a decent amount of radiation and other harmful particles."
+  "Handheld Printer": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A miniaturized version of Union’s full-scale printers, handheld printers can be used to make simple objects out of flexible and durable plastic – as long as you have the right pattern chip."
+  },
+  "Frag Grenades": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Limited {VAL} 2, Grenade, Gear",
+   "effect": ""
   },
   "Light A/C": {
    "type": "Weapon",
@@ -464,11 +464,29 @@ window.DETAIL = {
    "tags": "Gear",
    "effect": "Coming in a variety of sizes, sleeping bags are a field necessity. They’re designed to fold out from a hardsuit, fit within a mech’s cockpit, resist fire and changes in temperature, and – when necessary – seal against vacuum."
   },
+  "Heavy Hardsuit": {
+   "type": "Armor",
+   "bonuses": "+3 HP, +2 ARMOR, 6 EVASION (sets), 8 EDEF (sets), 3 SPEED (sets)",
+   "tags": "Personal Armor",
+   "effect": "The heaviest hardsuits. They are always powered and up-armored with thick, composite armor. Heavy hardsuits often feature integrated weapons, powerful mobility suites, and – by augmenting their user’s strength – allow their user to field much heavier weapons than normal infantry can typically carry. Heavy hardsuits are in decline now that half-size chassis are popular, but they are still common among private militaries and middle-tier Diasporan armed forces."
+  },
+  "Heavy A/C": {
+   "type": "Weapon",
+   "bonuses": "",
+   "tags": "Inaccurate, Pilot Weapon",
+   "effect": "Heavy weapons are designed with the augmented strength of hardsuits in mind and include war hammers, mallets, rams, pikes, and heavy two-handed assault swords."
+  },
   "Sound System": {
    "type": "Gear",
    "bonuses": "",
    "tags": "Gear",
    "effect": "Though their tactical utility is questionable, many pilots set up internal speaker systems in their cockpits. This gives them a clear line to their compatriots during combat, along with the ability to play music."
+  },
+  "Tertiary Arm": {
+   "type": "Gear",
+   "bonuses": "",
+   "tags": "Gear",
+   "effect": "A powered third arm mounted on a bracket on the hardsuit. Tertiary arms are powered and controlled using the same neural bridge processes that allow hardsuits to respond to user input. They can be equipped with manipulators to allow for fine motor control, weapons to enhance combat efficacy, or specialty tools."
   },
   "Stealth Hardsuit": {
    "type": "Armor",
@@ -476,23 +494,11 @@ window.DETAIL = {
    "tags": "Personal Armor",
    "effect": ""
   },
-  "Archaic Melee": {
-   "type": "Weapon",
-   "bonuses": "",
-   "tags": "Archaic, Pilot Weapon",
-   "effect": "These weapons were made using pre-Union alloys and technology, and might be anything from industrial-era steel swords through to stone axes. While they remain widely used on some worlds, archaic weapons used by pilots are usually relics, heirlooms, or ceremonial weapons."
-  },
   "Camo Cloth": {
    "type": "Gear",
    "bonuses": "",
    "tags": "Gear",
    "effect": "A square of reactive material that slowly shifts to reflect the surrounding environment, enough to cover a human comfortably. The transition takes about 10 seconds and makes anything hidden underneath very difficult to spot."
-  },
-  "SSC Sylph Undersuit": {
-   "type": "Gear",
-   "bonuses": "",
-   "tags": "Gear",
-   "effect": "Discovered on Acrimea IV, a biome cultivar world controlled by Smith-Shimano Corpro (SSC), the sylph is an organic lifeform that can seemingly survive in nearly any environment. Using breeding-analogous methods defined by established bioengineering doctrines, SSC developed the sylph undersuit – sterile, living sylphs grown as envelopes and fitted to their owners. The sylph bonds to its wearer, forming a symbiotic relationship: the sylph is sustained by the host’s waste products, in return protecting the host from a range of hostile environmental factors.<br>These semi-biological, skin-tight undersuits can be worn for extended periods. They are translucent, semi-liquid, and able to be stored when not in use, conforming to whatever container they are placed in. They clean the host’s body, aid natural healing processes, and eliminate waste. As desired, segments can become opaque, change color, or take on a new texture. Sylph undersuits can cover the host’s head, sealing against vacuum, providing protection against radiation, and filtering air or liquids, even providing the ability to breathe water for a limited time."
   },
   "Thermite Charge": {
    "type": "Gear",
@@ -549,17 +555,14 @@ window.DETAIL = {
   "Assault": {
    "description": "Take part in direct and overt combat."
   },
-  "Threaten": {
-   "description": "Use force or threats to make someone do what you want."
+  "Invent or Create": {
+   "description": "Invent new devices, tools, or approaches to problems."
   },
   "Word on the Street": {
    "description": "Get gossip, news, or hearsay from the streets, or from a particular social scene."
   },
   "Blow Something Up": {
    "description": "Use explosives to totally wreck something or turn it into an enormous fireball."
-  },
-  "Invent or Create": {
-   "description": "Invent new devices, tools, or approaches to problems."
   },
   "Stay Cool": {
    "description": "Perform a task that requires concentration, dexterity, speed, or precision under pressure."
