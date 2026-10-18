@@ -240,18 +240,49 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('index.html: map st
        changing either side of the pair breaks this. Reading the OPORD region and not the notes is
        what stops the check from grading its own prose. */
     const order = src.slice(src.indexOf("opord:"), src.indexOf("threads:"));
-    [["elysia", "conducting siege operations against the city"],
+    const grounded = [["elysia", "conducting siege operations against the city"],
      ["district", "assume VSAF infantry and armour in both the industrial and central districts"],
      ["industry", "the Amanta Motors factory in the industrial district"],
      ["dock", "FOB SABER RENDEZVOUS"],
      ["dropzone", "Dropship Kingfisher 2-2"],
      ["rio", "UNS Rio Grande in high orbit, lightly armed"],
-     ["vsaf", "hold the approaches to Nov Elysia's central district"]].forEach(([id, quote]) => {
+     ["vsaf", "hold the approaches to Nov Elysia's central district"]];
+    grounded.forEach(([id, quote]) => {
       const l = D.locations.find(x => x.id === id);
       if (!l) { problems.push(`location ${id} is missing`); return; }
       if (!String(l.notes).includes(quote)) problems.push(`location ${id}: its note must quote the order ("${quote}")`);
       if (!order.includes(quote)) problems.push(`location ${id}: the order no longer says "${quote}", so that note is no longer grounded`);
     });
+    /* The chart entries below the OPORD's notice name no operation, so there is no order phrase to
+       quote them to. Anchoring a phrase of each note here stops one being rewritten silently; the
+       anchor is duplicated prose on purpose, because nothing else records what these six say. */
+    const chartOnly = [["cressidium", "mustered in orbit above it"],
+     ["pell", "tide-locked over the city's night side"],
+     ["kessen", "holding Cressidium's inner lane"],
+     ["cairn", "cut apart under contract"],
+     ["tarn", "the only other one charted"],
+     ["harrow", "holds the Tarn approach"]];
+    chartOnly.forEach(([id, anchor]) => {
+      const l = D.locations.find(x => x.id === id);
+      if (!l) { problems.push(`location ${id} is missing`); return; }
+      if (!String(l.notes).includes(anchor)) problems.push(`location ${id}: its note no longer says "${anchor}" — update this anchor if the change was intended`);
+    });
+    const unguarded = D.locations.map(l => l.id)
+      .filter(id => !grounded.some(([g]) => g === id) && !chartOnly.some(([c]) => c === id));
+    if (unguarded.length) problems.push(`location notes with no assertion at all: ${unguarded.join(", ")}`);
+    /* The leg legend must follow the lines actually drawn, not whether any site on the route was
+       visited: a route from a visited origin to a planned site has no travelled leg on it. */
+    const keyOf = () => HOLO.holomap("THEATER").key;
+    if (!keyOf().includes("PLANNED LEG")) problems.push("theater key must list PLANNED LEG while the operation's site is unvisited");
+    if (keyOf().includes("TRAVELLED")) problems.push("theater key claims TRAVELLED although no drawn leg ends at a visited site");
+    const ely = D.locations.find(l => l.id === "elysia");
+    if (ely) { ely.visited = true;
+      if (!keyOf().includes("TRAVELLED")) problems.push("theater key must list TRAVELLED once a drawn leg ends at a visited site");
+      ely.visited = false; }
+    /* A site inside a district is not in orbit; only moons, stations and orbitals orbit. */
+    if (!HOLO.unitFile("dock").includes("WITHIN")) problems.push("FOB Saber's pane row must read WITHIN: its parent is a district");
+    if (HOLO.unitFile("dock").includes("IN ORBIT")) problems.push("FOB Saber's pane must not claim IN ORBIT: its parent is a district");
+    if (!HOLO.unitFile("pell").includes("IN ORBIT")) problems.push("pell is a moon, so its pane row must read IN ORBIT");
     const bad = extra => { D.locations.push(Object.assign({ id: "zz", name: "ZZ", kind: "PLANET", x: 50, y: 50, level: "SYSTEM" }, extra)); let threw = false; try { HOLO.holomap("SYSTEM"); } catch (e) { threw = true } D.locations.pop(); return threw; };
     if (!bad({ kind: "NOPE" })) problems.push("UI.holomap must throw on an unknown kind instead of drawing a wreck field");
     /* A record with no level belongs to neither frame; that is a data fault, which the level check above reports. */

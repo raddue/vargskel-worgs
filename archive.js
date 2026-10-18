@@ -108,8 +108,8 @@ function holomap(level){
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
   +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
   +(on(cur)?`<li><span class="k-shape k-cur"></span>CURRENT OP</li>`:"")
-  +(legsOn.some(id=>L[id].visited)?`<li><span class="k-line"></span>TRAVELLED</li>`:"")
-  +(legsOn.some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
+  +(legsOn.slice(1).some(id=>L[id].visited)?`<li><span class="k-line"></span>TRAVELLED</li>`:"")
+  +(legsOn.slice(1).some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
   +(rings?`<li><span class="k-orbit"></span>ORBIT</li>`:"")
   +(level==="THEATER"?`<li><button class="k-level" type="button" data-level="SYSTEM" aria-label="Back out to the sector view">SYSTEM VIEW</button></li>`:"");
  return {world:zones+rings+lines+nodes,key,grid:LEVELS[level].grid,aria:LEVELS[level].aria};
@@ -136,7 +136,7 @@ function unitFile(id){const l=L[id];if(!l)return "";
  const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id),enter=C.locations.filter(x=>x.frame===id);
  return `<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`
   +(l.notes?`<div class="muted">${esc(l.notes)}</div>`:"")+table(
-  th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th("IN ORBIT",l.parent?locBtn(l.parent):"None")+
+  th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th(l.parent?(["MOON","STATION","ORBITAL"].includes(l.kind)?"IN ORBIT":"WITHIN"):"IN ORBIT",l.parent?locBtn(l.parent):"None")+
   th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personBtn(p.id)).join(" · ")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
   th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))
   +(enter.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${enter.map(x=>`<button class="chip" type="button" data-loc="${esc(x.id)}">ENTER THEATER · ${esc(x.name)}</button>`).join("")}</div>`:"")}
