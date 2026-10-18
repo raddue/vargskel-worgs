@@ -98,7 +98,8 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-mech],[dat
  if(t.matches("article[data-pilot],article[data-mech]")){toggleRecord(t.dataset.pilot?"pilot":"mech",v);return}
  if(k==="mech"||k==="pilot")return;
  showAtMap(k,v);
- if(t.closest(".holo-svg"))el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+ if(k==="person")panel().scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+ else if(t.closest(".holo-svg"))el("holomap").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 const latest=filed[0];
 if(el("hero-tagline")&&C.meta&&C.meta.tagline)el("hero-tagline").textContent=C.meta.tagline;
 const upcoming=ops.filter(o=>o.type==="PLANNED").pop();

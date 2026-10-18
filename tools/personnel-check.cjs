@@ -4,7 +4,11 @@ const vm = require("node:vm");
 const { mount } = require("./render.cjs");
 
 const nodes = Object.fromEntries(["record-detail", "faction-list"].map(id => [id, { innerHTML: "" }]));
-const box = { document: { getElementById: id => nodes[id] || null, querySelectorAll: () => [], addEventListener() {} }, matchMedia: () => ({ matches: true }), console };
+nodes["holo-detail"] = { append() {} };
+nodes["record-detail"].classList = { add() {}, remove() {} };
+const clicks = []; let scrolled = false;
+nodes["record-detail"].scrollIntoView = () => { scrolled = true; };
+const box = { document: { getElementById: id => nodes[id] || null, querySelectorAll: () => [], addEventListener(type, fn) { if (type === "click") clicks.push(fn); } }, matchMedia: () => ({ matches: true }), console };
 box.window = box;
 vm.createContext(box);
 for (const file of ["campaign.js", "archive.js"]) vm.runInContext(fs.readFileSync(__dirname + "/../" + file, "utf8"), box, { filename: file });
@@ -26,6 +30,9 @@ for (const id of ["farris", "bannerjee"]) {
 }
 UI.show("loc", "elysia");
 assert.ok(nodes["record-detail"].innerHTML.includes("NOTABLE PERSONNEL") && nodes["record-detail"].innerHTML.includes('data-person="farris"'), "location lacks personnel");
+const personChip = { dataset: { person: "farris" }, closest: () => null, matches: () => false };
+clicks[0]({ target: { closest: selector => selector.includes("[data-person]") ? personChip : null } });
+assert.ok(scrolled, "faction-ledger personnel chip must reveal off-screen detail panel");
 const op = mount("solstice-rain.html").html("opord");
 for (const id of ["farris", "bannerjee"]) {
   assert.ok(C.ops[0].opord.vips.some(v => v.id === id && Object.keys(v).length === 1), `${id}: VIP must reference personnel id`);
