@@ -156,7 +156,7 @@ else if (/<\/(table|a|div|td|th)>[^<]/.test(cardHtml)) problems.push("archive.js
 [["pilot.html", C.pilots], ["mech.html", C.mechs]].forEach(([pg, recs]) => recs.forEach(r => {
   const html = mount(pg, "#" + r.id).html("dossier");
   if (!html || html.includes("NOT FOUND")) return problems.push(`${pg}#${r.id}: dossier rendered empty`);
-  (html.match(/<img\b[^>]*>/g) || []).forEach(img => { if (!/\balt="[^"]+"/.test(img)) problems.push(`${pg}#${r.id}: rendered img lacks alt: ${img}`); });
+  (html.match(/<img\b[^>]*>/g) || []).forEach(img => { if (!/\salt="[^"]+"/.test(img)) problems.push(`${pg}#${r.id}: rendered img lacks alt: ${img}`); });
 }));
 
 /* Crew-facing OPORD: every op with a mission page carries the five-paragraph order, and the
