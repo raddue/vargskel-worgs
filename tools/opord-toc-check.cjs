@@ -4,12 +4,12 @@
    Run: node tools/opord-toc-check.cjs */
 const fs = require("fs"), path = require("path"), vm = require("vm"), assert = require("assert");
 const ROOT = path.join(__dirname, "..");
-const sb = { window: {} };
-vm.createContext(sb);
-vm.runInContext(fs.readFileSync(path.join(ROOT, "campaign.js"), "utf8"), sb);
+const camp = fs.readFileSync(path.join(ROOT, "campaign.js"), "utf8");
+const fresh = () => { const c = vm.createContext({ window: {} }); vm.runInContext(camp, c); return c; };
 const ui = fs.readFileSync(path.join(ROOT, "archive.js"), "utf8");
 let n = 0;
-for (const o of sb.window.CAMPAIGN.ops.filter(o => o.opord)) {
+for (const o of fresh().window.CAMPAIGN.ops.filter(o => o.opord)) {
+  const sb = fresh(); /* archive.js top-level consts: one context per render */
   const host = { dataset: { op: String(o.id) }, innerHTML: "" };
   sb.document = { getElementById: id => (id === "opord" ? host : null), querySelectorAll: () => [], addEventListener: () => {} };
   sb.matchMedia = () => ({ matches: true });
@@ -29,5 +29,5 @@ for (const o of sb.window.CAMPAIGN.ops.filter(o => o.opord)) {
 assert(n > 0, "no ops with opord");
 const css = fs.readFileSync(path.join(ROOT, "style.css"), "utf8");
 assert(/\.opord-toc\{position:sticky;top:8px;z-index:2\}/.test(css), "style.css: sticky .opord-toc rule missing");
-assert(/@media\(max-width:620px\)\{\.opord-toc\{position:static\}\}/.test(css), "style.css: mobile static rule missing");
+assert(/@media\(max-width:620px\)\{\.opord-toc\{position:static\}/.test(css), "style.css: mobile static rule missing");
 console.log(`opord-toc: OK (${n} op)`);
