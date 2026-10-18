@@ -58,7 +58,7 @@ const pages = [
   { name: 'pilot', file: 'pilot.html', hash: pilot.id, expect: [/PILOT DOSSIER/, new RegExp(`CHASSIS\\s+${words(mech.name)}`)] },
   { name: 'mechbay', file: 'mechbay.html', expect: [/CHASSIS REGISTER/, ...C.mechs.filter(m => m.pilot && pilotById[m.pilot]).map(m => new RegExp(`PILOT\\s+${words(plain(pilotById[m.pilot].name))}`))] },
   { name: 'mech', file: 'mech.html', hash: mech.id, expect: [/CHASSIS DOSSIER/, new RegExp(`PILOT\\s+${words(plain(pilot.name))}`)] },
-  { name: 'solstice-rain', file: 'solstice-rain.html', expect: [new RegExp(`${words(pilot.name.match(/\u201c([^\u201d]*)\u201d/)[1])}\\s+${words(pilot.name)}`)] },
+  { name: 'solstice-rain', file: 'solstice-rain.html', expect: [new RegExp(words(op.opord.no)), /COMMS UNDER JAMMING/] },
 ];
 
 const which = binary => { try { return execFileSync('which', [binary], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; } };

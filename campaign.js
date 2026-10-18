@@ -113,7 +113,7 @@ window.CAMPAIGN = {
       /* Crew-facing operation order. Player-eyes only: what command tells the lance before
       the drop, never what the GM knows happens to it. paras entries are [heading, body],
       body being a string or a list of [sub-heading, text-or-lines]; annexes are
-      [heading, lines] and letter after the generated task-org annex.
+      [heading, lines], lettered A, B, C in order of appearance.
       Rendered by opordDoc() in archive.js. */
       opord: {
         class: "RESTRICTED // VW-01 CONTRACT CREW EYES ONLY",
@@ -154,36 +154,20 @@ window.CAMPAIGN = {
               "No single-chassis detachments outside the lance footprint without deck ops approval."]],
             ["Coordinating instructions", ["Rules of engagement: do not engage unless fired upon. Priority is getting people home.",
               "Positive identification on Leandric units before any shot. Leandric and VSAF equipment in the same district is expected.",
-              "Abort: loss of the extraction route, or two chassis combat-ineffective, means fall back to FOB Saber and raise deck ops (Annex C).",
-              "Expect city-wide jamming to blank local comms and sensors at intervals; fallback procedure is Annex D."]]]],
+              "Abort: loss of the extraction route, or two chassis combat-ineffective, means fall back to FOB Saber and raise deck ops.",
+              "Expect city-wide jamming to blank local comms and sensors at intervals; fallback procedure is Annex A."]]]],
 
           ["SUSTAINMENT", [
             ["Logistics", "VW-01 deploys with what is aboard the chassis. Resupply at FOB Saber is limited to what Amanta holds and what Leandric units can spare — fuel, munitions and repair capacity are all local purchase. Rio Grande cannot push supplies inside the jamming envelope."],
             ["Personnel", "No replacements are allocated to this contract. Six pilots, six chassis: a downed pilot is recovered by the lance, not by a Union search-and-rescue asset."],
-            ["Medical", "Field care is chassis-borne, with the FOB Saber aid station as the first fixed facility. Casualties move to Rio Grande on the extraction lift. 9-line format at Annex B."]]],
+            ["Medical", "Field care is chassis-borne, with the FOB Saber aid station as the first fixed facility. Casualties move to Rio Grande on the extraction lift."]]],
 
           ["COMMAND AND SIGNAL", [
             ["Command", "Deck ops, UNS Rio Grande, holds tasking authority for this contract. On the ground the lance commands itself: nominate a lance lead before H-hour and report the name. Succession runs lance lead, then crew seniority."],
-            ["Signal", "Primary is chassis-to-chassis tightbeam, secondary is Rio Grande relay. Both are expected to black out under jamming — Annex D carries the fallback. Mandatory reports: link-up, VIP secure, extraction."]]]
+            ["Signal", "Primary is chassis-to-chassis tightbeam, secondary is Rio Grande relay. Both are expected to black out under jamming — Annex A carries the fallback. Mandatory reports: link-up, VIP secure, extraction."]]]
         ],
 
         annexes: [
-          ["CASEVAC 9-LINE", ["Line 1 · Pickup site: FOB Saber, Amanta Motors plant, industrial district. Grid issued at link-up; any other site is contested and must be held while the lift comes in.",
-            "Line 2 · Radio: chassis tightbeam primary, Rio Grande relay secondary. Callsigns at Annex A.",
-            "Line 3 · Patients by precedence: urgent, priority, routine.",
-            "Line 4 · Special equipment: hoist-capable lift for chassis-mounted casualties.",
-            "Line 5 · Patients by type: litter, ambulatory.",
-            "Line 6 · Site security: friendly hold at FOB Saber, unknown elsewhere.",
-            "Line 7 · Marking: IR strobe or panel. No pyrotechnics inside the jamming envelope without deck ops approval — VSAF and Leandric units read the same signals.",
-            "Line 8 · Nationality and status: Union civilian principals, contract crew, Leandric allied.",
-            "Line 9 · Terrain and contamination: dense urban industrial, active jamming, no contamination reported."]],
-          ["TIMELINE AND ABORT", ["H-6 · Crew acknowledges this order to deck ops; lance lead, VIP carrier and rearguard nominated.",
-            "H-2 · Chassis sealed and pre-flighted, loaded aboard Kingfisher 2-2.",
-            "H-hour · Insertion lift departs Rio Grande on the window and route issued with the H-hour message.",
-            "H+1 · On the ground, move to FOB Saber, link-up report.",
-            "Recovery · Central district, VIP secure report once both names are accounted for.",
-            "Extraction · Recovery route per the H-hour message, extraction report on wheels-up.",
-            "Abort on any of: extraction route lost, two chassis combat-ineffective, either VIP confirmed unrecoverable, deck ops recall. On abort, fall back to FOB Saber, hold, and raise deck ops on any working channel."]],
           ["COMMS UNDER JAMMING", ["Assume windows, not a continuous net. Jamming is expected to blank tightbeam and relay at intervals and without warning.",
             "If comms are blacked out, attempt each mandatory report three times on the hour, then proceed to the next phase. Silence is not authority to stop.",
             "Scattered with no working channel: rally on FOB Saber. An IR strobe or panel on the lead chassis is the visual sign of a friendly stack.",

@@ -116,27 +116,22 @@ if(el("ops")){el("ops-count").textContent=`MISSION ARCHIVE / ${String(C.ops.leng
   th("LOCATION",esc(l.name+" · "+l.kind))+th("OVERVIEW",esc(o.summary||""))+th("CURRENT MISSION",o.mission?`<a class="chip" href="${esc(o.mission.href)}">${esc(o.mission.title)} →</a>`:"")+th("CREW",(o.crew||[]).map(pilotBtn).join("")||"None")+th("MECHS",(o.mechs||[]).map(mechBtn).join("")||(o.type==="PLANNED"?"":"None deployed"))+
   th("ROUNDS",o.rounds==null?"":esc(o.rounds))+th("OUTCOME",esc(o.outcome))+th("LEFT HANGING",open.map(t=>esc(t.text)+(t.status!=="OPEN"?" ("+esc(t.status)+")":"")).join("<br>")||"Nothing open")+th("FILED",esc(o.date)))+`</div></details>`}).join("")}
 /* Crew-facing OPORD: rendered from the op record so any mission page reuses one shape.
-   Annex A (task org + callsigns) is generated from the roster; the rest is op.opord data. */
-const callsign=n=>(String(n).match(/\u201c([^\u201d]*)\u201d/)||[,""])[1]||"\u2014";
+   Annexes are op.opord data, lettered A, B, C in order of appearance. */
 const opLine=t=>`<li>${esc(t)}</li>`;
 const opSub=s=>`<li>${s[0]?`<b>${esc(s[0])}.</b> `:""}${Array.isArray(s[1])?`<ol class="opord-lines">${s[1].map(opLine).join("")}</ol>`:esc(s[1])}</li>`;
 const opBody=b=>Array.isArray(b)?`<ol class="opord-sub">${b.map(opSub).join("")}</ol>`:`<p class="opord-body">${esc(b)}</p>`;
 const opAnnex=(letter,title,inner,id)=>`<div class="card opord-annex" id="${esc(id)}"><div class="card-pad"><div class="tag">ANNEX ${esc(letter)} \u00b7 ${esc(title)}</div>${inner}</div></div>`;
-const opTaskOrg=o=>`<table class="threads-table"><thead><tr><th>CALLSIGN</th><th>PILOT</th><th>CHASSIS</th><th>FRAME \u00b7 SIZE</th><th>ROLE</th></tr></thead><tbody>`+
- (o.crew||[]).map(id=>{const p=P[id];if(!p)return "";const m=p.mech?M[p.mech]:null;
- return `<tr><td>${esc(callsign(p.name))}</td><td>${link("pilot.html#"+p.id,p.name)}</td><td>${m?link("mech.html#"+m.id,m.name):"\u2014"}</td><td>${m?esc(m.frame+" \u00b7 SIZE "+msize(m)):"\u2014"}</td><td>${esc(m&&m.role||"")}</td></tr>`}).join("")+"</tbody></table>";
 function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=i=>"ABCDEFGH"[i]||String(i+1),pid=`opord-${o.id}`,chip=(h,t)=>`<a class="chip" href="#${esc(h)}">${esc(t)}</a>`;
  return `<div class="opord-class">${esc(d.class)}</div>`+
  `<div class="card"><div class="card-pad"><div class="tag">OPERATION ORDER \u00b7 OP ${esc(o.id)} \u00b7 ${esc(o.title)}</div><h3 class="mission-title">${esc(d.no)}</h3>`+table(
  th("ISSUING HQ",esc(d.hq))+th("CLIENT",o.client&&F[o.client]?esc(F[o.client].name.toUpperCase()):"NONE")+th("DTG OF ORDER",esc(d.dtg))+th("H-HOUR",esc(d.hhour))+th("REFERENCES",br(d.refs))+
  th("DISTRIBUTION",br(d.distribution))+th("STATUS",opPill(o)))+`</div></div>`+
  `<div class="card opord-toc"><div class="card-pad"><div class="tag">CONTENTS</div><nav aria-label="Operation order contents">`+
- d.paras.map((p,i)=>chip(`${pid}-p${i+1}`,`${i+1}. ${p[0]}`)).join("")+chip(`${pid}-a`,"A \u00b7 TASK ORG")+
- d.annexes.map((a,i)=>chip(`${pid}-a${i+2}`,`${letter(i+1)} \u00b7 ${a[0]}`)).join("")+`</nav></div></div>`+
+ d.paras.map((p,i)=>chip(`${pid}-p${i+1}`,`${i+1}. ${p[0]}`)).join("")+
+ d.annexes.map((a,i)=>chip(`${pid}-a${i+1}`,`${letter(i)} \u00b7 ${a[0]}`)).join("")+`</nav></div></div>`+
  (d.vips?`<div class="card"><div class="card-pad"><div class="tag">EXTRACTION PRINCIPALS \u00b7 VISUAL ID</div><div class="vip-row">`+d.vips.map(v=>`<figure class="vip"><img src="${esc(v.img)}" alt="${esc(v.name)}"><figcaption><b>${esc(v.name)}</b><span>${esc(v.role)}</span><p>${esc(v.blurb)}</p></figcaption></figure>`).join("")+`</div></div></div>`:"")+
  `<div class="card"><div class="card-pad">`+d.paras.map((p,i)=>`<div class="opord-para" id="${esc(pid)}-p${i+1}"><h4>${i+1}. ${esc(p[0])}</h4>${opBody(p[1])}</div>`).join("")+`</div></div>`+
- opAnnex(letter(0),"TASK ORGANIZATION AND CALLSIGNS",opTaskOrg(o),`${pid}-a`)+
- d.annexes.map((a,i)=>opAnnex(letter(i+1),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`,`${pid}-a${i+2}`)).join("")+
+ d.annexes.map((a,i)=>opAnnex(letter(i),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`,`${pid}-a${i+1}`)).join("")+
  `<div class="opord-class">${esc(d.class)}</div>`;}
 /* Mission-page conflict history: the op record carries the copy, the page carries the head. */
 const histHost=el("conflict-history");

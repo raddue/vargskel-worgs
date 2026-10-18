@@ -19,11 +19,11 @@ for (const o of fresh().window.CAMPAIGN.ops.filter(o => o.opord)) {
   assert(toc, `op ${o.id}: CONTENTS nav missing`);
   assert(html.indexOf("opord-toc") < html.indexOf('class="opord-para"'), `op ${o.id}: TOC must precede paragraphs`);
   const hrefs = [...toc.matchAll(/<a class="chip" href="#([^"]+)">/g)].map(m => m[1]);
-  const want = o.opord.paras.length + 1 + o.opord.annexes.length;
+  const want = o.opord.paras.length + o.opord.annexes.length;
   assert.strictEqual(hrefs.length, want, `op ${o.id}: expected ${want} chips, got ${hrefs.length}`);
   const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
   hrefs.forEach(h => assert(ids.has(h), `op ${o.id}: #${h} resolves to nothing`));
-  assert(toc.includes("1. SITUATION") && toc.includes("A \u00b7 TASK ORG"), `op ${o.id}: chip labels wrong`);
+  assert(toc.includes("1. SITUATION") && toc.includes("A \u00b7 COMMS UNDER JAMMING"), `op ${o.id}: chip labels wrong`);
   n++;
 }
 assert(n > 0, "no ops with opord");

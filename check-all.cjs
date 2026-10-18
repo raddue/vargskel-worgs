@@ -211,12 +211,7 @@ C.ops.forEach(o => {
   vm.runInContext(ui, sandbox, { filename: "archive.js" });
   const html = host.innerHTML;
   SMEAC.forEach((t, i) => { if (!html.includes(`${i + 1}. ${t}`)) problems.push(`op ${o.id}: rendered OPORD missing heading "${i + 1}. ${t}"`); });
-  if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing the generated task-org annex`);
-  o.crew.forEach(id => {
-    const p = C.pilots.find(x => x.id === id);
-    const cs = p && (p.name.match(/\u201c([^\u201d]*)\u201d/) || [])[1];
-    if (cs && !html.includes(cs)) problems.push(`op ${o.id}: callsign ${cs} missing from the rendered task-org annex`);
-  });
+  if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing its first annex`);
   if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
   if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
 });
