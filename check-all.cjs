@@ -123,6 +123,7 @@ C.pilots.forEach(p => {
   if (m && m.pilot !== p.id) problems.push(`pilot ${p.id} -> mech ${p.mech} but that mech's pilot is ${m.pilot}`);
 });
 C.ops.forEach(o => {
+  if (o.checks !== undefined && (!Array.isArray(o.checks) || o.checks.some(c => typeof c !== "string" || !c.trim()))) problems.push(`op ${o.id}.checks must be an array of non-empty strings`);
   have(loc, "locations", o.loc, `op ${o.id}.loc`);
   if (o.client) have(fac, "factions", o.client, `op ${o.id}.client`);
   (o.crew || []).forEach(id => have(pilot, "pilots", id, `op ${o.id}.crew`));
@@ -138,7 +139,13 @@ C.factions.forEach(f => {
 if (problems.length) {
 }
 const page = fs.readFileSync(__dirname + "/index.html", "utf8");
+const lance = fs.readFileSync(__dirname + "/lance.html", "utf8");
 const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
+if (!page.includes('href="lance.html"') || !fs.readFileSync(__dirname + "/solstice-rain.html", "utf8").includes('href="lance.html"')) problems.push("lance.html: readiness and OPORD links missing");
+if (!lance.includes('src="lance-state.js"')) problems.push("lance.html: local state script missing");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/lance-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("lance.html: rendered board/state check failed");
+for (const [name, html] of [["lance.html", lance], ["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
+  if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
 const theme = fs.readFileSync(__dirname + "/theme.css", "utf8");
 const faces = [...theme.matchAll(/url\(([^)]+\.woff2)\)/g)].map(m => m[1]);

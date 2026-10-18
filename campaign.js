@@ -108,6 +108,7 @@ window.CAMPAIGN = {
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
       outcome: "Campaign starting. First drop: Nov Elysia.",
+      checks: ["Nominate lance lead, VIP carrier, and rearguard before H-hour.", "Link up at FOB Saber.", "Secure Captain Farris and Ambassador Bannerjee for extraction."],
 
       /* Crew-facing operation order. Player-eyes only: what command tells the lance before
       the drop, never what the GM knows happens to it. paras entries are [heading, body],
