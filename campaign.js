@@ -5,6 +5,10 @@
    ops.loc -> locations, ops.client -> factions, threads.op -> ops.
    Run `node check-all.cjs` after editing: it fails on any id that does not resolve. */
 window.CAMPAIGN = {
+  /* Append-only session ledger, one row per pilot per session. Log with
+     node tools/apply-compcon.cjs --log "dusty dealt=14 taken=9" --write
+     Career totals and record holders are derived from these rows. */
+  ledger: [],
   meta: {
     unit: "VW-01",
     name: "VARGSKEL WORGS",

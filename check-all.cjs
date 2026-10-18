@@ -22,6 +22,29 @@ const dupes = key => {
 
 ["locations", "factions", "personnel", "pilots", "mechs", "ops", "threads", "events"].forEach(dupes);
 
+/* Ledger rows are append-only session logs: a bad row silently skews career totals. */
+const LEDGER_STATS = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "heat", "overcharge", "core", "moves"];
+const pilotIds = ids("pilots"), opIds = ids("ops");
+if (!Array.isArray(C.ledger)) problems.push("ledger: must be an array of session rows");
+else {
+  const seenRow = new Set();
+  C.ledger.forEach((e, i) => {
+    if (!e || typeof e !== "object") return problems.push(`ledger[${i}]: must be an object`);
+    if (!pilotIds.has(e.pilot)) problems.push(`ledger[${i}]: unknown pilot "${e.pilot}"`);
+    if (!opIds.has(e.op)) problems.push(`ledger[${i}]: unknown op "${e.op}"`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date || "")) problems.push(`ledger[${i}]: date must be YYYY-MM-DD`);
+    const stats = Object.keys(e).filter(k => !["op", "date", "pilot"].includes(k));
+    if (!stats.length) problems.push(`ledger[${i}]: no stats`);
+    stats.forEach(k => {
+      if (!LEDGER_STATS.includes(k)) problems.push(`ledger[${i}]: unknown stat "${k}"`);
+      else if (typeof e[k] !== "number" || !Number.isFinite(e[k]) || e[k] < 0) problems.push(`ledger[${i}].${k}: must be a non-negative number`);
+    });
+    const key = `${e.op}|${e.date}|${e.pilot}`;
+    if (seenRow.has(key)) problems.push(`ledger[${i}]: duplicate row for ${e.pilot} on ${e.date} in OP ${e.op}`);
+    seenRow.add(key);
+  });
+}
+
 /* Ids become markup and sort keys, and the fields the page reads without a guard
    must exist: a numeric id or a missing array used to blank the whole archive
    while this checker still printed "ok". */
@@ -138,14 +161,16 @@ C.factions.forEach(f => {
 
 if (problems.length) {
 }
+/* Read once: index.html carries the map/record-detail hosts, archive.js runs against the stub DOM later. */
 const page = fs.readFileSync(__dirname + "/index.html", "utf8");
-const lance = fs.readFileSync(__dirname + "/lance.html", "utf8");
 const ui = fs.readFileSync(__dirname + "/archive.js", "utf8");
-if (!page.includes('href="lance.html"') || !fs.readFileSync(__dirname + "/solstice-rain.html", "utf8").includes('href="lance.html"')) problems.push("lance.html: readiness and OPORD links missing");
-if (!lance.includes('src="lance-state.js"')) problems.push("lance.html: local state script missing");
-if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/lance-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("lance.html: rendered board/state check failed");
+/* Per-mech session state mapped from COMPCON exports: keep it short, uppercase and safe to render. */
+for (const m of C.mechs) {
+  if (m.conditions == null) continue;
+  if (!Array.isArray(m.conditions) || m.conditions.some(c => typeof c !== "string" || !/^[A-Z0-9][A-Z0-9 ·+-]{0,23}$/.test(c))) problems.push(`mech ${m.id}: conditions must be an array of short uppercase labels`);
+}
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/build-detail.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs");
-for (const [name, html] of [["lance.html", lance], ["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
+for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
 const theme = fs.readFileSync(__dirname + "/theme.css", "utf8");
@@ -203,17 +228,32 @@ C.ops.forEach(o => {
   const titles = ((o.opord || {}).paras || []).map(p => p[0]);
   SMEAC.forEach(t => { if (!titles.includes(t)) problems.push(`op ${o.id}: opord missing paragraph "${t}"`); });
   if (!mount || !o.opord) return;
-  const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" };
+  const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" }, ledgerBody = { innerHTML: "" }, ledgerCount = { textContent: "" };
   if (!page.includes('id="conflict-history"')) problems.push(`${o.mission.href}: conflict-history host missing`);
   if (!Array.isArray(o.history) || !o.history.length || o.history.some(h => typeof h !== "string" || !h.length)) problems.push(`op ${o.id}: conflict history must be a non-empty list of paragraphs`);
-  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : null), querySelectorAll: () => [], addEventListener: () => {} };
+  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : id === "ledger-body" ? ledgerBody : id === "ledger-count" ? ledgerCount : null), querySelectorAll: () => [], addEventListener: () => {} };
   sandbox.matchMedia = () => ({ matches: true });
+  /* Dominant fixture rows exercise the ledger panel whether or not the real ledger is empty. */
+  const [leadPilot, chasePilot] = C.pilots;
+  const shortName = p => { const nw = p.name.replace(/\u201c([^\u201d]*)\u201d/, "$1").replace(/\s+/g, " ").trim().split(" "); return nw.length > 1 ? nw[0].charAt(0) + ". " + nw[nw.length - 1] : nw[0]; };
+  const before = C.ledger.length;
+  C.ledger.push({ op: o.id, date: "2026-01-01", pilot: leadPilot.id, dealt: 999, taken: 1, repairs: 1 });
+  C.ledger.push({ op: o.id, date: "2026-01-02", pilot: chasePilot.id, dealt: 2, taken: 998, hacks: 99 });
   vm.runInContext(ui, sandbox, { filename: "archive.js" });
   const html = host.innerHTML;
   SMEAC.forEach((t, i) => { if (!html.includes(`${i + 1}. ${t}`)) problems.push(`op ${o.id}: rendered OPORD missing heading "${i + 1}. ${t}"`); });
   if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing its first annex`);
   if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
   if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
+  const record = (label, pilot, total) => `<th scope="row">MOST ${label}</th><td>${shortName(pilot)} · ${total}</td>`;
+  if (!ledgerBody.innerHTML.includes(record("DAMAGE DEALT", leadPilot, 999))) problems.push("ledger panel: damage dealt record must come from the highest row total");
+  if (!ledgerBody.innerHTML.includes(record("DAMAGE TAKEN", chasePilot, 998))) problems.push("ledger panel: damage taken record must come from the ledger rows");
+  if (!ledgerBody.innerHTML.includes(record("HACKS", chasePilot, 99))) problems.push("ledger panel: every stat present in a row needs a record");
+  const realRows = C.ledger.slice(0, before);
+  if (!realRows.some(r => r.core != null) && ledgerBody.innerHTML.includes("MOST CORE USES")) problems.push("ledger panel: stats absent from every row must not get a record");
+  if (!ledgerBody.innerHTML.includes("<th>SESSIONS</th>")) problems.push("ledger panel: career totals table must render");
+  if (!ledgerCount.textContent.startsWith(`${before + 2} ENTRIES`)) problems.push(`ledger panel: entry count must match the rows (${ledgerCount.textContent})`);
+  C.ledger.length = before;
 });
 
 if (problems.length) {

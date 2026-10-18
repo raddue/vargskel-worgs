@@ -45,8 +45,7 @@
   .shell{max-width:none;padding:0}
   a[href^="http"]::after{content:" (" attr(href) ")";font-size:10px;color:#555}
 }
-/* Live lance controls stay within each card at phone widths. */
-.lance-fields,.lance-ticks{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}.lance-fields label,.lance-note{display:grid;gap:5px;font:13px var(--mono);color:var(--muted)}.lance-fields input{width:88px}.lance-fields input,.lance-note textarea{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:7px;font:15px var(--mono)}.lance-fields input:focus-visible,.lance-note textarea:focus-visible{outline:1px solid var(--cyan)}.lance-ticks fieldset{min-width:0;border:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap}.lance-ticks legend,.lance-stats{color:var(--text-soft);font:13px var(--mono)}.lance-check{display:block;margin-top:8px}.lance-note{margin:15px 0}.lance-note textarea{width:100%;resize:vertical}#lance-export{overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--text);margin:0}#save-state{font:13px var(--mono);color:var(--lime);margin-bottom:12px}
+
 /* chips carry record values (crew, chassis, mission links): print them as plain text, not hidden */
 @media print{
   .chip{display:inline!important;border:0;background:none;padding:0;margin:0 .6em 0 0;color:inherit;cursor:auto}
