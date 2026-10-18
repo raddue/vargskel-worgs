@@ -5,6 +5,7 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const ROOT = path.join(__dirname, "..");
 const LIB = process.env.LANCER_DATA || (!process.argv[2]?.startsWith("--") ? process.argv[2] : "") || "/tmp/ld/lancer-data-3.1.7/lib";
+if (process.argv.includes("--check") && !fs.existsSync(LIB)) { console.log(`detail.js check skipped: lancer-data absent at ${LIB}`); process.exit(0); }
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
 const W = load("weapons.json"), S = load("systems.json"), T = load("talents.json"),
   G = load("pilot_gear.json"), F = load("frames.json"), SK = load("skills.json"), TG = load("tags.json");
