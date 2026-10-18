@@ -406,6 +406,16 @@ if (!/if\(n==="map"\)\{if\(!unresolved\)setHash\("map",currentLoc/.test(intelPag
 if (!/currentLoc="";setHash\("map",""\)/.test(intelPage)) problems.push("intel.html: revealing a person or chassis record must drop the ground from the URL, or the address bar keeps naming a site the pane has left");
 if (!/currentLoc=t\.dataset\.loc;setHash\("map",t\.dataset\.loc\)/.test(intelPage)) problems.push("intel.html: keyboard selection must move the remembered ground with the URL, or the next tab round trip restores the site it replaced");
 if (!/if\(raw\)\{selected=true;UI\.mark\("loc",""\);resetPane\(\)/.test(intelPage)) problems.push("intel.html: unknown id in hash must fall back SELECT TARGET instead leaving stale record");
+/* The ground id in the hash is user input and the console resolves it as L[id]: on an ordinary object
+   an inherited key answers, so #map/constructor drew a bogus unit file instead of the prompt. */
+if (Object.getPrototypeOf(bay.window.UI.L) !== null) problems.push("archive.js: byId must build a null-prototype map, or a URL id like #map/constructor resolves as a record");
+["__proto__", "constructor", "toString", "hasOwnProperty"].forEach(k => {
+  if (bay.window.UI.L[k] || bay.window.UI.P[k] || bay.window.UI.M[k]) problems.push(`archive.js: the inherited key "${k}" must not resolve as a location, pilot or chassis`);
+});
+/* hashchange owns back/forward, and Back lands on a hash render() has already drawn: re-selecting there
+   re-zoomed the camera and re-fit the frame the user had set, against the design's tab round trip. */
+if (!/let selected=false,shownLoc=""/.test(intelPage)) problems.push("intel.html: the ground already on screen must be remembered, or Back re-zooms the camera");
+if (!/if\(loc!==shownLoc\)\{shownLoc=loc/.test(intelPage)) problems.push("intel.html: a hash naming the ground already on screen must not re-select, re-zoom or re-fit it, or Back resets the camera and frame");
 if (!/UI\.pickTab=pickTab/.test(intelPage)) problems.push("intel.html: must expose UI.pickTab so a record opened from another tab can reveal the map panel");
 const pickTabLine = (intelPage.match(/const pickTab=n=>\{.*$/m) || [""])[0];
 if (/fitLevel/.test(pickTabLine)) problems.push("intel.html: switching tabs must not call fitLevel — it resets the frame and the user's zoom");

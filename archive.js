@@ -4,7 +4,9 @@
 window.UI=(()=>{
 const C=window.CAMPAIGN;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const byId=a=>Object.fromEntries(a.map(x=>[x.id,x]));
+/* Null-prototype: an id can arrive from the URL, and on an ordinary object an inherited key like
+   "constructor" or "toString" resolves as a record - #map/constructor drew a bogus unit file. */
+const byId=a=>Object.assign(Object.create(null),Object.fromEntries(a.map(x=>[x.id,x])));
 const L=byId(C.locations),P=byId(C.pilots),M=byId(C.mechs),F=byId(C.factions),N=byId(C.personnel);
 const legacyPilotId={frisky:"daemon"}; /* pilots renamed after their callsign landed; keep old bookmarks working */
 const ops=[...C.ops].sort((a,b)=>String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));

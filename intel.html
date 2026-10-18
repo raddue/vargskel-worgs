@@ -117,14 +117,16 @@ const setHash=(n,id,push)=>{try{const u="#"+n+(n==="map"&&id?"/"+encodeURICompon
 /* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
 document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a")){currentLoc=t.dataset.loc;setHash("map",currentLoc)}else if(e.target.closest("[data-person],[data-mech],[data-pilot]")){currentLoc="";setHash("map","")}},true);
 const resetPane=()=>{const d=document.getElementById("record-detail");if(d)d.innerHTML=NO_SEL};
-let selected=false;
+let selected=false,shownLoc="";   /* the ground already on screen: Back re-renders a hash the pane has drawn */
 const render=()=>{const raw=locRaw(),id=locFromHash(),loc=id&&L[id]?id:"";
- if(loc)currentLoc=loc;else if(raw)currentLoc="";   /* a tab with no ground keeps the one the pane still shows */
+ if(loc)currentLoc=loc;else{shownLoc="";if(raw)currentLoc=""}   /* a tab with no ground keeps the one the pane still shows */
  pickTab(tabFromHash(),false);
- if(loc){selected=true;UI.showAtMap("loc",loc);zoomTo(loc);syncBack();return}
+ /* Back and forward land on a hash render() has already drawn, and the design keeps the level and
+    the camera transform across a tab switch: re-selecting would re-zoom and re-fit what the user set. */
+ if(loc){if(loc!==shownLoc){shownLoc=loc;selected=true;UI.showAtMap("loc",loc);zoomTo(loc)}syncBack();return}
  if(raw){selected=true;UI.mark("loc","");resetPane();resetView();syncBack();return}   /* an unresolved ground is not a selection: no auto-select overrules it */
  if(!selected&&tabFromHash()==="map"){const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
- if(site&&L[site]){selected=true;currentLoc=site;UI.showAtMap("loc",site);setHash("map",site)}}   /* the page opens as intelligence, not as a prompt */
+ if(site&&L[site]){selected=true;shownLoc=site;currentLoc=site;UI.showAtMap("loc",site);setHash("map",site)}}   /* the page opens as intelligence, not as a prompt */
  syncBack()};
 window.addEventListener("hashchange",render);
 render();
