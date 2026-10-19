@@ -134,5 +134,83 @@ else {
   if (!hmg || hmg.dice !== -1) errs.push(`rangeReadout: the Inaccurate tag must give dice -1, got ${JSON.stringify(hmg)}`);
 }
 
+
+/* --- the records themselves (design test 2, record half) -------------------------------------
+   Runs against the migrated campaign.js: mounts legal for their slots, every weapon resolvable, no
+   Superheavy slot, no duplicate unique item, at most one AI, spend at or under the cap where the
+   frame resolves, and the lock rules. Averna and Wayward carry frames the data does not hold, so
+   their cap is unknown and the spend check skips them, which is the behaviour canMount has too. */
+if (core && cat) {
+  const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, "campaign.js"), "utf8"), box, { filename: "campaign.js" });
+  const C = box.window.CAMPAIGN;
+  const norm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const frameOf = rec => Object.values(cat.frames).find(f => f && (norm(f.name) === norm(rec.frame) || norm(`${f.source || ""} ${f.name}`) === norm(rec.frame))) || null;
+  const pilotOf = rec => (C.pilots || []).find(p => p.id === rec.pilot) || null;
+  /* systems is still the printed string until the rename lands, so read both forms. */
+  const systemsOf = rec => Array.isArray(rec.systems) ? rec.systems.slice() : String(rec.systems || "").split(",").map(x => x.trim()).filter(Boolean);
+  const buildOf = rec => ({ mech: rec.id, frame: rec.frame, pilot: rec.pilot, sys: rec.sys, mounts: rec.mounts || [], systems: systemsOf(rec) });
+
+  const recordProblems = rec => {
+    const out = [];
+    const frame = frameOf(rec);
+    const pilot = pilotOf(rec);
+    const slots = (rec.mounts || []).map(m => m && m.slot);
+    if (!(rec.mounts || []).length) out.push("no mounts");
+    for (const m of rec.mounts || []) {
+      if (!m || typeof m.slot !== "string" || !Array.isArray(m.weapons)) { out.push("a mount must carry a slot and a weapons list"); continue; }
+      if (m.slot === "Superheavy") out.push("a record must not carry a Superheavy slot");
+      const allowed = core.seats(m.slot, cat.fittings);
+      m.weapons.forEach((name, seat) => {
+        if (name === null || name === undefined) return;
+        const w = cat.weapons[name];
+        if (!w) { out.push(`${name} does not resolve in the catalogue`); return; }
+        if (w.mount === "Superheavy") {
+          if (m.slot !== "Heavy") out.push(`${name} is a Superheavy, which only a Heavy slot takes`);
+          return;
+        }
+        const list = allowed[seat];
+        if (!list || !list.includes(w.mount)) out.push(`${name} is a ${w.mount} and does not fit a ${m.slot} seat`);
+      });
+    }
+    if (frame && Array.isArray(frame.mounts) && JSON.stringify(slots) !== JSON.stringify(frame.mounts))
+      out.push(`the record's slots ${JSON.stringify(slots)} are not ${frame.name}'s ${JSON.stringify(frame.mounts)}`);
+    const carried = [];
+    for (const m of rec.mounts || []) for (const n of (m && m.weapons) || []) if (n) carried.push(n);
+    const held = carried.concat(systemsOf(rec));
+    const uniq = n => { const w = cat.weapons[n]; if (w) return (w.tags || []).some(t => t.id === "tg_unique"); const s = cat.systems[n]; return !!(s && s.tg_unique); };
+    const ai = n => { const w = cat.weapons[n]; if (w) return (w.tags || []).some(t => t.id === "tg_ai"); const s = cat.systems[n]; return !!(s && s.tg_ai); };
+    const uniqNames = held.filter(uniq);
+    if (new Set(uniqNames).size !== uniqNames.length) out.push(`duplicate unique item: ${uniqNames.join(", ")}`);
+    if (held.filter(ai).length > 1) out.push("more than one AI item");
+    const locks = (rec.mounts || []).filter(m => m && m.locked === true);
+    const heavies = (rec.mounts || []).map((m, i) => [i, ((m && m.weapons) || []).find(n => { const w = cat.weapons[n]; return w && w.mount === "Superheavy"; })]).filter(x => x[1]);
+    if (locks.length !== (heavies.length ? 1 : 0)) out.push(`${locks.length} locked mount(s) with ${heavies.length} Superheavy`);
+    for (const m of locks) {
+      if ((m.weapons || []).some(Boolean)) out.push("a locked mount carries weapons");
+      const at = (rec.mounts || []).indexOf(m);
+      if (heavies.some(x => x[0] === at)) out.push("the Superheavy's own mount is locked");
+    }
+    if (frame) {
+      const chk = core.spCheck(buildOf(rec), frame, cat, pilot);
+      if (!chk.ok) out.push(`spends ${chk.spend} against a cap of ${chk.cap}`);
+    }
+    return out;
+  };
+
+  for (const rec of C.mechs || []) for (const p of recordProblems(rec)) errs.push(`${rec.id}: ${p}`);
+  /* negative control: the record check must fire on wrong data, not just pass on right data */
+  const victim = JSON.parse(JSON.stringify((C.mechs || []).find(m => (m.mounts || []).length) || {}));
+  const uniqName = Object.keys(cat.systems).find(n => cat.systems[n].tg_unique);
+  if (!uniqName) errs.push("loadout-check: no unique system in the catalogue to build the negative control from");
+  else {
+    victim.systems = [uniqName, uniqName];
+    if (!recordProblems(victim).some(f => /duplicate unique/i.test(f))) errs.push("the record check must catch a duplicate unique item");
+    const bad = JSON.parse(JSON.stringify(victim));
+    bad.mounts[0] = { slot: "Main", weapons: [Object.keys(cat.weapons).find(n => cat.weapons[n].mount === "Heavy")] };
+    if (!recordProblems(bad).some(f => /does not fit a Main seat/.test(f))) errs.push("the record check must catch a Heavy weapon in a Main seat");
+  }
+}
+
 if (errs.length) { console.error("loadout: " + errs.length + " problem(s)\n - " + errs.join("\n - ")); process.exit(1); }
 console.log("loadout ok: catalogue resolves and its gate is current");

@@ -77,11 +77,11 @@
     const isAI = n => (catalogue.weapons[n] && (catalogue.weapons[n].tags || []).some(t => t.id === "tg_ai")) || (catalogue.systems[n] || {}).tg_ai;
     if (unique(weapon) && had.some(n => n === weapon || unique(n))) return { ok: false, reason: "DUPLICATE UNIQUE ITEM" };
     if (isAI(weapon) && had.some(isAI)) return { ok: false, reason: "AI LIMIT" };
-    const over = spCheck(build, catalogue.frames[build.frame], catalogue, pilot);
+    const over = spCheck(build, frameOf(build, catalogue), catalogue, pilot);
     if (!over.ok) return { ok: false, reason: "OVER SP CAP" };
     const withIt = clone(build);
     withIt.mounts[slotIndex].weapons[seat] = weapon;
-    const after = spCheck(withIt, catalogue.frames[build.frame], catalogue, pilot);
+    const after = spCheck(withIt, frameOf(withIt, catalogue), catalogue, pilot);
     if (!after.ok) return { ok: false, reason: "OVER SP CAP" };
     return { ok: true, reason: null };
   }
@@ -129,11 +129,22 @@
     const uniq = names.find((n, i) => (catalogue.systems[n] || {}).tg_unique && names.indexOf(n) !== i);
     if (uniq) return { ok: false, reason: "DUPLICATE UNIQUE ITEM" };
     if (names.filter(n => (catalogue.systems[n] || {}).tg_ai).length > 1) return { ok: false, reason: "AI LIMIT" };
-    const chk = spCheck(next, catalogue.frames[next.frame], catalogue, pilot);
+    const chk = spCheck(next, frameOf(next, catalogue), catalogue, pilot);
     if (!chk.ok) return { ok: false, reason: "OVER SP CAP" };
     return { ok: true, reason: null, build: next };
   }
 
+
+  /* A record spells its frame its own way ("GMS EVEREST") while the catalogue holds the data's own
+     ("GMS" + "Everest"), so both the cap and the slot list must resolve by normalised name. Reading
+     catalogue.frames[build.frame] directly would silently drop the cap for every real record. */
+  const normName = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  function frameOf(build, catalogue) {
+    const want = String((build && build.frame) || "");
+    const frames = (catalogue && catalogue.frames) || {};
+    if (frames[want]) return frames[want];
+    return Object.values(frames).find(f => f && (normName(f.name) === normName(want) || normName(`${f.source || ""} ${f.name}`) === normName(want))) || null;
+  }
 
   /* Accuracy stays two fields: the flat number the record carries, and the weapon's own d6 from its
      tags. LANCER adds or removes a d6, so summing them would report a roll that cannot happen. */
@@ -178,7 +189,24 @@
     return out;
   }
 
-  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, rangeReadout, seats, licenceOk };
+
+  /* The exported build as a pasteable block: a heading that names the mech, then one line of JSON.
+     JSON and not the site's writer style, because the other end parses it with JSON.parse and never
+     with eval. `sys` stays out: it is the record's allowance, not the build the page edits. Empty
+     seats are kept as null so a seat index survives the trip, and trailing ones are dropped. */
+  function exportLoadout(build) {
+    const mounts = (build.mounts || []).map(m => {
+      const weapons = (m.weapons || []).map(w => w || null);
+      while (weapons.length && weapons[weapons.length - 1] === null) weapons.pop();
+      const out = { slot: m.slot, weapons };
+      if (m.locked) out.locked = true;
+      return out;
+    });
+    const out = { mech: build.mech, frame: build.frame, pilot: build.pilot, mounts, systems: (build.systems || []).slice() };
+    return "LOADOUT " + out.mech + "\n" + JSON.stringify(out) + "\n";
+  }
+
+  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, rangeReadout, exportLoadout, seats, licenceOk, frameOf };
   global.LOADOUT = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

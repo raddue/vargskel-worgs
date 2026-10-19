@@ -77,6 +77,38 @@ function mapMechState(cm) {
 
 /* Replace or insert fields inside one mech object's text region. A value match stops at
    the next comma or closing brace, so the object's punctuation and spacing survive. */
+/* One canonical writer for the migration and for every later write: object keys unquoted, strings
+   through JSON.stringify, one space after each comma. The no-op check compares JSON.stringify of the
+   two values rather than deep-equalling them, because a span evaluated in a vm sandbox carries
+   different prototypes across that boundary. */
+const lit = (v) => Array.isArray(v)
+  ? `[${v.map(lit).join(", ")}]`
+  : (v && typeof v === "object")
+    ? `{ ${Object.entries(v).map(([k, x]) => `${k}: ${lit(x)}`).join(", ")} }`
+    : typeof v === "string" ? JSON.stringify(v) : String(v);
+
+/* The field's whole value span, bracket-aware: a list or an object runs to its matching closer, so
+   a comma inside it cannot cut the match short. Quoted strings are skipped over. */
+function spanOf(region, field) {
+  const m = new RegExp(`(^|[\\s,{])${field}:\\s*`).exec(region);
+  if (!m) return null;
+  const at = m.index + m[0].length;
+  let depth = 0, quote = null, end = at;
+  for (let i = at; i < region.length; i++) {
+    const c = region[i];
+    if (quote) { if (c === "\\") i++; else if (c === quote) quote = null; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === "[" || c === "{") { depth++; continue; }
+    if (c === "]" || c === "}") {
+      if (!depth) { end = i; break; }
+      if (!--depth) { end = i + 1; break; }
+      continue;
+    }
+    if (!depth && (c === "," || c === "\n")) { end = i; break; }
+  }
+  return { at, end };
+}
+
 function applyToText(text, siteId, set) {
   const start = text.indexOf(`{ id: "${siteId}",`);
   if (start < 0) return null;
@@ -85,26 +117,96 @@ function applyToText(text, siteId, set) {
   let region = text.slice(start, end);
   const notes = [], add = [];
   for (const [field, value] of Object.entries(set)) {
-    const literal = Array.isArray(value) ? `[${value.map(v => JSON.stringify(v)).join(", ")}]` : String(value);
-    const re = new RegExp(`(^|[\\s,{])${field}:\\s*([^,}\\n]*)`);
-    const m = re.exec(region);
-    if (!m) {
-      if (!(Array.isArray(value) && !value.length)) add.push(`${field}: ${literal}`);
+    const span = spanOf(region, field);
+    if (!span) {
+      if (!(Array.isArray(value) && !value.length)) add.push(`${field}: ${lit(value)}`);
       continue;
     }
-    const current = m[2].trim();
-    if (current === literal) continue;
-    const trailing = m[2].match(/\s*$/)[0];
-    region = region.slice(0, m.index) + m[1] + `${field}: ${literal}` + trailing + region.slice(m.index + m[0].length);
-    notes.push(`${field} ${current} -> ${literal}`);
+    const raw = region.slice(span.at, span.end);
+    const trailing = raw.match(/\s*$/)[0];
+    const current = raw.trim();
+    let same = false;
+    let cur;
+    try { cur = vm.runInNewContext("(" + current + ")"); } catch (e) { cur = undefined; }
+    /* a list field reaches us as a comma-separated string in the real records and as an array in an
+       export, so read the names out of both before comparing */
+    if (typeof cur === "string" && Array.isArray(value)) cur = cur.split(",").map(x => x.trim()).filter(Boolean);
+    same = cur !== undefined && JSON.stringify(cur) === JSON.stringify(value);
+    if (same) continue;
+    region = region.slice(0, span.at) + lit(value) + trailing + region.slice(span.end);
+    notes.push(`${field} ${current} -> ${lit(value)}`);
   }
   if (add.length) {
     const anchored = region.replace(/(state: "[^"]*",)/, (token) => `${token} ${add.join(", ")},`);
     region = anchored !== region ? anchored : region.replace(/(\{ id: "[^"]*",)/, (token) => `${token} ${add.join(", ")},`);
-    add.forEach(a => notes.push(`${a.split(":")[0]} (added) -> ${a.slice(a.indexOf(": ") + 2)}`));
+    add.forEach(x => notes.push(`${x.split(":")[0]} (added) -> ${x.slice(x.indexOf(": ") + 2)}`));
   }
   if (!notes.length) return { text, notes: [] };
   return { text: text.slice(0, start) + region + text.slice(end), notes };
+}
+
+/* Everything a pasted block could get wrong, checked before a byte is written, because the block
+   crosses a trust boundary. Pure, so --selftest holds it to the design's list: the mech is the
+   record's, the frame matches it, the slots are the record's own, every weapon resolves and fits,
+   and the systems side passes setSystems. An unknown *system* warns and still lands, because
+   Wayward's `Spaceborn EVA` is talent-granted and absent from systems.json. */
+function validateLoadout(parsed, C, cat, LO) {
+  const problems = [], warnings = [];
+  const norm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const rec = (C.mechs || []).find(m => m.id === parsed.mech);
+  if (!rec) return { ok: false, problems: [`no mech in campaign.js has the id ${parsed.mech}`], warnings };
+  const frameFor = x => Object.values(cat.frames || {}).find(f => f && (norm(x) === norm(f.name) || norm(x) === norm(`${f.source || ""} ${f.name}`))) || null;
+  const recFrame = frameFor(rec.frame), expFrame = frameFor(parsed.frame);
+  if (parsed.pilot !== rec.pilot) problems.push(`the export names pilot ${parsed.pilot} and the record's pilot is ${rec.pilot}`);
+  if (norm(parsed.frame) !== norm(rec.frame) && !(recFrame && recFrame === expFrame))
+    problems.push(`the export's frame ${parsed.frame} is not the record's ${rec.frame}, and v1 writes no frame`);
+  if (JSON.stringify(parsed.mounts.map(m => m.slot)) !== JSON.stringify((rec.mounts || []).map(m => m && m.slot)))
+    problems.push("the slot list is not the record's own");
+  for (const m of parsed.mounts) if (m.locked && (m.weapons || []).some(Boolean)) problems.push(`the locked mount ${m.slot} carries weapons`);
+
+  const pilot = (C.pilots || []).find(p => p.id === rec.pilot) || null;
+  if (!pilot) warnings.push(`no pilot record for ${rec.pilot}, so licences were not checked`);
+  const build = { mech: rec.id, frame: rec.frame, pilot: rec.pilot, sys: rec.sys,
+    mounts: parsed.mounts.map(m => ({ slot: m.slot, weapons: [] })), systems: [] };
+  const lockAt = parsed.mounts.findIndex(m => m.locked === true);
+  parsed.mounts.forEach((m, slotIndex) => (m.weapons || []).forEach((name, seat) => {
+    if (name === null || name === undefined) return;
+    if (!cat.weapons[name]) { problems.push(`${name} does not resolve in the catalogue`); return; }
+    const opts = cat.weapons[name].mount === "Superheavy" ? { lockSlot: lockAt < 0 ? undefined : lockAt } : {};
+    const v = LO.canMount(pilot, build, slotIndex, seat, name, cat, opts);
+    if (!v.ok) problems.push(`${name} in ${m.slot}: ${v.reason}`);
+    else build.mounts[slotIndex].weapons[seat] = name;
+  }));
+  for (const n of parsed.systems) if (!cat.systems[n]) warnings.push(`${n} is not in the catalogue, landed anyway`);
+  const sys = LO.setSystems(build, parsed.systems, cat, pilot);
+  if (!sys.ok) problems.push(`the systems list: ${sys.reason}`);
+  return { ok: !problems.length, problems, warnings };
+}
+
+/* The block crosses a trust boundary, so this is JSON.parse and a shape check, never eval. */
+function parseLoadoutBlock(text) {
+  const bad = (m) => ({ error: m });
+  const lines = String(text).split("\n").map(l => l.trim()).filter(Boolean);
+  const json = lines.filter(l => l.startsWith("{")).pop();
+  if (!json) return bad("no JSON object in the block");
+  let o;
+  try { o = JSON.parse(json); } catch (e) { return bad("the block is not JSON: " + e.message); }
+  const keys = ["mech", "frame", "pilot", "mounts", "systems"];
+  for (const k of Object.keys(o)) if (!keys.includes(k)) return bad(`unknown key ${k}`);
+  for (const k of keys) if (!(k in o)) return bad(`missing ${k}`);
+  for (const k of ["mech", "frame", "pilot"]) if (typeof o[k] !== "string" || !o[k]) return bad(`${k} must be a name`);
+  if (!Array.isArray(o.mounts)) return bad("mounts must be a list");
+  for (const m of o.mounts) {
+    if (!m || typeof m !== "object") return bad("each mount must be an object");
+    if (typeof m.slot !== "string" || !m.slot) return bad("each mount needs a slot");
+    if (!Array.isArray(m.weapons)) return bad("each mount needs a weapons list");
+    if (m.weapons.some(w => w !== null && typeof w !== "string")) return bad("weapon names must be strings");
+    if (m.locked !== undefined && m.locked !== true) return bad("locked may only be true");
+  }
+  if (!Array.isArray(o.systems) || o.systems.some(s => typeof s !== "string")) return bad("systems must be a list of names");
+  return { mech: o.mech, frame: o.frame, pilot: o.pilot,
+    mounts: o.mounts.map(m => m.locked ? { slot: m.slot, weapons: m.weapons.slice(), locked: true } : { slot: m.slot, weapons: m.weapons.slice() }),
+    systems: o.systems.slice() };
 }
 
 function selftest() {
@@ -149,6 +251,83 @@ function selftest() {
   const filled = appendLedgerRow('  ledger: [\n    { op: "001", date: "2026-10-17", pilot: "spook", taken: 2 },\n  ],\n  meta: {},', row);
   if (!/taken: 2 \},\n    \{ op: "001", date: "2026-10-18"/.test(filled)) errs.push("a row must append after existing ledger rows");
   if (appendLedgerRow("window.CAMPAIGN = { meta: {} };", row) !== null) errs.push("a missing ledger array must be reported, not guessed");
+  /* --- the loadout export round trip (design test 6), on fixture text only --- */
+  const LO = require("../loadout.js");
+  const want = { mech: "tombstone", frame: "GMS EVEREST", pilot: "tombstone",
+    mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)", "Nexus (Light)"] }, { slot: "Flex", weapons: ["Missile Rack"] }],
+    systems: ["Personalizations", "Custom Paint Job", "Deployable Cover, Mk II"] };
+  if (typeof LO.exportLoadout !== "function") errs.push("loadout.js must export exportLoadout");
+  else if (typeof parseLoadoutBlock !== "function") errs.push("apply-compcon must export parseLoadoutBlock");
+  else {
+    const back = parseLoadoutBlock(LO.exportLoadout(Object.assign({ sys: 0 }, want)));
+    if (back.error) errs.push("an exported block must parse: " + back.error);
+    else if (JSON.stringify(back) !== JSON.stringify(want)) errs.push("the export round trip must return the build unchanged, got " + JSON.stringify(back));
+    if (!parseLoadoutBlock("nonsense").error) errs.push("a block with no JSON object must be refused");
+    if (!parseLoadoutBlock('{"mech":"x","extra":1}').error) errs.push("an unknown key must be refused");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[],"mounts":"Main"}').error) errs.push("mounts must be a list");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[],"mounts":[{"slot":"Main"}]}').error) errs.push("a mount needs a weapons list");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[1],"mounts":[]}').error) errs.push("system names must be strings");
+    /* an empty seat keeps its index, so a build with the Aux seat filled is not read as the Main one */
+    const holed = { mech: "x", frame: "f", pilot: "p", mounts: [{ slot: "Main/Aux", weapons: [null, "Nexus (Light)"] }], systems: [] };
+    const backHoled = parseLoadoutBlock(LO.exportLoadout(holed));
+    if (JSON.stringify(backHoled) !== JSON.stringify(holed)) errs.push("an empty seat must survive the round trip, got " + JSON.stringify(backHoled.mounts));
+  }
+  /* a list with a comma inside it must be replaced whole, and an identical value must be a no-op */
+  const conds = '{ id: "skaldr", state: "OPERATIONAL", conditions: ["A", "B"] },';
+  const fixed = applyToText(conds, "skaldr", { conditions: ["C"] });
+  if (!fixed || fixed.text.includes('], "B"]')) errs.push("a comma inside a list must not survive the replacement");
+  if (!/conditions: \["C"\] \},/.test(fixed.text || "")) errs.push("a list must be replaced whole and keep the closing brace");
+  const spaced = '    { id: "tombstone",\n      mounts: [\n        { slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] },\n      ],\n      systems: ["Personalizations"],\n    },';
+  const same = applyToText(spaced, "tombstone", { mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }], systems: ["Personalizations"] });
+  if (!same || same.notes.length !== 0 || same.text !== spaced) errs.push("an identical multi-line value must be a no-op, not a reformat");
+  /* the real records carry `systems` as a comma-separated string, so the compare has to read the
+     names out of it rather than compare the text */
+  const strSys = '    { id: "tombstone",\n      mounts: [{"slot":"Main/Aux","weapons":["Nexus (Hunter-Killer)"]}],\n      systems: "Personalizations, Custom Paint Job" },';
+  const strSame = applyToText(strSys, "tombstone", { mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }], systems: ["Personalizations", "Custom Paint Job"] });
+  if (!strSame || strSame.notes.length !== 0 || strSame.text !== strSys) errs.push("a record whose systems is a string must be a no-op against the same names");
+  const multi = applyToText(spaced, "tombstone", { systems: ["Personalizations", "Custom Paint Job", "A, B"] });
+  if (!multi || !/systems: \["Personalizations", "Custom Paint Job", "A, B"\]/.test(multi.text)) errs.push("a multi-item list must replace the whole span");
+  if (!multi || !multi.text.includes('{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }')) errs.push("replacing one list must not disturb another field's span");
+  const outd = applyToText(spaced, "tombstone", { mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }] });
+  if (!outd || !outd.text.includes('mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }]')) errs.push("a replaced object list must be written through one canonical serialiser");
+  /* --- the write path's validation (design tests 6 and 7), on fixtures --- */
+  const catFix = {
+    weapons: { "Pistol": { mount: "Auxiliary", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "Charged Blade": { mount: "Main", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "Thermal Lance": { mount: "Heavy", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "GATED": { mount: "Main", sp: 0, license: "IPS-N", license_level: 1, tags: [], bands: [], profiles: [] } },
+    systems: { "Cover": { sp: 2, tg_unique: false, tg_ai: false }, "Uniq": { sp: 1, tg_unique: true, tg_ai: false },
+      "AI A": { sp: 1, tg_unique: false, tg_ai: true }, "AI B": { sp: 1, tg_unique: false, tg_ai: true } },
+    frames: { "GMS Everest": { name: "Everest", source: "GMS", sys: 6, mounts: ["Main", "Flex", "Heavy"] } },
+    fittings: { Auxiliary: ["Auxiliary"], Main: ["Main", "Auxiliary"], Heavy: ["Heavy", "Main", "Auxiliary"] }
+  };
+  const recFix = { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", sys: 0,
+    mounts: [{ slot: "Main", weapons: ["Pistol"] }, { slot: "Flex", weapons: ["Charged Blade"] }, { slot: "Heavy", weapons: ["Thermal Lance"] }],
+    systems: ["Cover"] };
+  const CFix = { mechs: [recFix], pilots: [{ id: "dusty", ll: 0, licences: [] }] };
+  const exported = parseLoadoutBlock(LO.exportLoadout({ mech: recFix.id, frame: recFix.frame, pilot: recFix.pilot, mounts: recFix.mounts, systems: recFix.systems }));
+  if (typeof validateLoadout !== "function") errs.push("apply-compcon must export validateLoadout");
+  else {
+    const v = validateLoadout(exported, CFix, catFix, LO);
+    if (!v.ok) errs.push("a record's own export must validate: " + JSON.stringify(v.problems));
+    const tamper = patch => validateLoadout(Object.assign({}, exported, patch), CFix, catFix, LO);
+    if (tamper({ pilot: "spook" }).ok) errs.push("an export naming another pilot must be refused");
+    if (tamper({ frame: "GMS CHOMOLUNGMA" }).ok) errs.push("a frame the record does not carry must be refused");
+    if (tamper({ mech: "nobody" }).ok) errs.push("an unknown mech must be refused");
+    if (tamper({ mounts: exported.mounts.slice(0, 2) }).ok) errs.push("a slot list differing from the record's must be refused");
+    if (tamper({ mounts: [{ slot: "Main", weapons: ["Nonexistent Rifle"] }].concat(exported.mounts.slice(1)) }).ok) errs.push("an unresolvable weapon must be refused");
+    if (tamper({ mounts: [{ slot: "Main", weapons: ["Thermal Lance"] }].concat(exported.mounts.slice(1)) }).ok) errs.push("a Heavy weapon in a Main seat must be refused");
+    if (tamper({ systems: ["Cover", "Cover", "Cover", "Cover", "Cover"] }).ok) errs.push("an over-cap systems list must be refused");
+    if (tamper({ systems: ["AI A", "AI B"] }).ok) errs.push("a second AI system must be refused");
+    const unknown = tamper({ systems: ["Cover", "Spaceborn EVA"] });
+    if (!unknown.ok) errs.push("an unknown system must land rather than refuse: " + JSON.stringify(unknown.problems));
+    else if (!unknown.warnings.some(w => /Spaceborn EVA/.test(w))) errs.push("an unknown system must be warned about");
+    /* test 7: the write owns mounts and systems, and nothing else */
+    const before = '{ id: "tombstone", name: "TOMBSTONE", state: "OPERATIONAL", hp: 10, hpNow: 4, structure: 3, stress: 2, heatNow: 1, repairsNow: 2, conditions: ["STUNNED"], mounts: [{ slot: "Main", weapons: ["Pistol"] }], systems: ["Cover"] },';
+    const wrote = applyToText(before, "tombstone", { mounts: exported.mounts, systems: ["Cover", "Uniq"] });
+    for (const f of ["hpNow: 4", "structure: 3", "stress: 2", "heatNow: 1", "repairsNow: 2", 'conditions: ["STUNNED"]'])
+      if (!wrote.text.includes(f)) errs.push(`a loadout write must leave ${f} alone`);
+  }
   if (errs.length) {
     console.error("apply-compcon selftest FAILED:\n - " + errs.join("\n - "));
     process.exit(1);
@@ -286,6 +465,65 @@ function finish(text, args) {
   process.exit(1);
 }
 
+/* The catalogue is a browser script, so it is loaded into a vm box the way the pages load it. */
+function loadCatalogue() {
+  const file = path.join(ROOT, "catalogue.js");
+  if (!fs.existsSync(file)) { console.error("catalogue.js is missing (run: node tools/build-catalogue.cjs)"); process.exit(2); }
+  const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), box, { filename: "catalogue.js" });
+  return box.window.CATALOGUE;
+}
+
+/* --loadout <mech> <file|->: the only path that writes a build. The order is fixed, because an
+   illegal or typo'd block must never reach campaign.js and a half-run must leave all three files as
+   they were: data dir guarded, block validated, three files backed up, campaign.js written,
+   detail.js regenerated from the new record, check-all with --update-snapshot, and a restore on any
+   failure that is not snapshot drift (drift is expected: the derived strings move with the build). */
+function runLoadout(args) {
+  const at = args.indexOf("--loadout");
+  const mech = args[at + 1] || "";
+  const src = args[at + 2] && !args[at + 2].startsWith("--") ? args[at + 2] : "-";
+  const write = args.includes("--write");
+  if (!mech) { console.error("usage: node tools/apply-compcon.cjs --loadout <mech> <file|-> [--write]"); process.exit(2); }
+  const block = src === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(src, "utf8");
+  const parsed = parseLoadoutBlock(block);
+  if (parsed.error) { console.error("loadout: " + parsed.error); process.exit(2); }
+  if (parsed.mech !== mech) { console.error(`loadout: the block is for ${parsed.mech}, not ${mech}`); process.exit(2); }
+  const LO = require("../loadout.js"), cat = loadCatalogue(), C = loadCampaign();
+  const v = validateLoadout(parsed, C, cat, LO);
+  for (const w of v.warnings) console.log("warning: " + w);
+  if (!v.ok) { console.error("loadout refused:\n - " + v.problems.join("\n - ")); process.exit(2); }
+  const res = applyToText(fs.readFileSync(CAMP, "utf8"), parsed.mech, { mounts: parsed.mounts, systems: parsed.systems });
+  if (!res) { console.error(`loadout: no record for ${parsed.mech} in campaign.js`); process.exit(2); }
+  if (!res.notes.length) { console.log("loadout: no change, nothing to write"); process.exit(0); }
+  console.log(res.notes.join("\n"));
+  if (!write) { console.log("(dry run; add --write to write campaign.js)"); process.exit(0); }
+  const lib = process.env.LANCER_DATA || "/tmp/ld/lancer-data-3.1.7/lib";
+  if (!fs.existsSync(lib)) {
+    console.error(`loadout: lancer-data is absent at ${lib}, so detail.js cannot be regenerated.\n` +
+      `  fetch it, or point LANCER_DATA at the lib directory, then retry. Nothing was written.`);
+    process.exit(2);
+  }
+  const files = [CAMP, path.join(ROOT, "detail.js"), path.join(ROOT, "tools", "roster-snapshot.json")];
+  const backup = files.map(f => [f, fs.readFileSync(f, "utf8")]);
+  const restore = (why) => {
+    for (const [f, text] of backup) fs.writeFileSync(f, text);
+    console.error(`loadout: ${why}\n  campaign.js, detail.js and roster-snapshot.json were put back.`);
+    process.exit(1);
+  };
+  fs.writeFileSync(CAMP, res.text);
+  console.log("campaign.js written");
+  const gen = spawnSync(process.execPath, [path.join(ROOT, "tools", "build-detail.cjs")], { encoding: "utf8" });
+  if (gen.status !== 0) return restore("detail.js could not be regenerated from the new record");
+  console.log("detail.js regenerated");
+  const chk = spawnSync(process.execPath, [path.join(ROOT, "check-all.cjs"), "--update-snapshot"], { encoding: "utf8" });
+  const problems = (chk.stdout || "").split("\n").filter(l => l.includes("problem") || l.includes("!!"));
+  const other = problems.filter(l => !l.includes("!= snapshot"));
+  if (chk.status !== 0 && (other.length || !problems.length)) return restore("check-all failed on the written record");
+  console.log("check-all ok (snapshot refreshed)");
+  console.log("review: git diff campaign.js tools/roster-snapshot.json");
+}
+
 /* --log path: append session rows to the ledger in campaign.js. */
 function runLogs(logs, args, write, meta = {}) {
   const C = loadCampaign();
@@ -347,6 +585,9 @@ function main() {
     const text = blockPath === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(blockPath, "utf8");
     return runLogBlock(text, args, write);
   }
+  /* above the argv read, because --loadout's mech id is not a path and a multi-line block cannot
+     arrive through argv (design defect 8) */
+  if (args.includes("--loadout")) return runLoadout(args);
   const input = args.find(a => !a.startsWith("--"));
   if (!input) {
     console.error("usage: node tools/apply-compcon.cjs <export.json|dir> [--write] [--snapshot] | --log \"<pilot> stat=n ...\" [--op <id>] [--date YYYY-MM-DD] [--write] | --selftest");
@@ -406,4 +647,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit };
