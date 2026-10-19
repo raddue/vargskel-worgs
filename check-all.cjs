@@ -82,10 +82,18 @@ if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter po
 if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scooteroo artwork missing from assets');
 /* INTEL is a page of its own: the map and the faction ledger live on intel.html, and every
    page's nav must reach it, so a link cannot quietly rot back into an index anchor. */
-const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html"];
+const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html"];
 navPages.forEach(p => {
-  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
   if (!/href="intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
+});
+/* The campaign page is the session log's home (#27): every page must reach it, the ledger section
+   must be gone from mechbay.html, and the panel assertions below mount campaign.html instead. */
+navPages.forEach(p => {
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
+  if (!/href="campaign\.html">CAMPAIGN</.test(src)) problems.push(`${p}: nav must link to campaign.html as CAMPAIGN`);
+  /* One status label on every page: two different ones changed the box width and dragged the nav. */
+  if (!/● DEPLOYMENT STATUS: [A-Z]+</.test(src)) problems.push(`${p}: the status chip must read CLASS "DEPLOYMENT STATUS", not a per-page label`);
 });
 const intelPage = fs.readFileSync(__dirname + "/intel.html", "utf8");
 if (!/id="holomap"/.test(intelPage)) problems.push("intel.html must carry the holomap section the map builds into");
@@ -338,28 +346,86 @@ mechCards.forEach((card, i) => ["PILOT", "ROLE", "STATE", "LOADOUT", "SYSTEMS"].
 const cardHtml = mechCards[0] || "";
 if (!cardHtml) problems.push("archive.js: mech roster rendered no card");
 else if (/<\/(table|a|div|td|th)>[^<]/.test(cardHtml)) problems.push("archive.js: rendered mech card carries stray text between tags");
+if (/id="ledger-body"/.test(fs.readFileSync(__dirname + "/mechbay.html", "utf8"))) problems.push('mechbay.html: the session ledger now lives on campaign.html, so this page must not carry id="ledger-body"');
 /* Ledger panel: ledgerPanel is pure, so fixtures pin the per-pilot sums, the record holders,
    the tie-break and the omitted stats without depending on what the real ledger holds. */
 const bay = mount("mechbay.html");
+const camp = fs.existsSync(__dirname + "/campaign.html") ? mount("campaign.html")
+  : { nodes: {}, html: () => "", window: { UI: { ledgerPanel: () => ({ count: "", html: "" }), esc: x => x } } };
 const shortName = p => { const nw = p.name.replace(/\u201c([^\u201d]*)\u201d/, "$1").replace(/\s+/g, " ").trim().split(" "); return nw.length > 1 ? nw[0].charAt(0) + ". " + nw[nw.length - 1] : nw[0]; };
-if (!/^\d+ ENTRIES · \d+ PILOTS$/.test(bay.nodes["ledger-count"]?.textContent || "")) problems.push("mechbay.html: ledger count did not render");
-if (!(bay.nodes["ledger-body"] || {}).innerHTML) problems.push("mechbay.html: ledger panel did not render");
+if (!/^\d+ ENTRIES · \d+ PILOTS$/.test(camp.nodes["ledger-count"]?.textContent || "")) problems.push("campaign.html: ledger count did not render");
+if (!(camp.nodes["ledger-body"] || {}).innerHTML) problems.push("campaign.html: ledger panel did not render");
 const [leadPilot, chasePilot] = C.pilots, ledgerOp = C.ops[0].id;
-const panel = bay.window.UI.ledgerPanel([
+const panel = camp.window.UI.ledgerPanel([
   { op: ledgerOp, date: "2026-01-01", pilot: leadPilot.id, dealt: 7, repairs: 1 },
   { op: ledgerOp, date: "2026-01-02", pilot: chasePilot.id, dealt: 2, taken: 9, hacks: 2 },
   { op: ledgerOp, date: "2026-01-03", pilot: leadPilot.id, taken: 9, hacks: 5 },
 ]);
-const record = (label, pilot, total) => `<th scope="row">MOST ${label}</th><td>${bay.window.UI.esc(shortName(pilot))} · ${total}</td>`;
+const record = (label, pilot, total) => `<th scope="row">MOST ${label}</th><td>${camp.window.UI.esc(shortName(pilot))} · ${total}</td>`;
 if (panel.count !== "3 ENTRIES · 2 PILOTS") problems.push(`ledger panel: 3 rows over 2 pilots should read "3 ENTRIES · 2 PILOTS", got "${panel.count}"`);
 if (!panel.html.includes(record("DAMAGE DEALT", leadPilot, 7))) problems.push("ledger panel: damage dealt must sum a pilot's rows");
 if (!panel.html.includes(record("DAMAGE TAKEN", leadPilot, 9))) problems.push("ledger panel: a tied record must fall back to the dealt ordering");
 if (!panel.html.includes(record("HACKS", leadPilot, 5))) problems.push("ledger panel: every stat present in a row needs a record");
 ["CORE USES", "KILLS", "MOVES"].forEach(l => { if (panel.html.includes("MOST " + l)) problems.push(`ledger panel: ${l} appears in no row, so it must not get a record`); });
-if (!panel.html.includes(`<td>${bay.window.UI.esc(shortName(leadPilot))}</td><td>2</td>`)) problems.push("ledger panel: career table must count each pilot's sessions");
-const blank = bay.window.UI.ledgerPanel([]);
+if (!panel.html.includes(`<td>${camp.window.UI.esc(shortName(leadPilot))}</td><td>2</td>`)) problems.push("ledger panel: career table must count each pilot's sessions");
+const blank = camp.window.UI.ledgerPanel([]);
 if (blank.count !== "0 ENTRIES · 0 PILOTS" || !blank.html.includes("No sessions logged yet")) problems.push("ledger panel: an empty ledger needs a zeroed count and the prompt to log a session");
-if (!bay.window.UI.ledgerPanel(C.ledger).count.startsWith(`${C.ledger.length} ENTRIES`)) problems.push(`ledger panel: count must match the real ${C.ledger.length} ledger row(s)`);
+if (!camp.window.UI.ledgerPanel(C.ledger).count.startsWith(`${C.ledger.length} ENTRIES`)) problems.push(`ledger panel: count must match the real ${C.ledger.length} ledger row(s)`);
+/* campaign.html (#27): the campaign page carries the session log, the OPORD, the faction ledger and
+   the roster, all driven from campaign.js. Rendered markup, not source: the same rule as above. */
+const campPath = __dirname + "/campaign.html";
+if (!fs.existsSync(campPath)) problems.push("campaign.html: the campaign page is missing (issue #27)");
+const campPage = fs.existsSync(campPath) ? mount("campaign.html") : null;
+if (campPage) {
+  ["campaign-head", "ledger-count", "ledger-body", "timeline", "opord", "conflict-history", "faction-list", "crew-list", "mech-list", "session-form", "session-block"]
+    .forEach(id => { if (!campPage.nodes[id]) problems.push(`campaign.html: missing section host #${id}`); });
+  if (cardsOf(campPage.html("crew-list")).length !== C.pilots.length) problems.push(`campaign.html: crew list rendered ${cardsOf(campPage.html("crew-list")).length} pilots, want ${C.pilots.length}`);
+  if (cardsOf(campPage.html("mech-list")).length !== C.mechs.length) problems.push(`campaign.html: roster rendered ${cardsOf(campPage.html("mech-list")).length} mechs, want ${C.mechs.length}`);
+  if (!campPage.html("faction-list")) problems.push("campaign.html: the faction ledger did not render");
+  if (!/OPORD|OPERATION ORDER/.test(campPage.html("opord"))) problems.push("campaign.html: the operation order did not render from data-op");
+  if (!campPage.html("campaign-head")) problems.push("campaign.html: the operation header did not render");
+  if (!campPage.html("timeline")) problems.push("campaign.html: the timeline did not render");
+  if (/href="#op-/.test(campPage.html("timeline"))) problems.push("campaign.html: timeline links must not use #op- anchors, which exist only on index.html");
+  const form = campPage.html("session-form");
+  const wantInputs = C.pilots.length * LEDGER_STATS.length;
+  const gotInputs = (form.match(/data-stat=/g) || []).length;
+  if (gotInputs !== wantInputs) problems.push(`campaign.html: session form should render ${wantInputs} stat inputs (${C.pilots.length} pilots × ${LEDGER_STATS.length} stats), got ${gotInputs}`);
+  if (!/type="date"/.test(form)) problems.push("campaign.html: session form needs the session date field");
+  if (!form.includes(`data-pilot="${C.pilots[0].id}"`)) problems.push("campaign.html: session form rows must be tagged with data-pilot");
+  if (typeof campPage.window.UI.sessionBlock !== "function") problems.push("archive.js: sessionBlock must be exported on UI");
+  else {
+    const block = campPage.window.UI.sessionBlock({ op: C.ops[0].id, date: "2099-12-31", rows: [{ pilot: C.pilots[0].id, dealt: 14, taken: 9 }] });
+    const lines = String(block).split("\n").filter(l => l.trim());
+    if (!/^session op=\S+ date=\d{4}-\d{2}-\d{2}$/.test(lines[0] || "")) problems.push(`UI.sessionBlock: first line must carry op and date, got "${lines[0]}"`);
+    if (!new RegExp(`^${C.pilots[0].id} .*dealt=14`).test(lines[1] || "")) problems.push(`UI.sessionBlock: second line must be one pilot's stats, got "${lines[1]}"`);
+    const toolSrc = fs.readFileSync(__dirname + "/tools/apply-compcon.cjs", "utf8");
+    if (!/require\.main === module/.test(toolSrc)) problems.push("apply-compcon.cjs: main() must be guarded by require.main, or checks cannot require the parser");
+    else {
+      const tool = require("./tools/apply-compcon.cjs");
+      if (typeof tool.parseBlock !== "function") problems.push("apply-compcon.cjs: parseBlock must be exported for the block round trip");
+      else {
+        const known = { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(x => x.id), stats: LEDGER_STATS, ledger: C.ledger };
+        const parsed = tool.parseBlock(String(block), known);
+        if (parsed.errors.length) problems.push(`apply-compcon: the page's own block must parse clean, got ${JSON.stringify(parsed.errors[0])}`);
+        else if (parsed.rows.length !== 1 || parsed.rows[0].pilot !== C.pilots[0].id || parsed.rows[0].stats.dealt !== 14 || parsed.rows[0].stats.taken !== 9 || parsed.rows[0].op !== String(C.ops[0].id) || parsed.rows[0].date !== "2099-12-31") problems.push(`apply-compcon: round trip lost a field — ${JSON.stringify(parsed.rows[0])}`);
+        const badStat = tool.parseBlock("session op=" + C.ops[0].id + " date=2099-12-31\n" + C.pilots[0].id + " noodles=3", known);
+        if (!badStat.errors.some(e => /noodles/.test(e))) problems.push("apply-compcon: an unknown stat must be refused by name");
+        if (badStat.rows.length) problems.push("apply-compcon: a block with any error must yield no rows");
+        const badPilot = tool.parseBlock("session op=" + C.ops[0].id + " date=2099-12-31\nnobody dealt=3", known);
+        if (!badPilot.errors.some(e => /nobody/.test(e))) problems.push("apply-compcon: an unknown pilot must be refused by name");
+        const noHeader = tool.parseBlock(C.pilots[0].id + " dealt=3", known);
+        if (!noHeader.errors.some(e => /session/.test(e))) problems.push("apply-compcon: a block without its session header must be refused");
+        const head = "session op=" + C.ops[0].id + " date=2099-12-31\n";
+        const dup = tool.parseBlock(head + C.pilots[0].id + " dealt=1\n" + C.pilots[0].id + " dealt=2", { ...known, ledger: [] });
+        if (!dup.errors.some(e => /twice/.test(e)) || dup.rows.length) problems.push("apply-compcon: the same pilot twice in one block must refuse the whole block");
+        const clash = tool.parseBlock(head + C.pilots[0].id + " dealt=1", { ...known, ledger: [{ op: String(C.ops[0].id), date: "2099-12-31", pilot: C.pilots[0].id }] });
+        if (!clash.errors.some(e => /already has/.test(e)) || clash.rows.length) problems.push("apply-compcon: a row that already exists for that op, date and pilot must refuse the whole block");
+        const orphanHead = campPage.window.UI.campaignHead({ id: "999", title: "NO SUCH OP" });
+        if (!orphanHead || !/NOT FILED/.test(orphanHead)) problems.push("archive.js: campaignHead must render an op with no mission instead of throwing");
+      }
+    }
+  }
+}
 /* INTEL console: the map page becomes a tab shell, and every collectable part is a pure function
    because intel.html's inline map glue cannot run under the render stub (see
 docs/plans/2026-10-18-intel-console-tabs-design.md). Source text covers the shell; UI.* covers the markup. */

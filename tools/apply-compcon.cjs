@@ -181,6 +181,70 @@ function parseLog(spec, know) {
   return { pilot, stats };
 }
 
+
+/* A whole session block from the campaign page (#27): a header line "session op=<id> date=<date>",
+   then one "<pilot> stat=n ..." line per pilot. Pure and total: every error is collected and any
+   error means the caller writes nothing, unlike --log which skips a bad line and logs the rest. */
+function parseBlock(text, known) {
+  const errors = [], rows = [];
+  const ops = (known.ops || []).map(String), pilots = known.pilots || [], stats = known.stats || [], ledger = known.ledger || [];
+  const lines = String(text).split("\n").map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return { rows, errors: ["the block is empty"] };
+  const head = /^session(?:\s+(.*))?$/.exec(lines[0]);
+  if (!head) return { rows, errors: [`the first line must be a session header (session op=<id> date=YYYY-MM-DD), got "${lines[0]}"`] };
+  const opts = {};
+  for (const part of (head[1] || "").split(/\s+/).filter(Boolean)) {
+    const m = /^([\w.-]+)=(\S+)$/.exec(part);
+    if (!m) { errors.push(`header: cannot read "${part}" (expected key=value)`); continue; }
+    if (m[1] !== "op" && m[1] !== "date") { errors.push(`header: unknown key "${m[1]}"`); continue; }
+    opts[m[1]] = m[2];
+  }
+  if (!opts.op) errors.push("header: op is required");
+  else if (ops.length && !ops.includes(opts.op)) errors.push(`header: unknown op "${opts.op}" (${ops.join(", ")})`);
+  if (!opts.date) errors.push("header: date is required");
+  else if (!/^\d{4}-\d{2}-\d{2}$/.test(opts.date)) errors.push(`header: date must be YYYY-MM-DD, got "${opts.date}"`);
+  for (const line of lines.slice(1)) {
+    const parts = line.split(/\s+/);
+    const pilot = parts.shift();
+    if (!pilots.includes(pilot)) { errors.push(`line "${line}": unknown pilot "${pilot}"`); continue; }
+    if (rows.some(r => r.pilot === pilot)) { errors.push(`line "${line}": ${pilot} appears twice in this block`); continue; }
+    if (ledger.some(e => String(e.op) === opts.op && e.date === opts.date && e.pilot === pilot)) {
+      errors.push(`line "${line}": OP ${opts.op} already has a ${opts.date} row for ${pilot}; edit that row instead of double-logging it`);
+      continue;
+    }
+    const row = { op: opts.op, date: opts.date, pilot, stats: {} };
+    const before = errors.length;
+    for (const p of parts) {
+      const m = /^([a-z]+)=(\d+(?:\.\d+)?)$/.exec(p);
+      if (!m) { errors.push(`line "${line}": expected stat=number, got "${p}"`); continue; }
+      if (!stats.includes(m[1])) { errors.push(`line "${line}": unknown stat "${m[1]}"`); continue; }
+      row.stats[m[1]] = (row.stats[m[1]] || 0) + Number(m[2]);
+    }
+    if (!Object.keys(row.stats).length && errors.length === before) { errors.push(`line "${line}": no stats given`); continue; }
+    rows.push(row);
+  }
+  if (!rows.length && !errors.length) errors.push("the block has no pilot lines");
+  return { rows: errors.length ? [] : rows, errors };
+}
+
+/* --log-block path: parse the whole block first, and refuse all of it if any line is bad. */
+function runLogBlock(text, args, write) {
+  const C = loadCampaign();
+  /* The block carries op and date, so accepting them as flags too would silently pick one. */
+  for (const f of ["--op", "--date"]) if (args.includes(f)) {
+    console.error(`${f} cannot be combined with --log-block: the block's header carries the op and the date`);
+    process.exit(2);
+  }
+  const known = { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(p => p.id), stats: STATS, ledger: C.ledger || [] };
+  const { rows, errors } = parseBlock(text, known);
+  if (errors.length) {
+    console.error("block refused, nothing written:\n - " + errors.join("\n - "));
+    process.exit(2);
+  }
+  const specs = rows.map(r => [r.pilot, ...Object.entries(r.stats).map(([k, v]) => `${k}=${v}`)].join(" "));
+  return runLogs(specs, args, write, { op: rows[0].op, date: rows[0].date });
+}
+
 /* Append one row before the closing bracket of the ledger array, scanned rather than
    pattern-matched so it works whether the array is empty or already populated. */
 function appendLedgerRow(text, row) {
@@ -223,15 +287,15 @@ function finish(text, args) {
 }
 
 /* --log path: append session rows to the ledger in campaign.js. */
-function runLogs(logs, args, write) {
+function runLogs(logs, args, write, meta = {}) {
   const C = loadCampaign();
   if (!Array.isArray(C.ledger)) {
     console.error("campaign.js: no ledger array found (add `ledger: []` under window.CAMPAIGN)");
     process.exit(2);
   }
   const know = { pilots: new Set(C.pilots.map(p => p.id)) };
-  const op = flag(args, "--op") || C.ops[0].id;
-  const date = flag(args, "--date") || new Date().toISOString().slice(0, 10);
+  const op = meta.op || flag(args, "--op") || C.ops[0].id;
+  const date = meta.date || flag(args, "--date") || new Date().toISOString().slice(0, 10);
   if (!C.ops.some(o => o.id === op)) {
     console.error(`unknown op "${op}" (${C.ops.map(o => o.id).join(", ")})`);
     process.exit(2);
@@ -266,6 +330,8 @@ function runLogs(logs, args, write) {
   }
   console.log(`\n${added} row(s) for OP ${op} · ${date}`);
   if (!added) return console.log("ledger unchanged");
+  /* A refused line means the run is not clean: write nothing rather than part of the file. */
+  if (process.exitCode) return console.log("\nnothing written: fix the refused line(s) above, then re-run");
   if (!write) return console.log("dry run; re-run with --write to append");
   finish(text, args);
 }
@@ -276,6 +342,11 @@ function main() {
   const write = args.includes("--write");
   const logs = args.flatMap((a, i) => (a === "--log" ? [args[i + 1]] : [])).filter(Boolean);
   if (logs.length) return runLogs(logs, args, write);
+  const blockPath = flag(args, "--log-block");
+  if (blockPath) {
+    const text = blockPath === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(blockPath, "utf8");
+    return runLogBlock(text, args, write);
+  }
   const input = args.find(a => !a.startsWith("--"));
   if (!input) {
     console.error("usage: node tools/apply-compcon.cjs <export.json|dir> [--write] [--snapshot] | --log \"<pilot> stat=n ...\" [--op <id>] [--date YYYY-MM-DD] [--write] | --selftest");
@@ -333,4 +404,6 @@ function main() {
   if (!write) return console.log("dry run; re-run with --write to apply");
   finish(text, args);
 }
-main();
+if (require.main === module) main();
+/* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
+module.exports = { parseBlock, parseLog };
