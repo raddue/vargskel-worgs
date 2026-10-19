@@ -67,8 +67,10 @@ Verified against `@massif/lancer-data` 3.1.7.
   frame's printed slot order. This list is the record's slot layout. A mount may carry
   `locked: true`: a Superheavy weapon consumes its Heavy mount **and** locks one further mount, which
   is a field on the record because the lock is part of the build, not a page detail. The migration
-  commit that introduces this field **mints both fields with the same `lit()` serialiser the writer
-  uses** (see the write path), so the first `--loadout` run is a no-op rather than a reformat.
+  commit that introduces this field mints it with `JSON.stringify`, which is **not** the writer's
+  style: `lit()` writes unquoted keys and one space after each comma (see the write path). That is
+  fine, because the no-op check compares the *value* of the field's span, not its text, so the first
+  `--loadout` run is still a no-op and the hand-written region is left exactly as it stands.
 - **Mech systems:** replace the `systems` string with a list of names.
 - **Derived display:** `UI.loadoutString(mech)` and `UI.systemString(mech)` in `archive.js` render
   exactly the copy the dossiers print today, slots joined by `" · "`, weapons inside a slot by
