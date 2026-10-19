@@ -392,7 +392,7 @@ if (campPage) {
   if (!form.includes(`data-pilot="${C.pilots[0].id}"`)) problems.push("campaign.html: session form rows must be tagged with data-pilot");
   if (typeof campPage.window.UI.sessionBlock !== "function") problems.push("archive.js: sessionBlock must be exported on UI");
   else {
-    const block = campPage.window.UI.sessionBlock({ op: C.ops[0].id, date: "2026-10-20", rows: [{ pilot: C.pilots[0].id, dealt: 14, taken: 9 }] });
+    const block = campPage.window.UI.sessionBlock({ op: C.ops[0].id, date: "2099-12-31", rows: [{ pilot: C.pilots[0].id, dealt: 14, taken: 9 }] });
     const lines = String(block).split("\n").filter(l => l.trim());
     if (!/^session op=\S+ date=\d{4}-\d{2}-\d{2}$/.test(lines[0] || "")) problems.push(`UI.sessionBlock: first line must carry op and date, got "${lines[0]}"`);
     if (!new RegExp(`^${C.pilots[0].id} .*dealt=14`).test(lines[1] || "")) problems.push(`UI.sessionBlock: second line must be one pilot's stats, got "${lines[1]}"`);
@@ -402,17 +402,24 @@ if (campPage) {
       const tool = require("./tools/apply-compcon.cjs");
       if (typeof tool.parseBlock !== "function") problems.push("apply-compcon.cjs: parseBlock must be exported for the block round trip");
       else {
-        const known = { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(x => x.id), stats: LEDGER_STATS };
+        const known = { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(x => x.id), stats: LEDGER_STATS, ledger: C.ledger };
         const parsed = tool.parseBlock(String(block), known);
         if (parsed.errors.length) problems.push(`apply-compcon: the page's own block must parse clean, got ${JSON.stringify(parsed.errors[0])}`);
-        else if (parsed.rows.length !== 1 || parsed.rows[0].pilot !== C.pilots[0].id || parsed.rows[0].stats.dealt !== 14 || parsed.rows[0].stats.taken !== 9 || parsed.rows[0].op !== String(C.ops[0].id) || parsed.rows[0].date !== "2026-10-20") problems.push(`apply-compcon: round trip lost a field — ${JSON.stringify(parsed.rows[0])}`);
-        const badStat = tool.parseBlock("session op=" + C.ops[0].id + " date=2026-10-20\n" + C.pilots[0].id + " noodles=3", known);
+        else if (parsed.rows.length !== 1 || parsed.rows[0].pilot !== C.pilots[0].id || parsed.rows[0].stats.dealt !== 14 || parsed.rows[0].stats.taken !== 9 || parsed.rows[0].op !== String(C.ops[0].id) || parsed.rows[0].date !== "2099-12-31") problems.push(`apply-compcon: round trip lost a field — ${JSON.stringify(parsed.rows[0])}`);
+        const badStat = tool.parseBlock("session op=" + C.ops[0].id + " date=2099-12-31\n" + C.pilots[0].id + " noodles=3", known);
         if (!badStat.errors.some(e => /noodles/.test(e))) problems.push("apply-compcon: an unknown stat must be refused by name");
         if (badStat.rows.length) problems.push("apply-compcon: a block with any error must yield no rows");
-        const badPilot = tool.parseBlock("session op=" + C.ops[0].id + " date=2026-10-20\nnobody dealt=3", known);
+        const badPilot = tool.parseBlock("session op=" + C.ops[0].id + " date=2099-12-31\nnobody dealt=3", known);
         if (!badPilot.errors.some(e => /nobody/.test(e))) problems.push("apply-compcon: an unknown pilot must be refused by name");
         const noHeader = tool.parseBlock(C.pilots[0].id + " dealt=3", known);
         if (!noHeader.errors.some(e => /session/.test(e))) problems.push("apply-compcon: a block without its session header must be refused");
+        const head = "session op=" + C.ops[0].id + " date=2099-12-31\n";
+        const dup = tool.parseBlock(head + C.pilots[0].id + " dealt=1\n" + C.pilots[0].id + " dealt=2", { ...known, ledger: [] });
+        if (!dup.errors.some(e => /twice/.test(e)) || dup.rows.length) problems.push("apply-compcon: the same pilot twice in one block must refuse the whole block");
+        const clash = tool.parseBlock(head + C.pilots[0].id + " dealt=1", { ...known, ledger: [{ op: String(C.ops[0].id), date: "2099-12-31", pilot: C.pilots[0].id }] });
+        if (!clash.errors.some(e => /already has/.test(e)) || clash.rows.length) problems.push("apply-compcon: a row that already exists for that op, date and pilot must refuse the whole block");
+        const orphanHead = campPage.window.UI.campaignHead({ id: "999", title: "NO SUCH OP" });
+        if (!orphanHead || !/NOT FILED/.test(orphanHead)) problems.push("archive.js: campaignHead must render an op with no mission instead of throwing");
       }
     }
   }

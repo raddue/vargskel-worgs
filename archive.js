@@ -74,6 +74,7 @@ const showAtRecord=(host,id)=>{
  slot.append(panel());show(host,id);animatePane();panel().focus({preventScroll:true});return true;
 };
 const toggleRecord=(host,id)=>{
+ if(!panel())return false; /* pages without #record-detail (campaign.html) have no detail pane to toggle */
  const card=document.querySelector(`#${host==="pilot"?"crew-list":"mech-list"} [data-${host}="${CSS.escape(id)}"]`);
  if(card&&panel().parentElement===card.querySelector(`[data-detail-host="${host}"]`)){panel().classList.add("pane-out");setTimeout(()=>{if(!panel().classList.contains("pane-out"))return;panelHome().append(panel());panel().classList.remove("pane-out","pane-in")},120);return true}
  return showAtRecord(host,id);
@@ -256,7 +257,7 @@ if(el("ledger-body")){const panel=ledgerPanel(C.ledger||[]);const lc=el("ledger-
    (no value, no checked, and querySelectorAll returns nothing), which is why none of it lives here. */
 const opOf=id=>C.ops.find(o=>String(o.id)===String(id));
 const campaignHead=o=>{const loc=C.locations.find(x=>x.id===(o&&o.loc))||{};
- return table(th("OPERATION",esc(o?o.id+" · "+o.title:"UNKNOWN"))+th("THEATER",esc(loc.name||C.meta.station||""))+th("MISSION",o&&o.mission&&o.mission.href?link(o.mission.href,"OPEN BRIEFING →"):nf));};
+ return table(th("OPERATION",esc(o?o.id+" · "+o.title:"UNKNOWN"))+th("THEATER",esc(loc.name||C.meta.station||""))+th("MISSION",o&&o.mission&&o.mission.href?link(o.mission.href,"OPEN BRIEFING →"):"NOT FILED"));};
 /* One session as the tool's block grammar: a header line, then one line per pilot. */
 const sessionBlock=e=>{const rows=(e.rows||[]).map(r=>{const vals=LEDGER_STATS.filter(([k])=>r[k]!=null&&r[k]!=="").map(([k])=>`${k}=${r[k]}`);return r.pilot&&vals.length?`${r.pilot} ${vals.join(" ")}`:"";}).filter(Boolean);
  return ["session op="+e.op+" date="+e.date,...rows].join("\n");};
@@ -268,7 +269,7 @@ if(el("session-form")){const opId=(el("campaign-head")||{dataset:{}}).dataset.op
   `<button class="chip" type="button" id="session-make">BUILD BLOCK</button>`;
  const btn=el("session-make"),out=el("session-block");
  if(btn&&out)btn.addEventListener("click",()=>{const rows=[];
-  document.querySelectorAll("[data-stat]").forEach(n=>{if(!n.value)return;let r=rows.find(x=>x.pilot===n.dataset.pilot);if(!r)rows.push(r={pilot:n.dataset.pilot});r[n.dataset.stat]=Number(n.value);});
+  document.querySelectorAll("[data-stat]").forEach(n=>{if(!n.value||Number(n.value)===0)return; /* a zero is "not logged", not a stat */let r=rows.find(x=>x.pilot===n.dataset.pilot);if(!r)rows.push(r={pilot:n.dataset.pilot});r[n.dataset.stat]=Number(n.value);});
   out.textContent=sessionBlock({op:opId,date:(el("session-date")||{}).value||"",rows:rows});});
 }
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
