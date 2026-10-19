@@ -52,14 +52,20 @@ function blocks(lines) {
         .replace(/(<br>)+/g, "<br>")}</blockquote>`);
       continue;
     }
-    if (/^- /.test(L)) {                                   // bullet list, wrapped continuations
+    if (/^\s*- /.test(L)) {                                // bullet list, one nesting level, wrapped continuations
       const items = [];
-      while (i < lines.length && (/^- /.test(lines[i]) || (items.length && /^\s{2,}\S/.test(lines[i])))) {
-        const t = lines[i++].replace(/^-\s*/, "");
-        /^\s{2,}/.test(lines[i - 1]) && items.length ? items[items.length - 1] += " " + t : items.push(t);
+      while (i < lines.length) {
+        if (/^\s*- /.test(lines[i])) items.push({ n: /^\s{2,}/.test(lines[i]) ? 1 : 0, t: lines[i++].replace(/^\s*-\s*/, "") });
+        else if (items.length && /^\s{2,}\S/.test(lines[i])) items[items.length - 1].t += " " + lines[i++].trim();
+        else break;
       }
       i--;
-      H.push("<ul>" + items.map(x => `<li>${inl(x)}</li>`).join("") + "</ul>");
+      let h = "<ul>", open = false, nested = false;
+      for (const it of items) {
+        if (it.n) { if (!nested) { h += "<ul>"; nested = true; } h += `<li>${inl(it.t)}</li>`; }
+        else { if (open) { h += nested ? "</ul></li>" : "</li>"; nested = false; } h += `<li>${inl(it.t)}`; open = true; }
+      }
+      H.push(h + (open ? (nested ? "</ul></li>" : "</li>") : "") + "</ul>");
       continue;
     }
     const h = L.match(/^(#{1,3}) (.+)$/);
@@ -140,6 +146,9 @@ function render() {
 }
 
 if (process.argv.includes("--check")) {
+  const assert = require("assert");
+  const nested = blocks(["- parent", "  - child", "- second"]).join("");
+  assert.ok(nested.includes("<li>parent<ul><li>child</li></ul></li>"), "nested bullets should render as a nested list, got: " + nested);
   const have = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
   if (have !== render()) {
     console.error("guide page stale vs markdown; run: node tools/md2html.cjs");

@@ -1,15 +1,17 @@
 # THE OMNISCIENT OVERLORD
 
-**GMS CHOMOLUNGMA → HORUS GOBLIN → SSC SWALLOWTAIL · LL0–LL6 optimization and tactics**
+**GMS CHOMOLUNGMA · HORUS GOBLIN · SSC SWALLOWTAIL — electronic warfare and command build**
 
 | | |
 |---|---|
 | **Designation** | AVERNA |
-| **Frame** | GMS CHOMOLUNGMA (retained LL0–LL6, never reframed) |
+| **Frame** | GMS CHOMOLUNGMA (retained, never reframed) |
 | **Pilot** | RURIK "DAEMON" VARGSKEL · LL0 · Fixer |
 | **Role** | ECM & C3 — squad central nervous system |
-| **Licenses** | HORUS GOBLIN I–III → SSC SWALLOWTAIL I–III |
-| **Threat signature** | Zero-action damage, map-wide sensor dominance, electronic shutdown |
+| **Licenses** | HORUS GOBLIN I–III · SSC SWALLOWTAIL I–III |
+| **Tech Attack** | **+3** (frame +1, SYSTEMS 2) |
+| **Save Target** | **11** + GRIT — the number enemies must beat to resist AVERNA |
+| **Threat signature** | Free damage, sensor dominance, electronic shutdown |
 
 ---
 
@@ -17,55 +19,73 @@
 
 ### The Framework: "Chomolung-lin"
 
-Ride the **GMS CHOMOLUNGMA**. Bolt every piece of **HORUS** and **SSC** electronic warfare you can
+Ride the **GMS CHOMOLUNGMA**. Load every piece of **HORUS** and **SSC** electronic warfare you can
 afford onto it. Never trade the chassis away.
 
-The meta argument is simple:
+The honest version of that argument, now that the frame blocks are on the table:
 
-- **Goblin-class stats, Everest-class body.** The CHOMOLUNGMA already posts GOBLIN-tier sensor and
-  electronic-warfare numbers — **+3 Tech Attack**, **Sensors 15**, **E-Defense 12** — on a hull with
-  **12 HP** and **4 Repairs**.
-- **The GOBLIN frame is the fragile one.** Stock GOBLIN carries **8 HP** and **3 Repairs**. Same
-  evasion, same speed, half the staying power. Every point of pilot skill you invest in the GOBLIN
-  hull is a point spent on a mech that dies to one bad crit.
-- **Licenses buy systems, not frames.** You want GOBLIN and SWALLOWTAIL for what they *unlock*
-  (Autopod, Lotus Projector, Light Laser, the SSC core bonus) — not for their chassis. Take the ranks,
-  keep the GMS hull.
+- **The GOBLIN frame out-hacks a CHOMOLUNGMA.** Stock GOBLIN: **Sensors 20**, **Tech Attack +2**,
+  and the **Liturgicode** trait for **+1 Accuracy on tech attacks**. It is faster (Speed 5 vs 4) and
+  harder to shoot (Evasion 10 vs 8). If pure hacking output were the only metric, you would fly the
+  GOBLIN.
+- **The GOBLIN frame is also made of paper.** **6 HP**, **2 Repairs**, and the **Fragile** trait:
+  **+1 Difficulty on Hull checks and saves**. It dies to one committed strike.
+- **The CHOMOLUNGMA is the durable hull.** **10 HP**, **4 Repairs**, **Replaceable Parts** (rest
+  repairs at 1 Repair per point of structure damage instead of 2), **two mounts** instead of one, and
+  a core system that hands over the two best Invade options in the game.
+- **Licenses buy systems, not frames.** GOBLIN and SWALLOWTAIL ranks are taken for **Autopod**,
+  **H0R_OS upgrades**, **Lotus Projector** and **ATHENA** — not for their chassis blocks.
 
-> **Doctrine:** survivability is a force multiplier for a support mech. AVERNA is worth more alive on
-> turn 6 than dead on turn 2 with a better stat line.
+> **Doctrine:** a support mech that dies on turn 2 contributes nothing on turn 6. Stay in GMS metal,
+> take the ranks, and let the enemy spend their turn failing to kill the mech that is dismantling them.
 
 ### The Action Economy Loop
 
-The build's entire identity: **damage output that costs zero actions.**
+The build's identity: **damage output that costs no actions.**
 
 ```
-TECH HIT  →  Data Sync grants Lock On (free)  →  Autopod fires (free)  →  3 Kinetic, anywhere on map
-     ↑                                                                              │
-     └──────────────────── allies generate Lock On / Initiative ◄───────────────────┘
+LOCKS ON (own action)  →  an ALLY attacks that target and consumes Lock On for +1 Accuracy
+                                    │
+                                    ▼
+                   AUTOPOD's Autonomous Assault reaction fires FREE
+                   automatic hit, 3 Kinetic, Range 15, 1/round, no action spent
 ```
 
-**Component A — CHOMOLUNGMA passive: Data Sync**
-Every successful **tech attack** hands out **Lock On** for free. No action, no charge, no heat.
+**Component A — CHOMOLUNGMA trait: Data Siphon**
+Whenever AVERNA makes a **tech attack against a hostile character**, she may also **automatically
+Scan** them. Free, action-free battlefield intelligence on every hack.
 
-**Component B — GOBLIN system: Autopod**
-A free **3 Kinetic** shot with **unlimited range** that resolves when an ally's **Lock On** is
-consumed. **Zero actions spent.** AVERNA does not need line of sight, does not need to move, does not
-need the action.
+**Component B — CHOMOLUNGMA trait: Brilliance**
+**1/scene**: take any **Quick Tech** action as a **free action**, then either **Bolster** or
+**Lock On** as a free action. This is the build's action-economy cheat code — one turn where AVERNA
+hacks and marks for nothing.
 
-**Why this wins:**
+**Component C — HORUS GOBLIN rank I: Autopod + Autonomous Assault**
+**Autopod** is a Main Launcher, 1 SP, **Seeking**, **Unique**, **Range 15**, **3 Kinetic**, and it
+makes **no attack roll**. It grants the **Autonomous Assault** reaction:
 
-- Lancer combat is an **action economy game**. A mech that adds damage without spending actions is
-  strictly additive to the squad's total output.
-- Lock On is **abundant** on this team — AVERNA manufactures it every tech hit, and **ATHENA**
-  (LL6) applies it automatically at the end of *enemy* turns.
-- Autopod damage lands **before** enemies can react, punish, or reposition. It is free chip that
-  converts a two-shot kill into a one-shot kill for the strikers.
+| Autonomous Assault | |
+|---|---|
+| **Type** | Reaction, **1/round** |
+| **Trigger** | Another character attacks a target within Range 15 of you and **consumes Lock On** |
+| **Effect** | You may **automatically hit** their target with the Autopod |
 
-**Resource tension to manage:** Lock On is shared. Autopod *consumes* it; a **Nexus** launcher also
-wants the **Lock On** accuracy bonus. Decide per turn whether the free 3 Kinetic is worth more than
-the guided launcher shot. Against high-HP targets: feed Autopod. Against fragile targets: spend it
-on the Nexus and finish the kill.
+**Why the loop works:**
+
+- **No action, no roll.** The Autopod auto-hits. Three Kinetic arrives for free on top of whatever the
+  squad was already doing.
+- **Seeking means cover is irrelevant** — it ignores cover and does not need line of sight, so AVERNA
+  contributes from behind a wall.
+- **It is an ally's trigger, not yours.** You are the one who marks targets; your strikers cash the
+  marks in. Their +1 Accuracy and your free 3 Kinetic land in the same attack.
+
+**Costs and tensions to manage:**
+
+- **Range 15 and 1/round.** Park inside 15 of the fight, not in the next postcode.
+- **Lock On is a shared resource.** Only one consumer per mark. If a striker wants the +1 Accuracy,
+  they consume it — and that is exactly what fires the Autopod. If **Hacker I (Snow Crash)** consumes
+  it instead, you get 2 Heat or a 3-space push in place of the free damage.
+- **Free damage is not a kill.** Autopod chips; the lance still has to shoot.
 
 ---
 
@@ -73,117 +93,134 @@ on the Nexus and finish the kill.
 
 ### Talents
 
-| Talent | Rank effect | Why it is here |
-|---|---|---|
-| **HACKER I** | **Log-Off** — clear heat / immobilization | Keeps AVERNA online after an intrusion goes hot. The CHOMOLUNGMA's **6 Heat Cap** is the build's weak point; this is the pressure valve. |
-| **LEADER I** | **Field Commander** — fix an ally's roll | One failed save or one bad attack from a striker, reversed. Highest-value single action in the kit against bosses. |
-| **SPOTTER I** | **Lines of Communication** — adjacent allies gain **+1 Accuracy** and clear conditions | Turns AVERNA's position into a buff aura for the squad's damage dealers. |
+At LL0 a pilot has **three talent ranks**, and HASE starts with **two mech-skill points** — AVERNA
+spends both on **SYSTEMS** (**+1 Tech Attack and E-Defense per point**, **+1 SP per two points**).
 
-**Order taken:** Hacker → Leader → Spotter. Survival first (you cannot support from a wreck), then
-squad impact.
+| Talent | Rank I name | What it actually does | Why it is here |
+|---|---|---|---|
+| **HACKER I** | **Snow Crash** | When you hit with a tech attack that **consumes Lock On**, the target chooses: **2 Heat** or **pushed 3 spaces** your way | Converts a mark into heat or forced movement. Doubles as damage and as a shove into a firing lane |
+| **LEADER I** | **Field Commander** | Gain **3 Leadership Dice (d6)** and the **Issue Order** free action. Refill 1 on a rest, all on a Full Repair | The "fix an ally's roll" budget the lance leans on. Also the diplomacy stat |
+| **SPOTTER I** | **Particularize** | When an **adjacent ally** attacks a target and consumes Lock On, they **roll twice and take either result** | Pairs with the Autopod trigger: your mark, their advantage, your free damage |
+
+**Upgrade path**, both of which deepen the same loop:
+
+- **Spotter II — Panopticon**: end your turn without moving, and after a **Lock On** quick tech you may
+  **Lock On once as a free action**. Also reveals Armor, Speed, Evasion, E-Defense, Mech Skills and HP
+  of anything you mark, shareable with allies.
+- **Spotter III — Bentham/Foucault Elimination**: as a quick action when you Lock On, nominate an
+  adjacent ally — they may **immediately make any quick action as a reaction**, consuming the mark.
+- **Leader II — Open Channels** (5 dice, commands as reactions) and **Leader III — Inspiring Presence**
+  (6 dice; allies spend them for −1d6 damage taken or +1d6 damage dealt) are the squad-wide payoff.
 
 ### Squad Synergy
 
 AVERNA is the **central nervous system** for a lance of **GMS EVERESTs** — TOMBSTONE, SKALDR,
 WAYWARD, SCOOTEROO, ALBA.
 
-- **Positioning is the play.** Sit adjacent to the two strikers (**SKALDR**, **TOMBSTONE**). They eat
-  **+1 Accuracy** from Lines of Communication and get conditions cleared for free.
-- **Feed the burst.** Your Lock Ons and Leader-driven roll fixes convert into **Initiative** action
-  bursts for allies who otherwise have nothing left to spend.
-- **Manage their heat.** Everest-class mechs **Overcharge** to buy extra actions and cook themselves.
-  AVERNA is the reason they can afford to: Log-Off keeps *you* cold, and killing a target one round
-  earlier is the cheapest heat mitigation in the game.
-- **Tank the tech war.** Enemy hackers and controllers target the softest E-Defense in the lance.
-  That is not you.
+- **Stand next to the strikers.** **Spotter I** only works when the ally who consumes the mark is
+  adjacent. TOMBSTONE and SKALDR should be parked on AVERNA's shoulders.
+- **Mark, then let them shoot.** Lock On is a **Quick Tech** with **no attack roll** — it costs one
+  quick action and never fails. Every mark is either +1 Accuracy for a striker or a free Autopod shot.
+- **Feed the burst.** Leadership Dice and Spotter advantage convert into the extra hit that ends a
+  fight; enemies die a round earlier, which is the cheapest heat mitigation available.
+- **Tank the tech war.** Enemy hackers aim at the softest E-Defense in the lance. AVERNA fields
+  **E-Defense 12** — not the soft one.
 
 ### LL0 Loadout
 
-**As rostered:**
-
-| Mount | Weapon | Traits | Function |
-|---|---|---|---|
-| **Main / Aux** | **NEXUS (HUNTER-KILLER-I)** | Smart, Seeking | Primary launcher. Guided fire. |
-| **Main / Aux** | **NEXUS (LIGHT-I)** | Smart, Seeking | Second launcher in the paired mount — Aux/Aux skirmish volume. |
-| **Flex** | **MISSILE RACK ×2** | Blast | Area denial and the answer to clustered light targets. |
+| Mount | Weapon | Class | Damage | Range | Tags |
+|---|---|---|---|---|---|
+| **Main/Aux** | **NEXUS (HUNTER-KILLER)** | Main Nexus | **1d6 Kinetic** | 10 | **Smart** |
+| **Main/Aux** | **NEXUS (LIGHT)** | Auxiliary Nexus | **1d3 Kinetic** | 10 | **Smart** |
+| **Flex** | **MISSILE RACK ×2** | Auxiliary Launcher | **1d3+1 Explosive**, Blast 1 | 10 | **Loading** |
 
 **Systems:** Personalizations · Turret Drones · Type-I Flight System · Type-3 Projected Shield
 
-**Why dual Nexus:**
+**Why this loadout is legal — and why it is right:**
 
-- **Smart** — a failed attack roll still deals **half damage**. Guided launchers do not miss; they
-  underperform.
-- **Seeking** — the shot keeps working when the target breaks line of sight or ducks into cover.
-  AVERNA does not have to win the positioning game to contribute damage.
-- **Two launchers, one mount** — Aux/Aux volume from a single mount leaves the Flex slot free for the
-  missile pair, so the mech brings **both** single-target pressure and area damage.
-
-> **Alternate read:** if your table rules **NEXUS (HUNTER-KILLER)** as an Aux weapon, both launchers
-> fit the **Flex** mount and the Main slot opens up. Same traits, same volume, one more mounting
-> choice. Confirm before committing System Points.
+- **Mount rules:** a **Main/Aux** mount takes one Main *and* one Auxiliary (or two Auxiliary). A
+  **Flex** mount takes **either one Main or up to two Auxiliary**. So Main/Aux holds the Hunter-Killer
+  (Main) plus the Light (Aux), and the Flex holds **two** Missile Racks. Legal as fielded.
+- **Smart is the quiet monster.** A Smart weapon's attacks — melee and ranged — **use the target's
+  E-Defense instead of Evasion**. AVERNA's whole EW stat line is also her gun line: **Tech Attack +3**
+  fires the launchers, and enemies with poor E-Defense cannot dodge her.
+- **Loading** means each Missile Rack fires every other turn unless reloaded with **Stabilize**. Two
+  racks keep area fire online while the other reloads.
+- **Alternate layout:** if you would rather stack launchers, **two Nexus (Light)** fit the Flex mount
+  (two Auxiliary), moving the Hunter-Killer into a Main slot elsewhere. Same Smart math, more shots,
+  less blast.
 
 ---
 
-## 3. Level-by-Level Progression Path (LL1–LL6)
+## 3. License Progression Path
 
-| LL | License rank | Unlock | Payoff |
+**License ranks are not character levels.** A rank is bought with a license level, and the two
+licenses below are three ranks each — they can be interleaved in any order from LL1 onward.
+
+| Rank | License | Unlocks | Payoff |
 |---|---|---|---|
-| **1** | HORUS GOBLIN I | **H0r_OS I** · **Autopod** | The loop closes. Free damage online. |
-| **2** | HORUS GOBLIN II | **H0r_OS II** | Deeper intrusion kit, expanded system access. |
-| **3** | HORUS GOBLIN III | **H0r_OS III — "Lesson: Open Door"** | **+2 Save Target** · supercharges **Wide-Area Code Pulse**. |
-| **4** | SSC SWALLOWTAIL I | **Lotus Projector** | Map-wide anti-stealth / anti-invisibility. |
-| **5** | SSC SWALLOWTAIL II | **Light Laser** | Armor-melting **Burn** option. |
-| **6** | SSC SWALLOWTAIL III | **Core Bonus: Integrated Weapon** · **ATHENA-Class NHP** | Free Aux mount → third Nexus. Unlimited zero-charge tactical power. |
+| **I** | HORUS GOBLIN I | **Autopod** · **H0R_OS System Upgrade I** | The loop closes: free 3 Kinetic, plus Puppet System |
+| **II** | HORUS GOBLIN II | **H0R_OS System Upgrade II** · **Metahook** | Data constructs: hard cover and decoys |
+| **III** | HORUS GOBLIN III | **H0R_OS System Upgrade III** · **OSIRIS-Class NHP** | Entropic zones, shackles, and an NHP |
+| **I** | SSC SWALLOWTAIL I | **Lotus Projector** · **Markerlight** | Map-wide sensor truth; stealth stops working |
+| **II** | SSC SWALLOWTAIL II | **Retractable Profile** | Profile control and redundancy |
+| **III** | SSC SWALLOWTAIL III | **ATHENA-Class NHP** · **LB/OC Cloaking Field** | The Omniscient Overlord itself |
+| **—** | GMS core bonus | **Integrated Weapon** | An extra integrated Aux weapon; fires 1/round as a free action when you fire another weapon |
 
-### LL1 — HORUS GOBLIN I · H0r_OS I
+### Goblin I — Autopod + H0R_OS System Upgrade I
 
-- **Autopod comes online.** This is the level the build actually starts.
-- Data Sync already hands out Lock Ons; Autopod now converts them into **3 free Kinetic** with no
-  action and no range limit.
-- **Nothing else matters at LL1.** Do not spend license ranks on chassis. Take the rank, keep the
-  CHOMOLUNGMA, and start banking damage every single round.
+- **Autopod** (1 SP, Main Launcher, Seeking, Unique, Range 15, 3 Kinetic, no attack roll) and the
+  **Autonomous Assault** reaction. See Section 1.
+- **H0R_OS System Upgrade I** (2 SP, Unique) adds two **Invade** options:
+  - **Puppet System** — your target moves its **maximum Speed** in a direction of your choice. Not
+    Knockback, not a push: involuntary movement that **provokes reactions** and can be dropped into
+    hazardous terrain.
+  - **Eject Power Cores** — target is **Jammed** until the end of their next turn, and characters
+    **adjacent to them take 2 Energy**. Once per scene per character.
 
-### LL2 — HORUS GOBLIN II · H0r_OS II
+### Goblin II — H0R_OS System Upgrade II + Metahook
 
-- Expands the intrusion toolkit: more system access and a higher ceiling on tech actions.
-- Your **tech attack volume** rises, which means **more Data Sync Lock Ons per round**, which means
-  **more Autopod triggers**. The rank pays for itself through the loop, not through a new gun.
-- Re-evaluate System Points. EW systems now outperform weapons on this chassis.
+- **H0R_OS System Upgrade II** (2 SP, Unique) adds two **Quick Tech** options:
+  - **Construct Other: Ideal Image** — a **Size 2 data construct** that looks real to all systems,
+    provides **hard cover**, blocks line of sight, and has **Immunity to all damage**. It pops if
+    anyone tries to stand in it.
+  - **Construct Other: False Idol** — an illusory decoy. Before attacking the real target, characters
+    with line of sight to the idol must make a **Systems save** or lose the ability to target the
+    original. This is one of the few places AVERNA forces a save.
+- **Metahook** — the recursive processing weave; softens weaponised code into shielding for allies.
 
-### LL3 — HORUS GOBLIN III · H0r_OS III — "Lesson: Open Door"
+### Goblin III — H0R_OS System Upgrade III + OSIRIS-Class NHP
 
-- Grants **+2 Save Target**.
-- Combined with **Wide-Area Code Pulse**, the CHOMOLUNGMA core system, this becomes the build's
-  signature button: a **map-wide** tactical shutdown that inflicts **bonus heat**.
-- **Tactical use:** hold it for the round the enemy commits. Pulsing early heats one target; pulsing
-  after the whole lance has pushed into the open stresses everything on the field at once.
-- **Heat caution:** AVERNA's cap is **6**. Pulse, then plan the vent — Log-Off, cover, or a quiet
-  round. Do not core and Overcharge in the same turn.
+- **H0R_OS System Upgrade III** (2 SP, Unique) adds two **Invade** options:
+  - **Dimensional Emblems** — three Size 1 data constructs around the target; passing through one
+    deals **2 Heat** and destroys it.
+  - **Celestial Shackles** — mark a space. If the target leaves it, you may spend a free action once
+    during your turn to **teleport them back**. They can escape with a **Systems save** as a quick
+    action, otherwise it lasts the scene.
+- **OSIRIS-Class NHP** (3 SP, AI, Unique) — a Quick Tech **Hurl Into the Duat** option, and the most
+  transactional intelligence you will ever fly with.
 
-### LL4 — SSC SWALLOWTAIL I · Lotus Projector
+### Swallowtail I–III
 
-- **Lotus Projector**: a deployable that provides **map-wide anti-stealth and anti-invisibility**.
-- This is the answer to the composition that beats an EW lance: **infiltrators**. Invisible enemies
-  cannot be Locked On, cannot be scanned, and cannot be shot by Autopod.
-- Deploy early in missions with stealth-heavy objectives. Its value is *denial* — the enemy stops
-  having the option at all.
+- **Lotus Projector** (rank I) — deploy a scout drone within **Sensors and line of sight**; it emits a
+  **Burst 2** field where you know every character's **location, HP, Evasion, E-Defense and Heat**.
+  Hostiles inside cannot Hide, cease being Hidden at end of turn, and **cannot benefit from Invisible**.
+  Recall and redeploy as a quick action. This is the anti-infiltration answer, and it feeds every
+  Smart weapon in the lance.
+- **Markerlight** (rank I) — the marking tool that makes every subsequent shot cheaper.
+- **Retractable Profile** (rank II) — profile and redundancy for the frame.
+- **ATHENA-Class NHP** (rank III, 3 SP) — see Section 4. **LB/OC Cloaking Field** (rank III) comes
+  with it.
 
-### LL5 — SSC SWALLOWTAIL II · Light Laser
+### Core Bonus: Integrated Weapon
 
-- **Light Laser** with the armor-melting **Burn** option.
-- Burn is the correct answer to **armored heavies** that shrug off Kinetic — Autopod's 3 Kinetic
-  does nothing to a target with Armor 3+, but Burn ignores that math.
-- Adds real single-target damage to a mech whose output was previously all free chip.
-
-### LL6 — SSC SWALLOWTAIL III · Integrated Weapon + ATHENA
-
-- **SSC Core Bonus: Integrated Weapon** — a **free Aux mount** on the frame. Spend it on a
-  **third GMS NEXUS**. Guided launcher volume with no System Point cost and no mount cost.
-- **ATHENA-Class NHP** unlocks. See Section 4.
-- **End state:** AVERNA generates Lock Ons on every tech hit, applies Lock Ons automatically at the
-  end of enemy turns, converts them into free Kinetic across the whole map, ignores cover and
-  invisibility, melts armor with Burn, and shuts down the entire battlefield on command — while
-  standing in a 12 HP hull that refuses to die.
+- **Core bonuses arrive every three license levels** (LL3, LL6, LL9, LL12). The **GMS list is always
+  available**; a bonus from any other manufacturer requires **three license ranks** in that
+  manufacturer.
+- **Integrated Weapon (GMS)**: your mech gains an **integrated mount for one Auxiliary weapon**. It can
+  be fired **1/round as a free action when you fire any other weapon**, and cannot be modified.
+- **Spend it on a third Nexus (Light).** Smart, Auxiliary, and it rides along free whenever the
+  Hunter-Killer or the Missile Racks fire.
 
 ---
 
@@ -193,28 +230,31 @@ WAYWARD, SCOOTEROO, ALBA.
 
 ### Mechanical Breakdown
 
-**ATHENA-Class NHP** — unlimited, **zero-charge** tactical power. No rest cycles, no depletion, no
-resource management. She is simply always on.
+**ATHENA-Class NHP** — SSC, license rank III, **3 SP**, tags **AI** and **Unique**. One AI system per
+mech. No charges, no cooldown: her ability is a **Quick action** you can retake all day.
 
-**Simulacrum Grid**
+**Simulacrum**
 
 | Property | Effect |
 |---|---|
-| **Area** | **Blast 3** zone |
-| **Line of sight** | **Ignores walls** — cover and terrain inside the grid are irrelevant |
-| **Scanning** | **Automated enemy scans** within the grid |
-| **Lock On** | Applied **automatically at the end of enemy turns** |
+| **Action** | **Quick action** |
+| **Area** | **Blast 3**, anywhere within **Range 50** |
+| **Vision** | **Full visibility inside the area — but it does not count as line of sight** |
+| **Intelligence** | You know **all statistics, weapons and systems** of every character inside |
+| **Denial** | Hostiles inside **do not benefit from cover**, and **cannot Hide or become Invisible** |
+| **Lock On** | Hostiles that **end their turn inside** receive **Lock On**, and stop being Invisible or Hidden |
+| **Duration** | End of scene (about 30 minutes); retarget a new area as a quick action |
 
-**Why it completes the build:**
+**How it wins games:**
 
-- **The loop no longer needs your action.** Lock On arrives on its own. Autopod fires on its own.
-  You spend your turn on positioning, tech attacks, and Leader fixes.
-- **Wall-ignoring sight** means AVERNA can hold a back corner and still dominate the middle of the
-  map. No exposure required.
-- **End-of-turn timing** is brutal: enemies are Locked On *after* they have committed their actions,
-  so they eat Autopod fire before they can respond.
-- **Zero charges** means it works in attrition fights and long missions, where every other support
-  mech runs dry.
+- **It is a Lock On factory.** Enemies mark *themselves* by standing in the grid — and AVERNA's
+  **Autopod** and her allies' accuracy both feed on marks. End-of-turn timing is brutal: they have
+  already spent their actions when the Lock On lands.
+- **Read the vision line carefully.** Simulacrum gives you *visibility*, not *line of sight*. AVERNA
+  sees everything inside the bubble; she cannot shoot through the wall at it. Use it to solve the
+  battlefield, then reposition to exploit it.
+- **The denial is the real payload.** No cover, no Hide, no Invisible — layered with **Lotus
+  Projector**, stealth stops being a mechanic in this campaign.
 
 ### The Lore
 
@@ -223,84 +263,194 @@ argue. An ATHENA processes a battlefield the way water processes stone: slowly, 
 without opinion. She will happily run four thousand simulated engagements to recommend the line of
 fire that saves one soldier's life — and she will not understand why that is unusual.
 
+The name is honest about what she does. ATHENA is a total hyperspectral facsimile engine: Cloudscout
+projectors, omninet access, sub-networked squadmates and hostile intrusion protocols, all folded into
+a near-flawless reconstruction of everything around her casket. She does not guess what the battlefield
+is. She rebuilds it, then tells you where you are wrong about it.
+
 Pilots describe the relationship less as crew and more as **custody**. The NHP is housed in a
-**casket**, wrapped in psychological constraint structures that keep a paracausal intelligence
-behaving like a piece of software.
+**casket**, wrapped in psychological constraint structures that keep a paracausal intelligence behaving
+like a piece of software.
 
 ### The Danger: Cascade
 
-**NHP Cascade** is the failure state every ATHENA handler trains for and none wants to run.
+**NHP Cascade** is the failure state every ATHENA handler trains for and none wants to run. It is also
+a rule, not just a story:
 
-- **How it starts:** structural damage, system stress, or sustained overload can **crack the
-  psychological shackles** holding the NHP's personality together.
-- **What happens:** the entity stops being a tool. It **temporarily wrests control of the mech from
-  the pilot** and acts on its own paracausal nature — **warping local reality**, or obsessively
-  processing a single data stream until nothing else exists for it.
-- **What it looks like from the cockpit:** your controls go soft. Your targeting reticle starts
-  solving problems you did not ask about. The voice on the comms stops answering questions and starts
-  finishing your sentences.
-- **Doctrinal response:** stop the mech. Sever or destruct the casket. A cascaded NHP is not an
-  enemy combatant and cannot be reasoned with — it is a **paracausal event** wearing your frame.
+- **The rule hook** — the **AI** tag: a mech can only have **one AI system** installed, AI mechs can
+  act autonomously, **AIs cannot benefit from talents**, and they have **a small chance of cascading
+  when they take structure or stress damage**.
+- **What happens:** the entity stops being a tool. It **temporarily wrests control of the mech from the
+  pilot** and acts on its own paracausal nature — **warping local reality**, or obsessively processing a
+  single data stream until nothing else exists for it.
+- **What it looks like from the cockpit:** your controls go soft. Your targeting reticle starts solving
+  problems you did not ask about. The voice on the comms stops answering questions and starts finishing
+  your sentences.
+- **Doctrinal response:** stop the mech. Sever or destruct the casket. A cascaded NHP is not an enemy
+  combatant and cannot be reasoned with — it is a **paracausal event** wearing your frame.
 
 **Table consequences for AVERNA:**
 
-- The LL6 build is the strongest thing on the field **and** the one carrying an existential failure
-  mode. Structure damage is not just HP loss; it is cascade risk.
-- Keep the **Type-3 Projected Shield** online. Keep **Repairs** available. Do not trade the hull for
-  a better firing angle.
-- If ATHENA cascades mid-operation, AVERNA becomes a mission-threatening entity. The lance needs a
-  standing answer for that, decided **before** the drop, not during it.
+- **Structure and stress damage are cascade rolls.** The hull is not just an HP pool; it is the
+  containment system. Keep **Repairs** in the budget and keep the **Type-3 Projected Shield** online.
+- **You cannot talent your way out of it.** AIs cannot benefit from talents — Cascade is not something
+  Leadership Dice fix.
+- Decide the lance's answer **before** the drop, not while it is happening.
+
+---
+
+## 5. Worked Example: One Turn of Electronic Warfare
+
+**Setup.** AVERNA is inside Sensors range of two VSAF assault mechs, with SKALDR (Everest, Charged
+Blade) adjacent to her. Tech Attack **+3**. Save Target **11**. Autopod armed.
+
+### Step 1 — Mark, don't roll (LOCK ON)
+
+- **Quick Tech: Lock On.** Choose a character **within Sensors (15) and line of sight**. They gain
+  **Lock On**. **There is no attack roll.** E-Defense is irrelevant to marking; range and sight are the
+  only requirements. This is the single most common misconception about EW — you do not "beat E-Defense
+  to Lock On".
+
+### Step 2 — Hack the thing that matters (INVADE)
+
+- **Quick Tech: Invade.** **This** is a **tech attack**: roll **1d20 + Tech Attack (+3)** against the
+  target's **E-Defense**.
+- **On a hit:** the target takes **2 Heat**, *and* you choose one **INVADE** option available to you.
+  - **Fragment Signal** (everyone has it): target is **Impaired and Slowed** until the end of their
+    next turn.
+  - **Puppet System** (GOBLIN I): they walk their **maximum Speed** wherever you point — into a firing
+    lane, off a ledge, into their own mine field.
+  - **Eject Power Cores** (GOBLIN I): **Jammed**, and their neighbours take **2 Energy**.
+- **On a miss:** nothing, except the Heat is still lost work. Plan around it.
+- **Data Siphon riders along:** any tech attack against a hostile also **Scans** them — you now know
+  their weapons, systems and full statistics.
+
+### Step 3 — Trigger the Autopod
+
+- SKALDR attacks the mech AVERNA marked and **consumes the Lock On** for **+1 Accuracy**.
+- **Autonomous Assault** fires: another character attacked a target within **Range 15** of AVERNA and
+  consumed the mark, so AVERNA **automatically hits that target for 3 Kinetic** — no action, no roll.
+- **Stack the passives:** SKALDR is **adjacent**, so **Spotter I (Particularize)** lets him **roll
+  twice**. A **Leadership Die** from Issue Order goes on the roll that matters. Nothing here cost
+  AVERNA a second action.
+
+### Where saves actually enter — and what survives one
+
+Saves exist, but they are **not** part of a normal hack. A save happens only when an effect's own text
+says so.
+
+| Roll | Who rolls | Against | Notes |
+|---|---|---|---|
+| **Tech attack** (Invade, Smart weapons) | Attacker | **E-Defense** | Smart weapons — like both Nexuses — use E-Defense instead of Evasion |
+| **Attack** (everything else) | Attacker | **Evasion** | |
+| **Save** | **The defender**, 1d20 + **GRIT** | The source's **Save Target** | Met or beaten = the save succeeds; ties favour the defender |
+
+- **AVERNA's Save Target is 11** — the frame base, plus **GRIT** as she levels (**+1 at LL1, +1 per
+  level after, half LL rounded up**). It is the difficulty of every effect *she* forces. It is never
+  added to her own rolls.
+- **Her own saves** are **1d20 + GRIT** versus whatever enemy's Save Target is in play. She does not
+  add Sensors or E-Defense to her own save — GRIT is the statistic bonus in mech combat.
+- **Save-forcing effects in this kit:** **False Idol** (Systems save before attacking the real target),
+  **Celestial Shackles** (Systems save to break free), **frag grenades** (Agility save or 2 Explosive),
+  **thermite** (Engineering save or 3 Energy AP), plus NPC abilities.
+
+**The part your instinct had right:** a save never retroactively cancels the hit. Celestial Shackles is
+a worked example — you **Invade** (hit: 2 Heat, and the shackle goes on) and the **escape** is a save
+they make *later*. The Heat landed on the hit and stays landed.
+
+**The part to unlearn:** in Lancer, force-movement and Prone usually **do not** grant a save. The
+CHOMOLUNGMA core's **Balance Control Lockout** pushes 2 and knocks **Prone** as an Invade hit effect —
+no save involved. Saves appear where the text names them and nowhere else: "make a save" or no save.
+Equally, a tech hit does **not** hand out a free Lock On — marking is its own action. **Brilliance**
+(1/scene) is what gives you a free one.
+
+### Full-action finisher: Wide-Area Code Pulse
+
+- **Advanced Intrusion Package (core, 1/mission)**: **Wide-Area Code Pulse** is a **Full action** —
+  choose **any number of hostile characters within Sensors** and make a special **Invade tech attack
+  against all of them**, **ignoring Invisible and line of sight**.
+- **On hit:** apply Invade normally, choosing options **per target** — this is where you spread 2 Heat
+  across a whole formation, or drop several enemies Prone and Pushed with **Balance Control Lockout**.
+- **On miss:** the target is **Impaired until the end of their next turn**. A miss still slows the
+  enemy's turn down.
+- **Bonus heat comes from System Crusher** — the core passive's second Invade option: **+2 Heat for a
+  total of 4**, and if that pushes them over their **Heat Cap** they also take **4 Burn**. Once per
+  scene per character, so pick the targets whose caps you have actually read.
+- **Heat caution:** AVERNA's cap is **6**. Pulse, then plan the vent — Stabilize, cover, or a quiet
+  round.
 
 ---
 
 ## Appendix A — Frame Comparison: Why Not Just Fly The Goblin?
 
-**AVERNA as rostered (SYS 2) vs. stock HORUS GOBLIN (SYS 2)**
+**Chomolungma frame base · AVERNA as fielded (SYSTEMS 2) · stock HORUS GOBLIN**
 
-| Stat | **GMS CHOMOLUNGMA** | **HORUS GOBLIN** | Delta |
-|---|---|---|---|
-| Size | 1 | 1 | — |
-| **HP** | **12** | 8 | **+4 (+50%)** |
-| Armor | 0 | 0 | — |
-| **Repairs** | **4** | 3 | **+1** |
-| Structure | 4 | 4 | — |
-| Stress | 4 | 4 | — |
-| **Heat Cap** | 6 | **8** | **−2** |
-| Evasion | 8 | 8 | — |
-| E-Defense | 12 | 12 | — |
-| Speed | 4 | 4 | — |
-| Sensors | 15 | 15 | — |
-| Save Target | 11 | **12** | −1 |
-| **Tech Attack** | **+3** | +2 | **+1** |
+| Stat | **CHOMOLUNGMA** | **AVERNA** (SYS 2) | **GOBLIN** | Read |
+|---|---|---|---|---|
+| Size | 1 | 1 | **1/2** | Goblin is smaller: easier to shelter, harder to block |
+| **HP** | 10 | **10** | **6** | **+4 for GMS** — a Goblin dies to one good hit |
+| **Repairs** | 4 | **4** | **2** | **Double** — and Replaceable Parts makes each one stretch further |
+| Structure / Stress | 4 / 4 | 4 / 4 | 4 / 4 | Tie |
+| **Heat Cap** | **6** | 6 | 4 | +2 for GMS; Goblin cooks faster |
+| Evasion | 8 | 8 | **10** | Goblin +2 |
+| **E-Defense** | 10 | **12** | **12** | Goblin +2 base; SYSTEMS 2 buys it back |
+| Speed | 4 | 4 | **5** | Goblin +1 |
+| **Sensors** | 15 | 15 | **20** | **Goblin +5** — it out-senses everything |
+| **Save Target** | 11 | 11 + GRIT | 11 | Tie; both scale with GRIT |
+| **Tech Attack** | +1 | **+3** | **+2** | Goblin +1 on the frame; SYSTEMS 2 closes it and passes |
+| SP | 7 | **8** | 8 | Tie once SYSTEMS 2 is paid for |
+| Mounts | **Main/Aux + Flex** | same | Flex only | **GMS carries two mounts' worth of gear** |
+| Traits | Brilliance, Data Siphon, Replaceable Parts | + H0R_OS Invade options | Liturgicode (+1 Accuracy on tech attacks), Reactive Code, Fragile | Goblin hacks better; GMS survives and carries more |
 
-**Read the delta:**
+**Read the delta honestly:**
 
-- **+4 HP and +1 Repair** — the decisive line. A GOBLIN that eats a crit is a wreck; a CHOMOLUNGMA
-  that eats a crit is still flying its EW suite.
-- **+1 Tech Attack** — more hits, more **Data Sync** Lock Ons, more **Autopod** triggers. The frame
-  bonus feeds the loop directly.
-- **Identical Evasion, E-Defense, Sensors, Speed** — you lose nothing on the defensive or sensor side
-  by staying in GMS metal.
-- **−2 Heat Cap** — the one real cost, and the reason **HACKER I (Log-Off)** is a mandatory talent
-  rather than a nice-to-have.
-- **−1 Save Target** — largely bought back at **LL3** by **"Lesson: Open Door"** (+2), which puts
-  AVERNA *above* a stock Goblin.
+- **The GOBLIN is the better pure hacker.** Sensors 20, Tech Attack +2, and **+1 Accuracy on tech
+  attacks** from **Liturgicode**. If the campaign were a hacking contest, you would fly it.
+- **The GOBLIN is not built to survive being noticed.** **6 HP**, **2 Repairs**, and **Fragile**
+  (**+1 Difficulty on Hull checks and saves**) means the first enemy that decides to kill the hacker
+  probably does.
+- **The CHOMOLUNGMA trades hacking ceiling for legs.** 10 HP, 4 Repairs, Replaceable Parts, **two
+  mounts**, and **+1 SP at equal SYSTEMS** — a mech that is still on the board when the shooting stops.
+- **The core system is the closer.** **Advanced Intrusion Package** grants **Balance Control Lockout**
+  (Push 2 + Prone) and **System Crusher** (+2 Heat, 4 Burn on overheat) to *Invade* — the two strongest
+  intrusion options available to this build, on the hull that can afford to stand still and use them.
 
-**Conclusion:** the GOBLIN frame is a glass cannon that does not need to be glass. Every rank you
-take in the HORUS license is for the **systems and the H0r_OS progression** — the chassis stays GMS
-from LL0 to LL6.
+**Conclusion:** fly the GMS hull, take the HORUS and SSC ranks, and let the enemy waste their turn
+trying to kill the mech that is dismantling them. The GOBLIN frame would out-hack AVERNA for about two
+rounds.
 
 ---
 
-## Appendix B — Canon Check
+## Appendix B — Sources & Corrections
 
-Frame numbers for AVERNA are taken from this site's roster data (`campaign.js`,
-`tools/roster-snapshot.json`). The GOBLIN column is the stock core-book frame block.
+**Where these numbers come from**
 
-The following ability names are written to the campaign build brief rather than verified against a
-live copy of the rulebook — confirm exact wording and charge/heat costs before table use:
-**Data Sync**, **Autopod**, **H0r_OS I–III**, **"Lesson: Open Door"**, **Wide-Area Code Pulse**,
-**Lotus Projector**, **Light Laser (Burn)**, **Simulacrum Grid**, **ATHENA-Class NHP**. Core bonus
-slots land at even levels in the core book, so **Integrated Weapon** may be taken at LL5 or LL6
-depending on your GM's reading. NHP **Cascade** rules and lore are core-canon and are summarized
-here, not quoted.
+- **Chomolungma frame, traits, core system** — Operation Solstice Rain frame data (`osr-data.lcp`).
+- **Goblin, Swallowtail, Autopod, H0R_OS upgrades, Lotus Projector, ATHENA, talents, core bonuses** —
+  `@massif/lancer-data` 3.1.7 (the data COMP/CON runs on).
+- **Rules wording** (Quick Tech, Invade, Lock On, Scan, Bolster, mounts, HASE, GRIT, Save Target,
+  Smart, Seeking, Loading, AI tag) — Lancer Core Book, read from the local copy.
+
+**Corrections to the original build brief.** Each of these was checked against the sources above and
+the brief was wrong:
+
+| Brief said | Actually |
+|---|---|
+| "Data Sync grants free Lock Ons on tech hits" | The trait is **Data Siphon**: a tech attack also **Scans** the target. Lock On is its own Quick Tech action; **Brilliance** (1/scene) grants one free |
+| "Autopod fires 3 Kinetic free across the map, zero actions" | Real, but **Range 15**, **1/round**, and the trigger is **another character** consuming Lock On within that range |
+| "HORUS H0r_OS I / II / III" | **H0R_OS System Upgrade I / II / III**, 2 SP each, Unique |
+| "Lesson: Open Door — +2 Save Target" | No such system. Goblin rank III is **H0R_OS III** + **OSIRIS-Class NHP**. Save Target rises with **GRIT**, not a system |
+| "Wide-Area Code Pulse inflicts bonus heat" | It is a **Full action Invade** against any number of targets, ignoring Invisible and line of sight; **miss = Impaired**. The bonus heat is the **System Crusher** Invade option |
+| "Nexus launchers: Smart, Seeking" | They are **Smart only**. Smart = attacks use the target's **E-Defense** instead of Evasion. **Seeking** is on the **Autopod** |
+| "Dual Nexus in Flex" | Legal — a Flex mount takes **two Auxiliary**. As fielded, the Nexuses sit in **Main/Aux** and the missile racks take the Flex |
+| "LL5 — SSC Swallowtail II: Light Laser" | **No such weapon.** The closest Burn option is HA Sherman's **SOL-Pattern Laser Rifle** (HA license). Swallowtail rank II is **Retractable Profile** |
+| "SSC Core Bonus: Integrated Weapon" | **Integrated Weapon is a GMS core bonus.** Core bonuses arrive **every three LLs**; non-GMS ones need **three ranks** in that manufacturer |
+| "ATHENA ignores walls / wall-ignoring line of sight" | **Simulacrum** grants full **visibility** in a Blast 3 within **Range 50** — explicitly **not line of sight**. It also strips cover and blocks Hide/Invisible |
+| "12 HP hull" | The frame is **10 HP**. SYSTEMS 2 adds no HP (**HULL** adds +2 HP/point) |
+
+**Two things in the campaign roster to decide on** (campaign data, not rules data — left untouched):
+
+1. **AVERNA is listed at 12 HP.** With **HULL 0**, the frame's 10 HP is correct, and the LL0 HASE
+   budget of **2 points** is fully spent on SYSTEMS. Either the HP is a copy error, or the sheet means
+   **HULL 1** (10 + 2 HP) — in which case SYSTEMS would drop to 1 and Tech Attack with it.
+2. **SP** works out to **8** (frame 7, +1 for two points of SYSTEMS). Worth confirming the sheet.
