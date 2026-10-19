@@ -155,6 +155,8 @@ enforced by `check-all` on every record: **exactly one locked mount if and only 
 mounted**, that mount's `weapons` is empty, and it is **not** the mount carrying the Superheavy.
 Without those three assertions a stray flag would permanently block a mount that nothing explains.
 
+The core exposes these on `window.LOADOUT`, not `window.UI`: `archive.js` already owns that name for the derived display helpers, so the two cannot share it.
+
 `UI.canMount(pilot, build, slotIndex, seat, weapon, catalogue, opts)` → `{ok, reason}` is a **pure
 question**: it says whether the placement would be legal, with `opts.lockSlot` naming the mount a
 Superheavy would lock, and it never returns or mutates a build. The mutation is separate, because a
@@ -339,6 +341,7 @@ catalogue name to normalise against.
    export file (`apply-compcon.cjs:279`), so `<mech>` would be taken as a path, and a multi-line
    block cannot be passed in argv at all. `--loadout` branches **above the argv read in `main()`** and reads the block
    from a file or from stdin (`-`).
+The compare also reads names out of a comma-separated string, the field's shape before the migration; that branch is dead on the live path now, and it stays because the tests still cover the string form, so removing it would be unverifiable rather than proven unnecessary.
 
 **`--loadout` writes `campaign.js`, regenerates `detail.js` (`node tools/build-detail.cjs`) then runs check-all**, because any new weapon or system makes `detail.js` stale and `check-all.cjs:192` runs
 `build-detail --check`. That gate, and the catalogue's, is **local-only**: `build-detail.cjs:8`
@@ -441,3 +444,11 @@ commands above), so a round trip tested anywhere else would never execute in CI.
   the fix touches the live `conditions` path.
 - **Local-only gates.** CI cannot catch staleness in `detail.js` or `catalogue.js` until it fetches
   lancer-data. Recorded here as a known gap, not fixed in this ticket.
+
+- **Supplement frames.** `GMS CHOMOLUNGMA` and `GMS SAGARMATHA` are Solstice Rain supplement frames,
+  absent from lancer-data 3.1.7 (`frames.json` carries Everest and a `missing_frame` placeholder), so
+  no gate has their stats and the SP cap check skips them as unknown. That is a data-dir gap, not a
+  missing-rules problem: the real block lives in the supplement on the owner's machine
+  (`~/Downloads/osr-data.lcp`), where CHOMOLUNGMA is `sp 7` with mounts `Main/Aux` and `Flex`. With
+  it, AVERNA's cap at LL 0 is 7 + floor(2/2) + 0 = 8 against her 8 SP, so her loadout is legal and
+  this question is closed rather than deferred.
