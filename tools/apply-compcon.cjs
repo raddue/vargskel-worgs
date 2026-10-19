@@ -140,6 +140,44 @@ function applyToText(text, siteId, set) {
   return { text: text.slice(0, start) + region + text.slice(end), notes };
 }
 
+/* Everything a pasted block could get wrong, checked before a byte is written, because the block
+   crosses a trust boundary. Pure, so --selftest holds it to the design's list: the mech is the
+   record's, the frame matches it, the slots are the record's own, every weapon resolves and fits,
+   and the systems side passes setSystems. An unknown *system* warns and still lands, because
+   Wayward's `Spaceborn EVA` is talent-granted and absent from systems.json. */
+function validateLoadout(parsed, C, cat, LO) {
+  const problems = [], warnings = [];
+  const norm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const rec = (C.mechs || []).find(m => m.id === parsed.mech);
+  if (!rec) return { ok: false, problems: [`no mech in campaign.js has the id ${parsed.mech}`], warnings };
+  const frameFor = x => Object.values(cat.frames || {}).find(f => f && (norm(x) === norm(f.name) || norm(x) === norm(`${f.source || ""} ${f.name}`))) || null;
+  const recFrame = frameFor(rec.frame), expFrame = frameFor(parsed.frame);
+  if (parsed.pilot !== rec.pilot) problems.push(`the export names pilot ${parsed.pilot} and the record's pilot is ${rec.pilot}`);
+  if (norm(parsed.frame) !== norm(rec.frame) && !(recFrame && recFrame === expFrame))
+    problems.push(`the export's frame ${parsed.frame} is not the record's ${rec.frame}, and v1 writes no frame`);
+  if (JSON.stringify(parsed.mounts.map(m => m.slot)) !== JSON.stringify((rec.mounts || []).map(m => m && m.slot)))
+    problems.push("the slot list is not the record's own");
+  for (const m of parsed.mounts) if (m.locked && (m.weapons || []).some(Boolean)) problems.push(`the locked mount ${m.slot} carries weapons`);
+
+  const pilot = (C.pilots || []).find(p => p.id === rec.pilot) || null;
+  if (!pilot) warnings.push(`no pilot record for ${rec.pilot}, so licences were not checked`);
+  const build = { mech: rec.id, frame: rec.frame, pilot: rec.pilot, sys: rec.sys,
+    mounts: parsed.mounts.map(m => ({ slot: m.slot, weapons: [] })), systems: [] };
+  const lockAt = parsed.mounts.findIndex(m => m.locked === true);
+  parsed.mounts.forEach((m, slotIndex) => (m.weapons || []).forEach((name, seat) => {
+    if (name === null || name === undefined) return;
+    if (!cat.weapons[name]) { problems.push(`${name} does not resolve in the catalogue`); return; }
+    const opts = cat.weapons[name].mount === "Superheavy" ? { lockSlot: lockAt < 0 ? undefined : lockAt } : {};
+    const v = LO.canMount(pilot, build, slotIndex, seat, name, cat, opts);
+    if (!v.ok) problems.push(`${name} in ${m.slot}: ${v.reason}`);
+    else build.mounts[slotIndex].weapons[seat] = name;
+  }));
+  for (const n of parsed.systems) if (!cat.systems[n]) warnings.push(`${n} is not in the catalogue, landed anyway`);
+  const sys = LO.setSystems(build, parsed.systems, cat, pilot);
+  if (!sys.ok) problems.push(`the systems list: ${sys.reason}`);
+  return { ok: !problems.length, problems, warnings };
+}
+
 /* The block crosses a trust boundary, so this is JSON.parse and a shape check, never eval. */
 function parseLoadoutBlock(text) {
   const bad = (m) => ({ error: m });
@@ -242,6 +280,44 @@ function selftest() {
   if (!multi || !multi.text.includes('{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }')) errs.push("replacing one list must not disturb another field's span");
   const outd = applyToText(spaced, "tombstone", { mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }] });
   if (!outd || !outd.text.includes('mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }]')) errs.push("a replaced object list must be written through one canonical serialiser");
+  /* --- the write path's validation (design tests 6 and 7), on fixtures --- */
+  const catFix = {
+    weapons: { "Pistol": { mount: "Auxiliary", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "Charged Blade": { mount: "Main", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "Thermal Lance": { mount: "Heavy", sp: 0, license: "GMS", license_level: 0, tags: [], bands: [], profiles: [] },
+      "GATED": { mount: "Main", sp: 0, license: "IPS-N", license_level: 1, tags: [], bands: [], profiles: [] } },
+    systems: { "Cover": { sp: 2, tg_unique: false, tg_ai: false }, "Uniq": { sp: 1, tg_unique: true, tg_ai: false },
+      "AI A": { sp: 1, tg_unique: false, tg_ai: true }, "AI B": { sp: 1, tg_unique: false, tg_ai: true } },
+    frames: { "GMS Everest": { name: "Everest", source: "GMS", sys: 6, mounts: ["Main", "Flex", "Heavy"] } },
+    fittings: { Auxiliary: ["Auxiliary"], Main: ["Main", "Auxiliary"], Heavy: ["Heavy", "Main", "Auxiliary"] }
+  };
+  const recFix = { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", sys: 0,
+    mounts: [{ slot: "Main", weapons: ["Pistol"] }, { slot: "Flex", weapons: ["Charged Blade"] }, { slot: "Heavy", weapons: ["Thermal Lance"] }],
+    systems: ["Cover"] };
+  const CFix = { mechs: [recFix], pilots: [{ id: "dusty", ll: 0, licences: [] }] };
+  const exported = parseLoadoutBlock(LO.exportLoadout({ mech: recFix.id, frame: recFix.frame, pilot: recFix.pilot, mounts: recFix.mounts, systems: recFix.systems }));
+  if (typeof validateLoadout !== "function") errs.push("apply-compcon must export validateLoadout");
+  else {
+    const v = validateLoadout(exported, CFix, catFix, LO);
+    if (!v.ok) errs.push("a record's own export must validate: " + JSON.stringify(v.problems));
+    const tamper = patch => validateLoadout(Object.assign({}, exported, patch), CFix, catFix, LO);
+    if (tamper({ pilot: "spook" }).ok) errs.push("an export naming another pilot must be refused");
+    if (tamper({ frame: "GMS CHOMOLUNGMA" }).ok) errs.push("a frame the record does not carry must be refused");
+    if (tamper({ mech: "nobody" }).ok) errs.push("an unknown mech must be refused");
+    if (tamper({ mounts: exported.mounts.slice(0, 2) }).ok) errs.push("a slot list differing from the record's must be refused");
+    if (tamper({ mounts: [{ slot: "Main", weapons: ["Nonexistent Rifle"] }].concat(exported.mounts.slice(1)) }).ok) errs.push("an unresolvable weapon must be refused");
+    if (tamper({ mounts: [{ slot: "Main", weapons: ["Thermal Lance"] }].concat(exported.mounts.slice(1)) }).ok) errs.push("a Heavy weapon in a Main seat must be refused");
+    if (tamper({ systems: ["Cover", "Cover", "Cover", "Cover", "Cover"] }).ok) errs.push("an over-cap systems list must be refused");
+    if (tamper({ systems: ["AI A", "AI B"] }).ok) errs.push("a second AI system must be refused");
+    const unknown = tamper({ systems: ["Cover", "Spaceborn EVA"] });
+    if (!unknown.ok) errs.push("an unknown system must land rather than refuse: " + JSON.stringify(unknown.problems));
+    else if (!unknown.warnings.some(w => /Spaceborn EVA/.test(w))) errs.push("an unknown system must be warned about");
+    /* test 7: the write owns mounts and systems, and nothing else */
+    const before = '{ id: "tombstone", name: "TOMBSTONE", state: "OPERATIONAL", hp: 10, hpNow: 4, structure: 3, stress: 2, heatNow: 1, repairsNow: 2, conditions: ["STUNNED"], mounts: [{ slot: "Main", weapons: ["Pistol"] }], systems: ["Cover"] },';
+    const wrote = applyToText(before, "tombstone", { mounts: exported.mounts, systems: ["Cover", "Uniq"] });
+    for (const f of ["hpNow: 4", "structure: 3", "stress: 2", "heatNow: 1", "repairsNow: 2", 'conditions: ["STUNNED"]'])
+      if (!wrote.text.includes(f)) errs.push(`a loadout write must leave ${f} alone`);
+  }
   if (errs.length) {
     console.error("apply-compcon selftest FAILED:\n - " + errs.join("\n - "));
     process.exit(1);
@@ -499,4 +575,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog, parseLoadoutBlock, applyToText, lit };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit };
