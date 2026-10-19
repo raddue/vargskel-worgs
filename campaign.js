@@ -70,7 +70,7 @@ window.CAMPAIGN = {
   ],
 
   pilots: [
-    { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "sweet-cheeks", img: "assets/rurik_vargskel.png",
+    { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", status: "ACTIVE", mech: "averna", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
       talents: "Hacker 1, Leader 1, Spotter 1",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, SSC Sylph Undersuit, Personal Drone" },
@@ -97,7 +97,7 @@ window.CAMPAIGN = {
   ],
 
   mechs: [
-    { id: "sweet-cheeks", name: "AVERNA", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/sweet-cheeks.png",
+    { id: "averna", name: "AVERNA", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/averna.png",
       state: "OPERATIONAL", size: 1, hp: 12, structure: 4, stress: 4, armor: 0, repair: 4, heat: 6, hull: 0, agi: 0, sys: 2, eng: 0, eva: 8, spd: 4, tech: "+3", edef: 12, sens: 15, save: 11, attackBonus: 0, limitedBonus: 0,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
       systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
@@ -130,7 +130,7 @@ window.CAMPAIGN = {
 
   ops: [
     { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: "union", status: "UNBRIEFED",
-      date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["sweet-cheeks", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
+      date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["averna", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
       /* Mission-page conflict history, rendered above the OPORD. Original copy from facts the
       site already publishes: do not lift prose from the Solstice Rain adventure text. */
       history: ["Cressidium sits on the periphery — one inhabited world at the far edge of Union's reach, dark to the charts long enough that its recontact is still recent. What Union found on its return was a world already split: the Vestan Sovereignty holding the cities and the industrial districts, the Leandric States Alliance holding the coast and the trade lanes, and no patience left on either side. Nov Elysia is the seam between them, a frontier city under Vestan control and the only real foothold Union has on the planet.",
