@@ -3,13 +3,18 @@
 const fs = require("fs"), vm = require("vm"), path = require("path");
 const root = path.join(__dirname, "..");
 
-function stub(id, attrs = "") {
+function stub(id, attrs = "", register) {
   const dataset = {}, cls = new Set();
   for (const [, k, v] of attrs.matchAll(/data-([\w-]+)="([^"]*)"/g)) dataset[k.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = v;
   const classList = { add: (...c) => c.forEach(x => cls.add(x)), remove: (...c) => c.forEach(x => cls.delete(x)), contains: c => cls.has(c), toggle: (c, on = !cls.has(c)) => (on ? cls.add(c) : cls.delete(c), on) };
   /* listeners records what a page wired; fire lets a check drive it the way a visitor would */
+  let markup = "";
   return {
-    id, innerHTML: "", textContent: "", value: "", checked: false, hidden: false, dataset, classList,
+    id,
+    /* a page renders its controls into innerHTML, so the ids it writes must become stubs */
+    get innerHTML() { return markup; },
+    set innerHTML(v) { markup = String(v); if (register) register(markup); },
+    textContent: "", value: "", checked: false, hidden: false, dataset, classList,
     listeners: {},
     addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); },
     fire(type, ev = {}) { for (const fn of this.listeners[type] || []) fn({ type, target: this, preventDefault() {}, ...ev }); },
@@ -20,7 +25,10 @@ function stub(id, attrs = "") {
 function mount(page, hash = "", globals = {}) {
   const html = fs.readFileSync(path.join(root, page), "utf8");
   const nodes = {};
-  for (const [, pre, id, post] of html.matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] ??= stub(id, pre + post);
+  const register = markup => {
+    for (const [, pre, id, post] of String(markup).matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] ??= stub(id, pre + post, register);
+  };
+  register(html);
   const doc = { getElementById: id => nodes[id] || null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: stub("body"), title: "" };
   /* index.html's inline glue calls addEventListener bare (no window. prefix), so the page's
    document-level listeners need a no-op here for the page to mount at all. */
@@ -50,6 +58,10 @@ if (process.argv.includes("--selftest")) {
   wired.addEventListener("change", () => { fired++; });
   wired.fire("change");
   assert(fired === 1, "mount must let a test fire the handler a page registered");
+  /* a page renders its controls into innerHTML, so ids it writes must get stubs too */
+  const rendered = mount("loadout.html");
+  rendered.nodes["lo-slots"].innerHTML = '<button id="rendered-probe"></button>';
+  assert(rendered.nodes["rendered-probe"], "an id a page renders must become a stub");
 if (mount("index.html", "", { __PROBE: 7 }).window.__PROBE !== 7) throw new Error("mount must pass globals into the sandbox");
 console.log("render selftest ok: 6 crew articles with TRIGGERS");
 }
