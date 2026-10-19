@@ -3,6 +3,7 @@
    Exits non-zero with a list of problems. */
 const fs = require("fs");
 const vm = require("vm");
+const chrome = require("./tools/chrome.cjs");
 
 const sandbox = { window: {} };
 vm.createContext(sandbox);
@@ -94,6 +95,19 @@ navPages.forEach(p => {
   if (!/href="(?:\.\.\/){0,2}campaign\.html">CAMPAIGN</.test(src)) problems.push(`${p}: nav must link to campaign.html as CAMPAIGN`);
   /* One status label on every page: two different ones changed the box width and dragged the nav. */
   if (!/● DEPLOYMENT STATUS: [A-Z]+</.test(src)) problems.push(`${p}: the status chip must read CLASS "DEPLOYMENT STATUS", not a per-page label`);
+});
+/* The nav and the status chip come from tools/chrome.cjs. A page carrying a different copy
+   fails here by name instead of drifting silently; node tools/chrome.cjs --selftest covers
+   the component itself. */
+navPages.forEach(p => {
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
+  const prefix = p.includes("/") ? "../../" : "";
+  const got = (src.match(/<nav class="nav">[\s\S]*?<\/nav>/) || [])[0];
+  if (got !== chrome.nav(prefix, p === "index.html"))
+    problems.push(`${p}: nav differs from tools/chrome.cjs; copy chrome.nav("${prefix}") into the page`);
+  const statusVal = (src.match(/<div class="status">([^<]*)</) || [])[1];
+  if (!chrome.statusRe.test(statusVal || ""))
+    problems.push(`${p}: status chip must be chrome.status("<UPPERCASE STATE>"), label included`);
 });
 const intelPage = fs.readFileSync(__dirname + "/intel.html", "utf8");
 if (!/id="holomap"/.test(intelPage)) problems.push("intel.html must carry the holomap section the map builds into");

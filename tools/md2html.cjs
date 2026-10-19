@@ -3,7 +3,7 @@
           node tools/md2html.cjs --check    exit non-zero if the page is stale vs the markdown
    Handles only the subset the guide uses: h1-h3, hr, tables, blockquote, ul (wrapped), fenced code.
    check-all.cjs runs --check, so a committed page that drifts from its markdown fails CI. */
-const fs = require("fs"), path = require("path");
+const fs = require("fs"), path = require("path"), chrome = require("./chrome.cjs");
 const root = path.join(__dirname, "..");
 const SRC = path.join(root, "docs/guides/averna-omniscient-overlord.md");
 const OUT = path.join(root, "docs/guides/averna-omniscient-overlord.html");
@@ -216,11 +216,11 @@ function render() {
 </head>
 <body>
 <div class="shell">
-<div class="topline"><span>VW // TACTICAL DOCTRINE</span><span>BUILD GUIDE · AVERNA</span></div>
+${chrome.topline("VW // TACTICAL DOCTRINE", "BUILD GUIDE · AVERNA")}
 <header class="brandrow">
-<div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">TACTICAL WIKI · BUILD GUIDE</div></div></div>
-<nav class="nav"><a href="${p("index.html")}#overview">OVERVIEW</a><a href="${p("index.html")}#missions">MISSIONS</a><a href="${p("intel.html")}">INTEL</a><a href="${p("campaign.html")}">CAMPAIGN</a><a href="${p("pilots.html")}">PILOTS</a><a href="${p("mechbay.html")}">MECHS</a></nav>
-<div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
+${chrome.brand("TACTICAL WIKI · BUILD GUIDE")}
+${chrome.nav("../../")}
+${chrome.status("ACTIVE")}
 </header>
 <main class="guide">${tooltips(H.join("\n"))}</main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
