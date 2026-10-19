@@ -146,10 +146,6 @@ WAYWARD, SCOOTEROO, ALBA.
   fires the launchers, and enemies with poor E-Defense cannot dodge her.
 - **Loading** means each Missile Rack fires every other turn unless reloaded with **Stabilize**. Two
   racks keep area fire online while the other reloads.
-- **Alternate layout:** if you would rather stack launchers, **two Nexus (Light)** fit the Flex mount
-  (two Auxiliary), moving the Hunter-Killer into a Main slot elsewhere. Same Smart math, more shots,
-  less blast.
-
 ---
 
 ## 3. Progression Path: Licenses & Talents
@@ -504,7 +500,7 @@ the brief was wrong:
 | "Lesson: Open Door — +2 Save Target" | No such system. Goblin rank III is **H0R_OS III** + **OSIRIS-Class NHP**. Save Target rises with **GRIT**, not a system |
 | "Wide-Area Code Pulse inflicts bonus heat" | It is a **Full action Invade** against any number of targets, ignoring Invisible and line of sight; **miss = Impaired**. The bonus heat is the **System Crusher** Invade option |
 | "Nexus launchers: Smart, Seeking" | They are **Smart only**. Smart = attacks use the target's **E-Defense** instead of Evasion. **Seeking** is on the **Autopod** |
-| "Dual Nexus in Flex" | Legal — a Flex mount takes **two Auxiliary**. As fielded, the Nexuses sit in **Main/Aux** and the missile racks take the Flex |
+| "Dual Nexus in Flex" | The **Hunter-Killer is a Main weapon**, so a Main+Aux pair does not fit a Flex mount — a Flex mount takes **one Main or up to two Auxiliary**. As fielded the Nexuses sit in **Main/Aux** and the missile racks take the Flex |
 | "LL5 — SSC Swallowtail II: Light Laser" | **No such weapon.** The closest Burn option is HA Sherman's **SOL-Pattern Laser Rifle** (HA license). Swallowtail rank II is **Retractable Profile** |
 | "SSC Core Bonus: Integrated Weapon" | **Integrated Weapon is a GMS core bonus.** Core bonuses arrive **every three LLs**; non-GMS ones need **three ranks** in that manufacturer |
 | "ATHENA ignores walls / wall-ignoring line of sight" | **Simulacrum** grants full **visibility** in a Blast 3 within **Range 50** — explicitly **not line of sight**. It also strips cover and blocks Hide/Invisible |
