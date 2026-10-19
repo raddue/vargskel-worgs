@@ -604,6 +604,13 @@ else {
   const withProfile = twPage.window.UI.detailMech(tw);
   ["PROFILE FIXTURE", "Profile effect text.", "Fixture Action (Quick): Fixture action detail."].forEach(t => { if (!withProfile.includes(t)) problems.push(`mech.html#${tw.id}: profile render dropped "${t}"`); });
 }
+/* Wide monitors: the weapon stack grids 2 then 3 across. The wrapper is what makes it a
+   grid, and phones keep one column because that is the default. */
+if (!wSect.includes('class="wep-grid"')) problems.push(`mech.html#${tw.id}: mounted weapons must sit in a .wep-grid for the wide-screen columns`);
+const cssText = fs.readFileSync(__dirname + "/style.css", "utf8");
+if (!/\.wep-grid\{display:grid/.test(cssText)) problems.push("style.css: .wep-grid must be a grid");
+if (!/@media\(min-width:1100px\)\{\.wep-grid\{grid-template-columns:1fr 1fr\}\}/.test(cssText)) problems.push("style.css: .wep-grid must take a second column from 1100px up");
+if (!/@media\(min-width:1700px\)\{\.wep-grid\{grid-template-columns:repeat\(3,1fr\)\}\}/.test(cssText)) problems.push("style.css: .wep-grid must take a third column from 1700px up");
 /* Gear prose: lancer-data marks paragraph breaks with <br>, which must render as a break, not as text. */
 const pk = C.pilots.find(p => p.gear && p.mech) || C.pilots[0];
 const pkPage = mount("pilot.html", "#" + pk.id);

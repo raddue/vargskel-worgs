@@ -56,9 +56,11 @@ function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  const stat=w=>table(kw("MOUNT",w.mount)+kw("TYPE",w.type)+kw("DAMAGE",w.damage)+kw("RANGE",w.range)+kw("TAGS",w.tags)+kw("LICENSE",w.license));
  /* One blurb covers every weapon of a manufacturer, so it prints once above the list rather than per weapon. */
  const blurb=[...new Set(items.map(x=>x[1].desc).filter(t=>t&&seen[t]>1))].map(t=>dnote(t)).join("");
- const wep=items.map(([n,w])=>dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
+ /* Each weapon is one grid cell, so a wide monitor reads two or three across instead of one
+    full-width stack each. The blurb stays outside the grid: it covers the whole section. */
+ const wep=`<div class="wep-grid">`+items.map(([n,w])=>`<div class="weapon">`+(dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
   +(w.profiles||[]).map(p=>dhead(p.name)+table(kw("DAMAGE",p.damage)+kw("RANGE",p.range)+kw("TAGS",p.tags))+dnote(p.effect)
-    +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join("")).join("");
+    +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join(""))+`</div>`).join("")+`</div>`;
  const sys=dnames(m.systems).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n)+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
  const f=(d.frames||{})[m.frame];
  const fr=f?dhead(m.frame)+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";

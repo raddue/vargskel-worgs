@@ -122,6 +122,12 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
   .ro-v{font-size:12px}
   .ro-note{font-size:11px}
 }
+/* Mounted weapons: one full-width stat stack per weapon wastes a wide monitor, so the list
+   grids two across and then three. Phones keep the single default column. */
+.wep-grid{display:grid;gap:16px}
+.wep-grid>*{min-width:0}
+@media(min-width:1100px){.wep-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:1700px){.wep-grid{grid-template-columns:repeat(3,1fr)}}
 /* Printing intel.html: the shell chrome goes, and an inactive panel prints rather than vanishing. */
 @media print{
   .pagebar{display:none}
