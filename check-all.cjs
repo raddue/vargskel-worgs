@@ -190,6 +190,7 @@ for (const m of C.mechs) {
   if (!Array.isArray(m.conditions) || m.conditions.some(c => typeof c !== "string" || !/^[A-Z0-9][A-Z0-9 ·+-]{0,23}$/.test(c))) problems.push(`mech ${m.id}: conditions must be an array of short uppercase labels`);
 }
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/build-detail.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/md2html.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("guide page stale vs markdown; regen: node tools/md2html.cjs");
 for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
