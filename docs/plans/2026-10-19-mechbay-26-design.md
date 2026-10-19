@@ -3,14 +3,15 @@ ticket: "#26"
 title: "Mechbay: interactive loadout sandbox with a range finder"
 date: "2026-10-19"
 source: "design"
-revision: 4
+revision: 5
 ---
 
 # Mechbay: interactive loadout sandbox with a range finder
 
-Revision 4, after three adversarial review rounds (round 1: 5 Critical / 6 Significant / 5 Minor;
-round 2: 1 / 8 / 6; round 3: 1 / 4 / 5). Every finding from all three rounds is resolved below; where
-a rule was in doubt the answer comes from `lancer-data` and `COMP/CON`, not from memory.
+Revision 5, after four adversarial review rounds (round 1: 5 Critical / 6 Significant / 5 Minor;
+round 2: 1 / 8 / 6; round 3: 1 / 4 / 5; round 4: 0 / 4 / 4). Every finding from all four rounds is
+resolved below; where a rule was in doubt the answer comes from `lancer-data` and `COMP/CON`, not
+from memory.
 
 ## Problem
 
@@ -80,9 +81,9 @@ Verified against `@massif/lancer-data` 3.1.7.
 | `archive.js:182, 263, 285, 294` | both | call the formatters |
 | `tools/build-detail.cjs:61, 70` (`loadoutItems`, `list`) | both | take the structured fields |
 | `check-all.cjs:521-527` | `m.loadout` | `find(m => m.loadout …)` picks `C.mechs[0]` and then calls `.includes()` on `undefined`, killing the suite — use the formatter |
-| `check-all.cjs:98-107` (snapshot compare **and** `pick()` under `--update-snapshot`) | raw record fields | **pins derived strings under new keys** `loadoutString` / `systemString`, written and compared through one `snapshotView(rec)` helper. The helper calls `UI.loadoutString` / `UI.systemString` — so the `document`/`matchMedia` stub and the `archive.js` vm load currently sitting at `check-all.cjs:201-208` **move above line 98** (contract: one hoisted `UI` instance serves both the snapshot compare and the later markup checks). `archive.js:351-353` touches `matchMedia` and `document.querySelectorAll` at load, so it cannot run in the bare `{ window: {} }` sandbox that loads `campaign.js`; the stub must exist first |
+| `check-all.cjs:98-107` (snapshot compare **and** `pick()` under `--update-snapshot`) | raw record fields | **pins derived strings under new keys** `loadoutString` / `systemString`, written and compared through one `snapshotView(rec)` helper. The helper calls `UI.loadoutString` / `UI.systemString` — so the `document`/`matchMedia` stub and the `archive.js` vm load currently sitting at `check-all.cjs:201-208` **move above line 98** (contract: one hoisted `UI` instance serves both the snapshot compare and the later markup checks). `archive.js:351-353` touches `matchMedia` and `document.querySelectorAll` at load, so it cannot run in the bare `{ window: {} }` sandbox that loads `campaign.js`; the stub must exist first. If that hoisted `archive.js` load fails (`check-all.cjs:208`'s path), `snapshotView` must **report the problem and skip the snapshot checks** rather than call `UI.loadoutString` on an undefined `UI` and kill the run with a TypeError |
 | `tools/apply-compcon.cjs` `finish()` | runs `check-all --update-snapshot` | inherits the helper above; no separate change |
-| `tools/roster-snapshot.json` | the two pinned strings | **renaming the pinned keys (`loadout`/`systems` → `loadoutString`/`systemString`) is a stated one-time manual edit** of five mech records in the same commit, because `pick()` copies only keys the snapshot already has — otherwise `--update-snapshot` writes `loadout: undefined` (`JSON.stringify` drops it) and an array for `systems`, silently losing the pin. `check-all` reports a snapshot still carrying the old keys as a problem naming the fix, so a missed rename fails loudly instead of losing coverage |
+| `tools/roster-snapshot.json` | the two pinned strings | **renaming the pinned keys (`loadout`/`systems` → `loadoutString`/`systemString`) is a stated one-time manual edit** in the same commit, because `pick()` copies only keys the snapshot already has — otherwise `--update-snapshot` writes `loadout: undefined` (`JSON.stringify` drops it) and an array for `systems`, silently losing the pin. `check-all` reports a snapshot still carrying the old keys as a problem naming the fix, so a missed rename fails loudly instead of losing coverage. The same edit **adds Averna's two keys**, copied from today's `campaign.js:102`: the snapshot pins only five mechs today and Averna is the one `Main/Aux` record, i.e. the hardest formatter case, so leaving it unpinned would leave test 3 blind where it matters most |
 
 `tools/print-check.cjs`, `tools/plate-check.cjs` and `tools/personnel-*.cjs` do not read either field.
 
@@ -118,8 +119,14 @@ marked `locked` — otherwise an Everest could field a Cyclone Pulse Rifle plus 
 No current record mounts a Superheavy, so no record changes and the lock stays an unexercised-in-
 data path proved by test.
 
+The lock is a rule, not a flag: a locked seat **must be empty**, may exist **only while a Superheavy
+is mounted on that mech**, and there is **at most one** per Superheavy. `canMount` therefore refuses
+any weapon placed into a locked seat (`SLOT LOCKED`), and `check-all` rejects a record carrying
+`locked: true` with nothing mounted on a Heavy seat — otherwise a stray flag would permanently block
+a slot that nothing explains.
+
 `UI.canMount(pilot, build, slotIndex, weapon, catalogue)` → `{ok, reason}`, taking the whole build so
-it can actually decide: reasons `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `NEEDS SECOND MOUNT`,
+it can actually decide: reasons `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `SLOT LOCKED`, `NEEDS SECOND MOUNT`,
 `OVER SP CAP`, `UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`, `DUPLICATE UNIQUE ITEM`, `AI LIMIT`.
 Uniqueness is a real gate, not a nicety: 104 systems and 3 weapons carry `tg_unique`
 (`Personalizations`, `Custom Paint Job`, `Type-3 Projected Shield`, `EVA Module` among them), and 13
@@ -180,9 +187,10 @@ and never gate: Apocalypse Rail's `Charge Rail: 4` profile carries `val: "N/A"`,
 distance` rule can read.
 
 Accuracy is reported as **two fields, never summed**: `mech.attackBonus` (the flat Grit-derived
-number on the roll) and the weapon's own dice from `Accurate` / `Inaccurate` tags (`AMR`, `Howitzer`
-and `HMG` are `Inaccurate`) — LANCER adds or removes a d6, it does not change the flat bonus. Frames
-have no attack-bonus field, and pilot talents stay out of v1.
+number on the roll) and the weapon's own dice from `Accurate` / `Inaccurate` tags — LANCER adds or
+removes a d6, it does not change the flat bonus. Only the Howitzer and the HMG are `Inaccurate`; the
+Anti-Materiel Rifle is `Accurate` (`tg_accurate`), so test 5 must expect **+1** for it. Frames have no
+attack-bonus field, and pilot talents stay out of v1.
 
 The slider is a display: a stub DOM has no layout engine, so geometry is a chromium probe reported as
 a probe, never as a passing test.
@@ -190,7 +198,7 @@ a probe, never as a passing test.
 ## Export, and the write path
 
 One path: `UI.exportLoadout(mech)` emits the mech id, mounts and systems, and
-`tools/apply-compcon.cjs --loadout <mech> <block>` writes them into `campaign.js`. Three defects must
+`tools/apply-compcon.cjs --loadout <mech> <block>` writes them into `campaign.js`. Six defects must
 be fixed first, all reproduced:
 
 1. **The value matcher cannot round-trip these values.** `applyToText` matches
@@ -209,6 +217,11 @@ be fixed first, all reproduced:
    `build-detail.cjs:8` only tolerates missing lancer-data under `--check`; without the guard it
    throws. `--loadout` therefore checks for the data directory *before* touching `campaign.js` and
    stops with the regen command and the reason, so a partial write cannot happen.
+6. **Written objects must keep the file's own style.** The array writer (`apply-compcon.cjs:88`)
+   serialises with `JSON.stringify`, so `mounts` would land as `{"slot":"Main","weapons":[…]}`.
+   Hand-written `{ slot: "Main", … }` then never matches, the unchanged-write check at `:97` misses
+   every time, and each run rewrites the region in a different style. The writer must emit the
+   record's existing object style, and re-applying an identical loadout must be a **no-op** (test 6).
 
 **`--loadout` regenerates `detail.js` first** (`node tools/build-detail.cjs`) and then runs
 `check-all`, because any new weapon or system makes `detail.js` stale and `check-all.cjs:184` runs
@@ -227,12 +240,19 @@ wears the same shell and nav as the other pages. Nav: add `loadout.html` to the 
 (`check-all.cjs:85`) **and** a separate assertion that every page's shell links to it — `navPages`
 only asserts a page links to INTEL, not the reverse.
 
+**`tools/render.cjs` grows a third argument first.** Its `mount(page, hash)` builds the sandbox and
+runs the page's scripts inside the same call (`render.cjs:13-23`), so there is no moment at which
+check-all can set a page global before the scripts run. It becomes
+`mount(page, hash, globals = {})`, doing `Object.assign(box, globals)` before the script loop, with
+one `--selftest` line proving a global arrives — the change test 8 depends on.
+
 Glue stays `getElementById` host nodes plus `innerHTML`, because the `render.cjs` stub nodes have no
 `createElement`, no `value`, no `checked`, and a no-op `addEventListener`; building controls via the
 DOM API would throw inside `mount()` and kill check-all. The refusal path is proved through the stub
-by feeding the page a **fixture build through a `window.__LOADOUT_FIXTURE` global that check-all sets
-before `mount("loadout.html")`** — deterministic, no hash or click simulation needed, since the stub
-DOM has neither. If real controls are wanted later, `render.cjs`'s stub and its selftest grow first.
+by feeding the page a **fixture build through a `window.__LOADOUT_FIXTURE` global**, passed as
+`render.cjs`'s new `globals` argument (`mount("loadout.html", "", { __LOADOUT_FIXTURE: … })`) —
+deterministic, no hash or click simulation needed, since the stub DOM has neither. If real controls
+are wanted later, `render.cjs`'s stub and its selftest grow first.
 
 Controls: pilot pick (gated by that pilot's licences), frame pick, one control per mount slot,
 systems pick with the SP counter, distance slider with the readout, export button.
@@ -240,17 +260,23 @@ systems pick with the SP counter, distance slider with the readout, export butto
 ## Tests
 
 Repo rule stands (`AGENTS.md`): failing test first, watch it fail, then implement. Suite:
-`node check-all.cjs && node tools/render.cjs --selftest` — what CI runs.
+`node check-all.cjs && node tools/render.cjs --selftest` — what CI runs. **Tests 6 and 7 live in
+`apply-compcon`'s own `--selftest` and `check-all` spawns it**, because CI calls neither
+`apply-compcon` nor anything else directly (`.github/workflows/check.yml:15` runs exactly the two
+commands above), so a round trip tested anywhere else would never execute in CI.
 
 1. `ll` matches the `LL<n>` token in every pilot's `background`; `licences` is a list of
    `{name, rank}`, empty at LL0.
 2. Every mech's `mounts` are legal under the slot table, every weapon name resolves in the
-   catalogue, and no record carries a `"Superheavy"` slot — today's six records validate.
+   catalogue, no record carries a `"Superheavy"` slot, and **no record carries `locked: true`
+   without a Superheavy mounted** — today's six records validate.
 3. `UI.loadoutString` reproduces each mech's current dossier string exactly and `UI.systemString` its
    systems line; the roster snapshot's pinned strings are unchanged.
 4. Gating refuses each case with its reason: unlicensed item, wrong mount type, slot full, over cap
-   (with the `sys` term on a resolved-frame record, and with an odd-`ll` pilot pinning `ceil`),
-   unknown weapon, duplicate `tg_unique` item, second `tg_ai` system — **and 2 Auxiliary in a `Main`
+   (on a **fixture** Everest with `sys: 3`, cap 7 — every real Everest record has `sys: 0`, so the
+   fixture is what pins the term), a weapon placed into a locked seat, `locked: true` with nothing
+   mounted on a Heavy seat, and an odd-`ll` pilot pinning `ceil`; unknown weapon, duplicate
+   `tg_unique` item, second `tg_ai` system — **and 2 Auxiliary in a `Main`
    are refused while 2 Auxiliary in a `Main/Aux` are accepted**. A Superheavy weapon in a Heavy is
    refused `NEEDS SECOND MOUNT` on its own and **accepted once another seat is locked**.
 5. `UI.rangeReadout` at fixed distances: a Threat-only weapon out of range at 5, a Range weapon in
@@ -258,11 +284,12 @@ Repo rule stands (`AGENTS.md`): failing test first, watch it fail, then implemen
    `Blast` band reading "out of band, in blast" just past its band, a non-numeric band (Apocalypse
    Rail) that never gates, and accuracy reported as `attackBonus` and the dice separately rather
    than one summed number.
-6. `apply-compcon --loadout` round trip through the exported `parseLoadoutBlock`: parse the export,
-   apply it to `campaign.js` text, re-load the result — including a multi-item systems list, a value
-   containing a comma, and an **empty** systems list.
+6. `apply-compcon --loadout` round trip through the exported `parseLoadoutBlock`, in that tool's
+   `--selftest`: parse the export, apply it to `campaign.js` text, re-load the result — including a
+   multi-item systems list, a value containing a comma, an **empty** systems list, and a **no-op
+   re-apply** (byte-identical text, objects in the file's own style).
 7. The `--loadout` mode leaves `hpNow`, `structure`, `stress`, `heatNow`, `repairsNow` and
-   `conditions` untouched.
+   `conditions` untouched (also in `apply-compcon --selftest`).
 8. `loadout.html` mounts in the stub DOM with a `window.__LOADOUT_FIXTURE` build and renders a
    refusal beside the control that caused it.
 
