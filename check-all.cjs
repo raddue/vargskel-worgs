@@ -263,8 +263,6 @@ if (!page.includes('id="record-detail"')) problems.push('intel.html: in-place re
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map still exposes chassis selection controls');
-/* The index holomap is built by an inline script that mount() cannot run, so its key and the
-   current-op marker are asserted in source until the page gets a render-level check. */
 /* Two-level holomap. The builder is pure (UI.holomap), so both frames are asserted as markup
    rather than as source substrings — which is all the inline script in index.html allowed. */
 {
@@ -289,6 +287,26 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
       ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${lvl}") draws ${id}, which campaign.js does not mark ${lvl}`); }); });
     if (!fames.THEATER.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("THEATER") key has no SYSTEM VIEW chip');
     if (fames.SYSTEM.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("SYSTEM") key offers SYSTEM VIEW, which is where it already is');
+    /* The ring and the key are asserted against the rendered markup, recomputed here from
+       campaign.js: the green ring belongs to an op actually flown, never a planned one, and the
+       key lists exactly the kinds the frame carries, no more and no less. */
+    const curLoc = (o => o && o.type !== "PLANNED" && o.status !== "UNBRIEFED" ? o.loc : "")(D.ops[0]);
+    Object.keys(fames).forEach(lvl => {
+      const { world, key } = fames[lvl], here = D.locations.filter(l => l.level === lvl);
+      const cls = new Map([...world.matchAll(/class="node([^"]*)" data-loc="([^"]+)"/g)].map(m => [m[2], m[1]]));
+      here.forEach(l => {
+        const c = cls.get(l.id) || "";
+        if (c.includes(" cur") !== (l.id === curLoc)) problems.push(`UI.holomap("${lvl}"): ${l.id} carries the current-op ring against the flown-op rule`);
+        if (c.includes(" unv") !== !l.visited) problems.push(`UI.holomap("${lvl}"): ${l.id}'s unvisited marker disagrees with its visited flag`);
+      });
+      const kinds = [...new Set(here.map(l => l.kind))];
+      const labels = [...key.matchAll(/<span class="k-shape [^"]*"><\/span>([^<]+)<\/li>/g)].map(m => m[1])
+        .filter(t => t !== "UNVISITED" && t !== "CURRENT OP");
+      kinds.forEach(k => { if (!labels.includes(k)) problems.push(`UI.holomap("${lvl}") key omits kind ${k}, which the frame carries`); });
+      labels.forEach(k => { if (!kinds.includes(k)) problems.push(`UI.holomap("${lvl}") key lists kind ${k}, which no node on the frame carries`); });
+      if (key.includes("UNVISITED") !== here.some(l => !l.visited)) problems.push(`UI.holomap("${lvl}") key's UNVISITED entry disagrees with the frame's visited flags`);
+      if (key.includes("CURRENT OP") !== here.some(l => l.id === curLoc)) problems.push(`UI.holomap("${lvl}") key's CURRENT OP entry disagrees with the flown-op rule`);
+    });
     /* The missing principals are identified by portrait on the map pane, not only by name. */
     const missingPane = HOLO.unitFile ? HOLO.unitFile("elysia") : "";
     if (!HOLO.unitFile) problems.push("archive.js: UI.unitFile(id) missing, so the map pane cannot be checked");
