@@ -3,14 +3,14 @@ ticket: "#26"
 title: "Mechbay: interactive loadout sandbox with a range finder"
 date: "2026-10-19"
 source: "design"
-revision: 3
+revision: 4
 ---
 
 # Mechbay: interactive loadout sandbox with a range finder
 
-Revision 3, after two adversarial review rounds (round 1: 5 Critical / 6 Significant / 5 Minor;
-round 2: 1 / 8 / 6). Every finding from both rounds is resolved below; where a rule was in doubt the
-answer now comes from `lancer-data`, not from memory.
+Revision 4, after three adversarial review rounds (round 1: 5 Critical / 6 Significant / 5 Minor;
+round 2: 1 / 8 / 6; round 3: 1 / 4 / 5). Every finding from all three rounds is resolved below; where
+a rule was in doubt the answer comes from `lancer-data` and `COMP/CON`, not from memory.
 
 ## Problem
 
@@ -64,7 +64,9 @@ Verified against `@massif/lancer-data` 3.1.7.
   `background`.
 - **Mech mounts:** replace the `loadout` string with
   `mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)", "Nexus (Light)"] }, …]`, in the
-  frame's printed slot order. This list is the record's slot layout.
+  frame's printed slot order. This list is the record's slot layout. A seat may carry
+  `locked: true`: a Superheavy weapon (see below) consumes its Heavy seat **and** locks one more
+  seat, which is a field on the record because the lock is part of the build, not a page detail.
 - **Mech systems:** replace the `systems` string with a list of names.
 - **Derived display:** `UI.loadoutString(mech)` and `UI.systemString(mech)` in `archive.js` render
   exactly the copy the dossiers print today — slots joined by `" · "`, weapons inside a slot by
@@ -78,9 +80,9 @@ Verified against `@massif/lancer-data` 3.1.7.
 | `archive.js:182, 263, 285, 294` | both | call the formatters |
 | `tools/build-detail.cjs:61, 70` (`loadoutItems`, `list`) | both | take the structured fields |
 | `check-all.cjs:521-527` | `m.loadout` | `find(m => m.loadout …)` picks `C.mechs[0]` and then calls `.includes()` on `undefined`, killing the suite — use the formatter |
-| `check-all.cjs:98-107` (snapshot compare **and** `pick()` under `--update-snapshot`) | raw record fields | **pins derived strings under new keys** `loadoutString` / `systemString`, computed by a `snapshotView(rec)` helper that calls the same `UI` formatters (check-all already loads `archive.js` in a vm sandbox). A raw-field copy would drop `loadout` (now undefined) and store an array for `systems`, silently losing the pin on the next `--update-snapshot` |
+| `check-all.cjs:98-107` (snapshot compare **and** `pick()` under `--update-snapshot`) | raw record fields | **pins derived strings under new keys** `loadoutString` / `systemString`, written and compared through one `snapshotView(rec)` helper. The helper calls `UI.loadoutString` / `UI.systemString` — so the `document`/`matchMedia` stub and the `archive.js` vm load currently sitting at `check-all.cjs:201-208` **move above line 98** (contract: one hoisted `UI` instance serves both the snapshot compare and the later markup checks). `archive.js:351-353` touches `matchMedia` and `document.querySelectorAll` at load, so it cannot run in the bare `{ window: {} }` sandbox that loads `campaign.js`; the stub must exist first |
 | `tools/apply-compcon.cjs` `finish()` | runs `check-all --update-snapshot` | inherits the helper above; no separate change |
-| `tools/roster-snapshot.json` | the two pinned strings | regenerated once via `--update-snapshot`; copy unchanged, so no dossier text moves |
+| `tools/roster-snapshot.json` | the two pinned strings | **renaming the pinned keys (`loadout`/`systems` → `loadoutString`/`systemString`) is a stated one-time manual edit** of five mech records in the same commit, because `pick()` copies only keys the snapshot already has — otherwise `--update-snapshot` writes `loadout: undefined` (`JSON.stringify` drops it) and an array for `systems`, silently losing the pin. `check-all` reports a snapshot still carrying the old keys as a problem naming the fix, so a missed rename fails loudly instead of losing coverage |
 
 `tools/print-check.cjs`, `tools/plate-check.cjs` and `tools/personnel-*.cjs` do not read either field.
 
@@ -98,21 +100,31 @@ Auxiliary seats. Flex additionally takes the book's two-Auxiliary fit:
 |---|---|
 | `Main` | 1 of {Main, Auxiliary} |
 | `Flex` | 1 of {Main, Auxiliary}, or 2 Auxiliary |
-| `Heavy` | 1 of {Superheavy, Heavy, Main, Auxiliary} |
-| `Main/Aux` | up to 1 Main + up to 1 Auxiliary |
+| `Heavy` | 1 of {Heavy, Main, Auxiliary}, or 1 Superheavy **plus one locked seat** |
+| `Main/Aux` | up to 2 Auxiliary, or 1 Main + 1 Auxiliary (a Main seat holds an Auxiliary, so both seats may be Auxiliary) |
 | `Aux/Aux` | up to 2 Auxiliary |
 
 Every current record passes, checked slot by slot: Averna `Main/Aux[Main,Aux]` + `Flex[2 Aux]`;
 Tombstone `Main[Aux]` + `Flex[Main]` + `Heavy[Heavy]`; Wayward `Main[Main]` + `Flex[2 Aux]` +
-`Heavy[Heavy]`; Scooteroo `Main[Main]` + `Flex[RPG, Main]` + `Heavy[Howitzer]`; Skaldr
+`Heavy[Heavy]`; Scooteroo `Main[Main]` + `Flex[RPG, which is a Main]` + `Heavy[Howitzer]`; Skaldr
 `Main[Main]` + `Flex[Main]` + `Heavy[Heavy]`; Alba `Main[Aux]` + `Flex[2 Aux]` + `Heavy[Heavy]`.
 The Cyclone Pulse Rifle (Superheavy) is legal in a Heavy slot, so it is offerable at LL0 rather than
 unplaceable. `check-all` asserts this list, so "the six records validate" is a test.
 
+**Superheavy takes two seats.** `mount_fittings` says a Heavy seat fits a Superheavy size; LANCER
+adds that the weapon requires a Heavy mount *and one more mount of any type, which is then locked*.
+So placing a Superheavy in a Heavy seat is refused with `NEEDS SECOND MOUNT` until another seat is
+marked `locked` — otherwise an Everest could field a Cyclone Pulse Rifle plus a full Main and Flex.
+No current record mounts a Superheavy, so no record changes and the lock stays an unexercised-in-
+data path proved by test.
+
 `UI.canMount(pilot, build, slotIndex, weapon, catalogue)` → `{ok, reason}`, taking the whole build so
-it can actually decide: reasons `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `OVER SP CAP`,
-`UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`. `UI.spCheck(build, frame, catalogue)` is separate, since
-the cap depends on the whole build.
+it can actually decide: reasons `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `NEEDS SECOND MOUNT`,
+`OVER SP CAP`, `UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`, `DUPLICATE UNIQUE ITEM`, `AI LIMIT`.
+Uniqueness is a real gate, not a nicety: 104 systems and 3 weapons carry `tg_unique`
+(`Personalizations`, `Custom Paint Job`, `Type-3 Projected Shield`, `EVA Module` among them), and 13
+systems carry `tg_ai` with a one-AI-per-mech limit. `UI.spCheck(build, frame, catalogue)` is
+separate, since the cap depends on the whole build.
 
 ## Catalogue
 
@@ -127,18 +139,20 @@ false) and the same `--check` staleness gate. Mechanical fields only; prose is `
 
 **Not offered** by the bay, though still resolvable for display: placeholder records (`ERR: DATA NOT
 FOUND`, ids `missing_*`), `Ship-class` weapons, `id` ending `_integrated` (Latch Drone, M35 Mjolnir,
-ZF4 SOLIDCORE — frame-integrated, no licence), and `talent_item: true` (Fuel Rod Gun, Prototype
-Weapon I-III, Ammo Case I-III, the NHP classes). Scooteroo's `Ammo Case I` is one of those: it stays
+ZF4 SOLIDCORE, Apocalypse Rail — frame-integrated, no licence), and `talent_item: true` (Fuel Rod
+Gun, Prototype Weapon I-III, Ammo Case I-III, the NHP classes). Scooteroo's `Ammo Case I` is one of those: it stays
 resolvable so the dossier still prints it, and the bay shows it as talent-granted rather than
 purchasable.
 
 ## System points
 
-Cap = `frame.stats.sp + floor(mech.sys / 2) + floor(pilot.ll / 2)` — the LANCER formula, and both
-inputs already sit on the records (`campaign.js` `sys`, and `ll` added above). Everest cap for the
+Cap = `frame.stats.sp + floor(mech.sys / 2) + ceil(pilot.ll / 2)` — the LANCER formula, and both
+inputs already sit on the records (the mech's `sys`, and `ll` added above). Grit is half LL rounded
+**up**, so `floor` would cap every odd-LL pilot one point short; all six pilots are LL0 today, which
+is exactly why this needs test 4 to pin the term rather than the current data. Everest cap for the
 four LL0 Everest records (all `sys: 0`) is 6, which is exactly what Tombstone, Scooteroo, Skaldr and
 Alba spend, so the tested cap path is real. **Unknown cap** when the frame does not resolve in the
-data (Averna, Wayward): the page says so instead of refusing, and the pilot's `sys` is still used,
+data (Averna, Wayward): the page says so instead of refusing, and the mech's `sys` is still used,
 so a resolved frame swap shows the right cap for an Averna-y `sys: 2` build.
 
 The total counts systems **and weapons with an `sp` cost**, so the seven SP-costing weapons are not
@@ -151,16 +165,24 @@ and shown `UNKNOWN`, never counted as 0-and-clean.
 `distance`, the band label(s), and the shot's accuracy.
 
 A weapon can fire when **any** of its own gates reaches the distance: `Range N`, `Line N`, `Cone N`,
-`Burst N`, `Threat N`, `Thrown N` when `N >= distance`. `Blast N` never gates — it is the area a
-`Range` band places. So Bristlecrown (Burst 1), Daisy Cutter (Cone 7), Krakatoa (Cone 5) and
-Annihilation Nexus (Burst 2) can fire, Tactical Knife's `Thrown 3` extends its reach to 3, and
-Pistol's `Range 5` / `Threat 3` are both gates. Bands are reported per profile, so an Assault
-Cannon's alternate fire modes are not blended into one list. Cone and Line weapons are flagged
-"pattern, not proven": a scalar distance cannot prove the pattern, and the readout says so rather
-than implying it.
+`Burst N`, `Threat N`, `Thrown N` when `N >= distance`. So Bristlecrown (Burst 1), Daisy Cutter
+(Cone 7), Krakatoa (Cone 5) and Annihilation Nexus (Burst 2) can fire; Tactical Knife's
+`Thrown 3` — a tag, not a range entry — extends its 1 to 3; Pistol's `Range 5` / `Threat 3` are both
+gates. Bands are reported per profile, so an Assault Cannon's alternate fire modes are not blended
+into one list. Cone and Line weapons are flagged "pattern, not proven": a scalar distance cannot
+prove the pattern, and the readout says so rather than implying it.
 
-Accuracy = `mech.attackBonus` (the record's Grit-derived bonus) plus the weapon's own `Accurate` /
-`Inaccurate` tags. Frames have no attack-bonus field, and pilot talents stay out of v1.
+Three states, not two, because `Blast N` reaches past its band: the centre must sit inside the band,
+but the blast still covers up to `N` further. A target beyond the band but within `Range + N` reads
+"out of band, in blast" — the readout would otherwise call Missile Rack at 11, RPG at 11-12 and
+Howitzer at 21-22 out of range when the blast lands there. Non-numeric band values are shown as-is
+and never gate: Apocalypse Rail's `Charge Rail: 4` profile carries `val: "N/A"`, which no `N >=
+distance` rule can read.
+
+Accuracy is reported as **two fields, never summed**: `mech.attackBonus` (the flat Grit-derived
+number on the roll) and the weapon's own dice from `Accurate` / `Inaccurate` tags (`AMR`, `Howitzer`
+and `HMG` are `Inaccurate`) — LANCER adds or removes a d6, it does not change the flat bonus. Frames
+have no attack-bonus field, and pilot talents stay out of v1.
 
 The slider is a display: a stub DOM has no layout engine, so geometry is a chromium probe reported as
 a probe, never as a passing test.
@@ -180,6 +202,13 @@ be fixed first, all reproduced:
    systems }`.
 3. Its selftest covers only a one-item list; extend it to a multi-item list and a value containing a
    comma.
+4. **An empty list still gets written.** `applyToText` (`apply-compcon.cjs:91`) skips a field whose
+   value is an empty array, so an export with `systems: []` would silently never land — the write
+   path must treat "empty list" as a value, and test 6 covers it.
+5. **Missing rules data stops the run.** `--loadout` regenerates `detail.js` first, and
+   `build-detail.cjs:8` only tolerates missing lancer-data under `--check`; without the guard it
+   throws. `--loadout` therefore checks for the data directory *before* touching `campaign.js` and
+   stops with the regen command and the reason, so a partial write cannot happen.
 
 **`--loadout` regenerates `detail.js` first** (`node tools/build-detail.cjs`) and then runs
 `check-all`, because any new weapon or system makes `detail.js` stale and `check-all.cjs:184` runs
@@ -200,9 +229,10 @@ only asserts a page links to INTEL, not the reverse.
 
 Glue stays `getElementById` host nodes plus `innerHTML`, because the `render.cjs` stub nodes have no
 `createElement`, no `value`, no `checked`, and a no-op `addEventListener`; building controls via the
-DOM API would throw inside `mount()` and kill check-all. One mount test asserts a rendered refusal
-for a fixture build, so the refusal path is proved through the stub rather than assumed. If real
-controls are wanted later, `render.cjs`'s stub and its selftest grow first.
+DOM API would throw inside `mount()` and kill check-all. The refusal path is proved through the stub
+by feeding the page a **fixture build through a `window.__LOADOUT_FIXTURE` global that check-all sets
+before `mount("loadout.html")`** — deterministic, no hash or click simulation needed, since the stub
+DOM has neither. If real controls are wanted later, `render.cjs`'s stub and its selftest grow first.
 
 Controls: pilot pick (gated by that pilot's licences), frame pick, one control per mount slot,
 systems pick with the SP counter, distance slider with the readout, export button.
@@ -219,17 +249,22 @@ Repo rule stands (`AGENTS.md`): failing test first, watch it fail, then implemen
 3. `UI.loadoutString` reproduces each mech's current dossier string exactly and `UI.systemString` its
    systems line; the roster snapshot's pinned strings are unchanged.
 4. Gating refuses each case with its reason: unlicensed item, wrong mount type, slot full, over cap
-   (with the `sys` term, on a resolved-frame record), unknown weapon — **and 2 Auxiliary in a `Main`
-   and in a `Heavy` are refused**, while a Superheavy weapon in a Heavy is accepted.
+   (with the `sys` term on a resolved-frame record, and with an odd-`ll` pilot pinning `ceil`),
+   unknown weapon, duplicate `tg_unique` item, second `tg_ai` system — **and 2 Auxiliary in a `Main`
+   are refused while 2 Auxiliary in a `Main/Aux` are accepted**. A Superheavy weapon in a Heavy is
+   refused `NEEDS SECOND MOUNT` on its own and **accepted once another seat is locked**.
 5. `UI.rangeReadout` at fixed distances: a Threat-only weapon out of range at 5, a Range weapon in
-   range at 5, a **Cone-only weapon (Daisy Cutter) in range at 5**, a `Blast` band treated as area
-   rather than a gate, `Thrown 3` in range at 3, and accuracy = `attackBonus` + tag modifiers.
+   range at 5, a **Cone-only weapon (Daisy Cutter) in range at 5**, `Thrown 3` in range at 3, a
+   `Blast` band reading "out of band, in blast" just past its band, a non-numeric band (Apocalypse
+   Rail) that never gates, and accuracy reported as `attackBonus` and the dice separately rather
+   than one summed number.
 6. `apply-compcon --loadout` round trip through the exported `parseLoadoutBlock`: parse the export,
-   apply it to `campaign.js` text, re-load the result — including a multi-item systems list and a
-   value containing a comma.
+   apply it to `campaign.js` text, re-load the result — including a multi-item systems list, a value
+   containing a comma, and an **empty** systems list.
 7. The `--loadout` mode leaves `hpNow`, `structure`, `stress`, `heatNow`, `repairsNow` and
    `conditions` untouched.
-8. `loadout.html` mounts in the stub DOM and renders a refusal beside the control that caused it.
+8. `loadout.html` mounts in the stub DOM with a `window.__LOADOUT_FIXTURE` build and renders a
+   refusal beside the control that caused it.
 
 ## Risks
 
