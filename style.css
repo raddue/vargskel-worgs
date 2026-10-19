@@ -132,3 +132,21 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
   .pagebar{display:none}
   .tabpanel[hidden]{display:block!important}
 }
+
+/* #26 loadout sandbox: the page's own controls, in the site's palette */
+.lo-distrow{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.lo-distrow input[type=range]{flex:1 1 auto;accent-color:var(--cyan)}
+#lo-dist-val{color:var(--lime);font-weight:700;min-width:2ch;text-align:right}
+.lo-dist-unit{color:var(--muted);font-size:.72rem;letter-spacing:.14em}
+.lo-slot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid var(--line);border-radius:2px;padding:8px 10px;margin:0 0 8px}
+.lo-slot-name{min-width:12ch;color:var(--muted);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.lo-wep{color:var(--text)}
+.lo-wep.muted{color:var(--muted);font-style:italic}
+.lo-lock,.lo-refusal{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.lo-lock{color:var(--cyan)}
+.lo-refusal{color:var(--rust)}
+.lo-drop,.lo-pick{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:2px;font:inherit;font-size:.85rem;padding:2px 6px}
+.lo-drop:hover,.lo-pick:hover{border-color:var(--cyan)}
+.lo-rw{display:flex;gap:10px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--line)}
+.lo-acc{color:var(--lime);font-weight:700;min-width:8ch}
+.lo-prof{color:var(--muted);font-size:.8rem}
