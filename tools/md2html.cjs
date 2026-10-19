@@ -88,6 +88,45 @@ function blocks(lines) {
   return H;
 }
 
+/* Keyword hover tooltips: native browser titles, no JS. Definitions are the terse
+   status text and tag/glossary text from @massif/lancer-data 3.1.7. */
+const TERMS = {
+  "Involuntary Movement": "Forced movement in a straight line. It does not provoke reactions or Engagement unless specified otherwise, but is still blocked by obstructions.",
+  "Save Target": "When you force a save, the target must match or beat your mech's Save Target or take the consequences. GRIT is added to it.",
+  "Tech Attack": "Added to tech attacks instead of GRIT. A tech attack is rolled against the target's E-Defense.",
+  Impaired: "Receives +1 Difficulty on all attacks, saves, and skill checks.",
+  Slowed: "Cannot Boost, or make any special move granted by talents, systems, or weapons.",
+  Jammed: "Cannot use comms, make attacks other than Improvised Attack, Grapple or Ram, or take reactions.",
+  Immobilized: "Cannot make any voluntary movement.",
+  Prone: "Attacks against it gain +1 Accuracy. It is Slowed and counts as moving in difficult terrain.",
+  "Lock On": "A hostile character can consume it for +1 Accuracy on their next attack against this character.",
+  Shredded: "Does not benefit from Armor or Resistance.",
+  Invisible: "Attacks against it have a 50 percent chance to miss before the attack roll is made.",
+  Hidden: "Cannot be targeted by hostile attacks or actions, and does not cause Engagement.",
+  Engaged: "Ranged attacks made by this character gain +1 Difficulty, and all additional movement is lost.",
+  Exposed: "All Kinetic, Explosive, or Energy damage taken by this character is doubled.",
+  "Shut Down": "While Shut Down, mechs are Stunned indefinitely.",
+  Smart: "Attacks with this weapon use the target's E-Defense instead of Evasion (no E-Defense counts as 8).",
+  Seeking: "Ignores cover and does not require line of sight, so long as a path to the target can be drawn.",
+  Loading: "Must be reloaded after each use. Mechs reload with the Stabilize action.",
+  Blast: "Affects characters within its radius of a point within Range and line of sight.",
+  Unique: "Cannot be duplicated: a character can only have one copy installed at a time.",
+  AI: "One AI system per mech. AIs cannot benefit from talents, and have a small chance of cascading when they take structure or stress damage.",
+  GRIT: "Half your LL, rounded up. Added to your mech's HP, SP, attack rolls and Save Target.",
+  "E-Defense": "How hard this mech is to hit with electronic and guided weapons and systems.",
+  Evasion: "How hard this mech is to hit with ranged and melee attacks."
+};
+const TERM_RX = new RegExp("\\b(" + Object.keys(TERMS).join("|") + ")\\b", "g");
+
+/* One left-to-right pass per text node, so inserted markup is never rescanned. Fenced
+   code keeps its text; tag segments are left alone so attributes are never touched. */
+function tooltips(html) {
+  return html.split(/(<pre>[\s\S]*?<\/pre>)/).map(part =>
+    /^<pre>/.test(part) ? part : part.split(/(<[^>]+>)/)
+      .map(seg => /^</.test(seg) ? seg : seg.replace(TERM_RX, m => `<abbr title="${TERMS[m]}">${m}</abbr>`))
+      .join("")).join("");
+}
+
 function render() {
   const H = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
   const p = x => "../../" + x;
@@ -127,6 +166,7 @@ function render() {
 .guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
 .guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
 .guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
 </head>
 <body>
@@ -137,7 +177,7 @@ function render() {
 <nav class="nav"><a href="${p("index.html")}#overview">OVERVIEW</a><a href="${p("index.html")}#missions">MISSIONS</a><a href="${p("intel.html")}">INTEL</a><a href="${p("pilots.html")}">PILOTS</a><a href="${p("mechbay.html")}">MECHS</a></nav>
 <div class="status">● CREW STATUS: ACTIVE</div>
 </header>
-<main class="guide">${H.join("\n")}</main>
+<main class="guide">${tooltips(H.join("\n"))}</main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
 </body>
