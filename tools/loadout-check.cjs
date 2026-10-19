@@ -277,6 +277,12 @@ else {
     }
   }
 
+  /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
+  const hero = mount("mech.html", "#alba").html("dossier");
+  if (!/object-position:\s*center 41%/.test(hero)) errs.push("Alba's hero must focus the head and chest, not the rifle");
+  const plainHero = mount("mech.html", "#tombstone").html("dossier");
+  if (/object-position/.test(plainHero)) errs.push("only a record with imgFocus may override the hero crop");
+
   /* the checklist seeds the record's printed systems as names, ticks one, and puts it back */
   const sysPage = mount("loadout.html", "#averna");
   const beforeSys = sysPage.html("lo-export");
