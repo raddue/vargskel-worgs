@@ -10,6 +10,9 @@ function stub(id, attrs = "", register) {
   const val = /(?:^|\s)value="([^"]*)"/.exec(attrs), chk = /(?:^|\s)checked(\s|>|$|=)/.test(attrs), dis = /(?:^|\s)disabled(\s|>|$|=)/.test(attrs);
   const classList = { add: (...c) => c.forEach(x => cls.add(x)), remove: (...c) => c.forEach(x => cls.delete(x)), contains: c => cls.has(c), toggle: (c, on = !cls.has(c)) => (on ? cls.add(c) : cls.delete(c), on) };
   /* listeners records what a page wired; fire lets a check drive it the way a visitor would */
+  /* Two invariants the page gates depend on (tools/loadout-check.cjs, check-all.cjs): the
+     innerHTML setter keeps calling register so ids written in markup become stubs, and fire
+     iterates a snapshot of the listener list, so a handler added mid-dispatch does not run. */
   let markup = "";
   return {
     id,

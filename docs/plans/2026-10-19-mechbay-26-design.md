@@ -3,7 +3,7 @@ ticket: "#26"
 title: "Mechbay: interactive loadout sandbox with a range finder"
 date: "2026-10-19"
 source: "design"
-revision: 11
+revision: 12
 ---
 
 # Mechbay: interactive loadout sandbox with a range finder
@@ -172,6 +172,10 @@ decision that also writes cannot be asked without being obeyed. `seat` is the in
  and `SLOT LOCKED`; on `ok` removes the seat's weapon and **clears the lock** when the weapon
  removed was a Superheavy, since the lock has no meaning without it and an export left behind
  would fail test 2. Bad `slotIndex` used to throw; it refuses now.
+ `unplace` packs the seat list rather than leaving a hole: a seat index is a position in the
+ list, not a stable seat, so removing a weapon shifts the ids of the controls beside the seats
+ that remain. Packing is safe because the fitting table allows either order in a Main/Aux mount;
+ preserving holes would need a null seat the export grammar cannot carry.
 - `UI.setFrame(build, frame, catalogue, pilot)` → `{ok, reason, build}` refuses `UNLICENSED` or
   `UNKNOWN FRAME LICENCE` and **resets `mounts` to the new frame's slot list**, because mounts
   carried over from another frame are the silent mismatch the export check exists to catch;
