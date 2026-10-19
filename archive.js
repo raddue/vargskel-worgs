@@ -237,9 +237,9 @@ function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=
 const histHost=el("conflict-history");
 if(histHost){const o=C.ops.find(x=>String(x.id)===histHost.dataset.op);
  histHost.innerHTML=o&&o.history&&o.history.length?`<div class="card"><div class="card-pad">`+o.history.map(p=>`<p>${esc(p)}</p>`).join("")+`</div></div>`:"";}
-/* Campaign ledger: append-only session rows, one per pilot per session, logged with
-   node tools/apply-compcon.cjs --log "<pilot> dealt=14 taken=9" --write. Career totals
-   and record holders are derived here so the rows stay the only source of truth. */
+/* Campaign ledger: append-only session rows, one per pilot per session. Rows come from the block
+   campaign.html builds, applied by tools/apply-compcon.cjs. Career totals and record holders are
+   derived here so the rows stay the only source of truth. */
 const LEDGER_STATS=[["dealt","DAMAGE DEALT"],["taken","DAMAGE TAKEN"],["structure","STRUCTURE DMG"],["repairs","REPAIRS"],["hacks","HACKS"],["kills","KILLS"],["heat","HEAT DMG"],["overcharge","OVERCHARGE"],["core","CORE USES"],["moves","MOVES"]];
 const shortName=id=>{const p=P[id];if(!p)return String(id);const nw=p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").replace(/\s+/g," ").trim().split(" ");return nw.length>1?nw[0].charAt(0)+". "+nw[nw.length-1]:nw[0]};
 /* Pure over the rows it is given: returns the count text and the markup, so checks can

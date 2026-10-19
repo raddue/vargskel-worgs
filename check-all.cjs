@@ -92,6 +92,8 @@ navPages.forEach(p => {
 navPages.forEach(p => {
   const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
   if (!/href="campaign\.html">CAMPAIGN</.test(src)) problems.push(`${p}: nav must link to campaign.html as CAMPAIGN`);
+  /* One status label on every page: two different ones changed the box width and dragged the nav. */
+  if (!/● DEPLOYMENT STATUS: [A-Z]+</.test(src)) problems.push(`${p}: the status chip must read CLASS "DEPLOYMENT STATUS", not a per-page label`);
 });
 const intelPage = fs.readFileSync(__dirname + "/intel.html", "utf8");
 if (!/id="holomap"/.test(intelPage)) problems.push("intel.html must carry the holomap section the map builds into");
