@@ -60,7 +60,7 @@ for (const m of C.mechs) {
 const frameless = [];
 for (const w of W) if (w.source === "GMS" || wanted.has(norm(w.name))) CATALOGUE.weapons[w.name] ||= weapon(w);
 for (const s of S) if (s.source === "GMS" || wanted.has(norm(s.name))) CATALOGUE.systems[s.name] ||= system(s);
-for (const f of F) if (f.source === "GMS" || wantedFrames.has(norm(`${f.source} ${f.name}`))) CATALOGUE.frames[`${f.source} ${f.name}`] ||= frame(f);
+for (const f of F) if (f.source === "GMS" || wantedFrames.has(norm(`${f.source} ${f.name}`))) CATALOGUE.frames[`${f.source} ${f.name}`] ||= { ...frame(f), name: `${f.source} ${f.name}` };
 for (const k of wantedFrames) if (!iF.has(k)) frameless.push(k);
 for (const k of wanted) if (!iW.has(k) && !iS.has(k)) console.log("note: campaign item absent from lancer-data:", k);
 

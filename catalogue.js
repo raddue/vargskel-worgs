@@ -707,7 +707,8 @@ window.CATALOGUE = {
    "sys": 6,
    "license": "GMS",
    "license_level": 0,
-   "mechtype": "Balanced"
+   "mechtype": "Balanced",
+   "name": "GMS ERR: DATA NOT FOUND"
   },
   "GMS Everest": {
    "mounts": [
@@ -718,7 +719,8 @@ window.CATALOGUE = {
    "sys": 6,
    "license": "GMS",
    "license_level": 0,
-   "mechtype": "Balanced"
+   "mechtype": "Balanced",
+   "name": "GMS Everest"
   }
  },
  "fittings": {

@@ -199,6 +199,24 @@ if (core && cat) {
   };
 
   for (const rec of C.mechs || []) for (const p of recordProblems(rec)) errs.push(`${rec.id}: ${p}`);
+  /* The records spell frames in caps ("GMS EVEREST") while the catalogue is keyed by name. A
+     resolution that misses drops the SP cap silently, so pin both halves of that contract. */
+  {
+    if (!core.frameOf) errs.push("the core must export frameOf so the page and the gate agree on resolution");
+    else if (!core.frameOf({ frame: "GMS EVEREST" }, cat)) errs.push("frameOf must resolve a caps-spelled frame against the catalogue");
+    let resolved = 0;
+    for (const rec of C.mechs || []) {
+      const frame = frameOf(rec);
+      if (!frame) continue;
+      resolved += 1;
+      const chk = core.spCheck(buildOf(rec), frame, cat, pilotOf(rec));
+      if (typeof chk.cap !== "number") errs.push(`${rec.id}: a resolved frame must produce a numeric SP cap`);
+    }
+    if (!resolved) errs.push("no real record's frame resolves, so the SP cap never applies to the roster");
+    /* a frame the catalogue lacks must stay an explicit null cap, not a fabricated one */
+    const missing = core.spCheck(buildOf({ frame: "GMS NOWHERE", sys: 0, mounts: [], systems: [] }), core.frameOf({ frame: "GMS NOWHERE" }, cat), cat, { ll: 0 });
+    if (missing.cap !== null) errs.push("an unresolvable frame must report a null cap rather than a number");
+  }
   /* negative control: the record check must fire on wrong data, not just pass on right data */
   const victim = JSON.parse(JSON.stringify((C.mechs || []).find(m => (m.mounts || []).length) || {}));
   const uniqName = Object.keys(cat.systems).find(n => cat.systems[n].tg_unique);
