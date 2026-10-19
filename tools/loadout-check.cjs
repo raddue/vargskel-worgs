@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+/* #26 loadout checks. Kept in this file rather than in check-all.cjs, because check-all is the
+   shared gate and this is one ticket's assertions; check-all spawns it as a single line.
+   Run: node tools/loadout-check.cjs */
+const fs = require("fs"), path = require("path"), vm = require("vm"), { spawnSync } = require("child_process");
+const ROOT = path.join(__dirname, "..");
+const errs = [];
+
+/* catalogue.js is generated from lancer-data, so a stale or missing copy has to fail here. */
+const catPath = path.join(ROOT, "catalogue.js");
+if (!fs.existsSync(catPath)) errs.push("catalogue.js is missing (run: node tools/build-catalogue.cjs)");
+else {
+  const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
+  vm.runInNewContext(fs.readFileSync(catPath, "utf8"), box, { filename: "catalogue.js" });
+  const CAT = box.window.CATALOGUE;
+  if (!CAT || !CAT.weapons || !CAT.systems || !CAT.frames)
+    errs.push("catalogue.js must define window.CATALOGUE with weapons, systems and frames");
+  else {
+    const w = CAT.weapons["Nexus (Hunter-Killer)"];
+    if (!w) errs.push("catalogue: GMS Nexus (Hunter-Killer) must resolve by name");
+    else {
+      if (w.mount !== "Main") errs.push(`catalogue: Nexus (Hunter-Killer) mount must be Main, got ${JSON.stringify(w.mount)}`);
+      if (!Array.isArray(w.bands) || !w.bands.length) errs.push("catalogue: Nexus (Hunter-Killer) must carry bands");
+    }
+    const s = CAT.systems["Personalizations"];
+    if (!s || s.sp !== 1 || !s.tg_unique) errs.push("catalogue: Personalizations must carry sp 1 and tg_unique");
+    const f = CAT.frames["GMS Everest"];
+    if (!f || !Array.isArray(f.mounts) || f.mounts.join(",") !== "Main,Flex,Heavy")
+      errs.push(`catalogue: GMS Everest must carry mounts Main,Flex,Heavy, got ${JSON.stringify(f && f.mounts)}`);
+  }
+}
+const gen = path.join(__dirname, "build-catalogue.cjs");
+if (!fs.existsSync(gen)) errs.push("tools/build-catalogue.cjs is missing");
+else if (spawnSync(process.execPath, [gen, "--check"], { encoding: "utf8" }).status !== 0)
+  errs.push("catalogue.js stale; regen: node tools/build-catalogue.cjs");
+
+
+/* --- gating (design test 4) ----------------------------------------------------------------
+   On a fixture so the cap is pinned by arithmetic instead of by today's data: a frame with
+   sys 3, a mech with sys 3 and an LL6 pilot give 3 + floor(3/2) + ceil(6/2) = 7. */
+let core, cat;
+if (!fs.existsSync(path.join(ROOT, "loadout.js"))) errs.push("loadout.js is missing");
+else {
+  core = require(path.join(ROOT, "loadout.js"));
+  const CAT = (() => {
+    const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(catPath, "utf8"), box, { filename: "catalogue.js" });
+    return box.window.CATALOGUE;
+  })();
+  if (!CAT.fittings) errs.push("catalogue must carry the mount fitting table from rules.json");
+  else {
+    const FIX_FRAME = { name: "FIXTURE EVEREST", mounts: ["Main", "Flex", "Heavy"], sys: 3 };
+    cat = { weapons: CAT.weapons, systems: CAT.systems, frames: Object.assign({}, CAT.frames, { "FIXTURE EVEREST": FIX_FRAME }), fittings: CAT.fittings };
+    const heavy = Object.keys(cat.weapons).find(n => cat.weapons[n].mount === "Heavy");
+    const gms = "Nexus (Hunter-Killer)";
+    const fixturePilot = { id: "fix", ll: 6, licences: [{ name: "GMS", rank: 1 }] };
+    const build = { mech: "fix", frame: "FIXTURE EVEREST", pilot: "fix", sys: 3,
+      mounts: [{ slot: "Main", weapons: [] }, { slot: "Flex", weapons: [] }, { slot: "Heavy", weapons: [] }], systems: [] };
+    const copy = () => JSON.parse(JSON.stringify(build));
+    const say = (label, got, want) => { if (!got || got.reason !== want) errs.push(`canMount: ${label} must be ${want}, got ${JSON.stringify(got)}`); };
+
+    const cap = core.spCheck(copy(), FIX_FRAME, cat, fixturePilot);
+    if (cap.cap !== 7) errs.push(`spCheck: fixture cap must be 7, got ${JSON.stringify(cap.cap)}`);
+    if (!core.canMount(fixturePilot, copy(), 0, 0, gms, cat).ok) errs.push("canMount: a GMS Main weapon must fit a Main seat");
+    if (!heavy) errs.push("loadout-check: no Heavy weapon in the catalogue to test with");
+    else say("a Heavy weapon in a Main seat", core.canMount(fixturePilot, copy(), 0, 0, heavy, cat), "WRONG MOUNT TYPE");
+    /* Every weapon the subset carries is GMS, since all six pilots are LL0, so the licence gate is
+       tested on a synthetic catalogue entry rather than on today's data. */
+    const licensed = { weapons: Object.assign({ "GATED RIFLE": { mount: "Main", license: "IPS-N", license_level: 1, tags: [] } }, cat.weapons),
+      systems: cat.systems, frames: cat.frames, fittings: cat.fittings };
+    say("a weapon whose licence the pilot lacks", core.canMount({ id: "p", ll: 0, licences: [] }, copy(), 0, 0, "GATED RIFLE", licensed), "UNLICENSED");
+    say("a weapon whose licence rank the pilot has not reached", core.canMount({ id: "p", ll: 1, licences: [{ name: "IPS-N", rank: 0 }] }, copy(), 0, 0, "GATED RIFLE", licensed), "UNLICENSED");
+    if (!core.canMount({ id: "p", ll: 1, licences: [{ name: "IPS-N", rank: 1 }] }, copy(), 0, 0, "GATED RIFLE", licensed).ok)
+      errs.push("canMount: a weapon at or under the held licence rank must be allowed");
+    const two = copy(); two.mounts[0].weapons = [gms];
+    say("a second weapon in one seat", core.canMount(fixturePilot, two, 0, 0, gms, cat), "SLOT FULL");
+    say("an unknown weapon", core.canMount(fixturePilot, copy(), 0, 0, "Nonexistent Rifle", cat), "UNKNOWN WEAPON");
+    /* over cap, on a second fixture with a cap of exactly 0 (frame sys 0, mech sys 0, LL0), so one
+       SP-costing system is already over it. The subset holds no seven-SP build to spend against 7. */
+    const tightFrame = { name: "TIGHT FIXTURE", mounts: ["Main", "Flex", "Heavy"], sys: 0 };
+    const tight = { weapons: cat.weapons, systems: cat.systems, fittings: cat.fittings,
+      frames: Object.assign({}, cat.frames, { "TIGHT FIXTURE": tightFrame }) };
+    const spendy = Object.keys(cat.systems).find(n => cat.systems[n].sp > 0 && !cat.systems[n].tg_unique && !cat.systems[n].tg_ai);
+    if (!spendy) errs.push("loadout-check: no SP-costing system in the catalogue to test the cap with");
+    else {
+      const over = copy(); over.frame = "TIGHT FIXTURE"; over.sys = 0; over.systems = [spendy];
+      const zeroPilot = { id: "z", ll: 0, licences: [{ name: "GMS", rank: 1 }] };
+      const chk = core.spCheck(over, tightFrame, tight, zeroPilot);
+      if (chk.cap !== 0) errs.push(`spCheck: the tight fixture cap must be 0, got ${JSON.stringify(chk.cap)}`);
+      if (chk.ok) errs.push("spCheck: one SP-costing system must exceed a cap of 0");
+      say("an over-cap build", core.canMount(zeroPilot, over, 1, 0, gms, tight), "OVER SP CAP");
+    }
+  }
+}
+
+/* --- the range finder (design test 5) -------------------------------------------------------
+   Real data where the subset carries the weapon; synthetic entries where it does not, because the
+   subset is the set the site can field and no fielded weapon has a Cone, a Line or an N/A band.
+   Daisy Cutter (Cone 7) and Apocalypse Rail's `Charge Rail: 4` profile are both out of it. */
+if (!core || !cat) { /* loadout.js or the catalogue is missing, and that is already reported */ }
+else if (typeof core.rangeReadout !== "function") errs.push("rangeReadout is missing");
+else {
+  const cat2 = { weapons: Object.assign({
+      "SYNTH THREAT": { mount: "Main", bands: [{ kind: "Threat", value: 3 }], tags: [], profiles: [] },
+      "SYNTH CONE": { mount: "Main", bands: [{ kind: "Cone", value: 7 }], tags: [], profiles: [] },
+      "SYNTH RAIL": { mount: "Heavy", bands: [], tags: [], profiles: [{ name: "Charge Rail: 4", bands: [{ kind: "Range", value: "N/A" }], tags: [], damage: [{ val: "N/A" }] }] }
+    }, cat.weapons), systems: cat.systems, frames: cat.frames, fittings: cat.fittings };
+  const withWeapon = name => ({ mech: "x", frame: "FIXTURE EVEREST", pilot: "p", sys: 0, attackBonus: 2,
+    mounts: [{ slot: "Main", weapons: [name] }, { slot: "Flex", weapons: [] }, { slot: "Heavy", weapons: [] }], systems: [] });
+  const fired = (name, distance) => {
+    const rows = core.rangeReadout(withWeapon(name), distance, cat2);
+    return rows && rows[0] && rows[0].profiles && rows[0].profiles[0];
+  };
+  const expect = (label, got, want) => {
+    if (!got) { errs.push(`rangeReadout: ${label} produced no profile`); return; }
+    for (const k of Object.keys(want)) if (got[k] !== want[k])
+      errs.push(`rangeReadout: ${label} ${k} must be ${JSON.stringify(want[k])}, got ${JSON.stringify(got[k])}`);
+  };
+  expect("a Threat 3 band at distance 5", fired("SYNTH THREAT", 5), { canFire: false, state: "out of range" });
+  expect("a Threat 3 band at distance 3", fired("SYNTH THREAT", 3), { canFire: true, state: "in band" });
+  expect("Pistol Range 5 at distance 5", fired("Pistol", 5), { canFire: true, state: "in band" });
+  expect("Pistol Range 5 at distance 9", fired("Pistol", 9), { canFire: false, state: "out of range" });
+  expect("Cone 7 at distance 5", fired("SYNTH CONE", 5), { canFire: true, state: "in band", pattern: true });
+  expect("Thrown 3 at distance 3", fired("Tactical Knife", 3), { canFire: true, state: "in band" });
+  expect("Thrown 3 at distance 4", fired("Tactical Knife", 4), { canFire: false, state: "out of range" });
+  expect("Missile Rack Range 10 Blast 1 at 10", fired("Missile Rack", 10), { canFire: true, state: "in band" });
+  expect("Missile Rack Range 10 Blast 1 at 11", fired("Missile Rack", 11), { canFire: true, state: "out of band, in blast" });
+  expect("Missile Rack Range 10 Blast 1 at 12", fired("Missile Rack", 12), { canFire: false, state: "out of range" });
+  expect("an N/A band at distance 1", fired("SYNTH RAIL", 1), { canFire: false, state: "out of range", note: "band shown as-is: Range N/A" });
+  /* accuracy is two fields, never one summed number */
+  const amr = core.rangeReadout(withWeapon("Anti-Materiel Rifle"), 5, cat2)[0].accuracy;
+  const hmg = core.rangeReadout(withWeapon("Heavy Machine Gun"), 5, cat2)[0].accuracy;
+  if (!amr || amr.attackBonus !== 2 || amr.dice !== 1) errs.push(`rangeReadout: the Accurate tag must give dice +1 beside attackBonus 2, got ${JSON.stringify(amr)}`);
+  if (!hmg || hmg.dice !== -1) errs.push(`rangeReadout: the Inaccurate tag must give dice -1, got ${JSON.stringify(hmg)}`);
+}
+
+if (errs.length) { console.error("loadout: " + errs.length + " problem(s)\n - " + errs.join("\n - ")); process.exit(1); }
+console.log("loadout ok: catalogue resolves and its gate is current");
