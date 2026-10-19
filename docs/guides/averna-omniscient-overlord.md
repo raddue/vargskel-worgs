@@ -152,7 +152,10 @@ WAYWARD, SCOOTEROO, ALBA.
 
 ---
 
-## 3. License Progression Path
+## 3. Progression Path: Licenses & Talents
+
+**Two tracks run in parallel.** Every license level pays into both: **+1 license rank**, **+1 talent
+rank**, **+1 mech skill (HASE)** point, and **+2 to a trigger**.
 
 **License ranks are not character levels.** A rank is bought with a license level, and the two
 licenses below are three ranks each — they can be interleaved in any order from LL1 onward.
@@ -221,6 +224,65 @@ licenses below are three ranks each — they can be interleaved in any order fro
   be fired **1/round as a free action when you fire any other weapon**, and cannot be modified.
 - **Spend it on a third Nexus (Light).** Smart, Auxiliary, and it rides along free whenever the
   Hunter-Killer or the Missile Racks fire.
+
+---
+
+### Talent Progression, LL0 → LL6
+
+**The rule:** you start at **LL0 with three rank I talents**, and every level grants **+1 talent
+rank** — either improve an existing talent (I → II → III) or open a new one at rank I. Ranks must be
+improved in order, so **Technophile III requires Technophile I and II first**.
+
+That is **nine talent ranks by LL6**: three fielded now, six to spend. Six is exactly enough to finish
+the three starting trees — and exactly not enough to also reach **Technophile III**. Choose one.
+
+#### Recommended — Plan A, "The Relay"
+
+| LL | Talent rank | What it unlocks | Why this order |
+|---|---|---|---|
+| **0** | **Hacker I · Spotter I · Leader I** | Snow Crash · Particularize · Field Commander | Fielded already |
+| **1** | **Spotter II — Panopticon** | End your turn **without moving** after a Lock On quick tech → **one extra Lock On as a free action**; also reveals Armor, Speed, Evasion, E-Defense, Mech Skills and HP of anything you mark, shareable with allies | Doubles your marking per turn and hands the lance free intelligence. Upgrade the engine first |
+| **2** | **Spotter III — Bentham/Foucault Elimination** | Quick action when you Lock On: nominate an **adjacent ally**, who may **immediately take any quick action** as a reaction, consuming the mark | The strongest rank in the build: you turn one of your actions into an ally's whole action. This is the "absolute action economy" claim, actually delivered |
+| **3** | **Hacker II — Safe Cracker** | Three new **Invade** options: **Hack./Slash** (target cannot take Quick or Full Tech actions until it reboots or shuts down), **Disable Life Support** (**+1 Difficulty on all saves**), **Jam Cockpit** (cannot Mount or Dismount) | **Disable Life Support is your save-hardener.** This is how the build makes enemies fail saves — not a "+2 Save Target" system. Hack./Slash is the anti-hacker answer |
+| **4** | **Leader II — Open Channels** | **5 Leadership Dice**; issue a command as a **reaction at the start of any other player's turn**, any number of times per round | Converts Leadership from a pool into a reaction economy across the whole squad |
+| **5** | **Leader III — Inspiring Presence** | **6 dice**; allies spend them for **−1d6 damage taken** or **+1d6 damage dealt** | Keeps the strikers alive and hitting. Pure force multiplication |
+| **6** | **Hacker III — Last Argument of Kings** | **Full Tech**: tech attack within Sensors and line of sight; on hit, **Burn equal to the target's current Heat**, resolving before they reset Heat Cap | The finisher. Stack heat with **System Crusher** and **Wide-Area Code Pulse**, then convert the whole pile into Burn |
+
+#### Alternative — Plan B, "Shackled ATHENA"
+
+Same first three ranks, then spend LL4–LL6 on **Technophile I → II → III**:
+
+- **Technophile I — Servant Fragment**: you develop a custom **Servant-Class NHP** that can speak with
+  you, though it cannot act independently.
+- **Technophile II — Student Fragment**: it develops independent thought and complex judgement; upgrades
+  to the **Student-Class NHP**.
+- **Technophile III — Enlightenment**: **AIs installed in your mech cannot enter cascade unless you
+  choose to let them go**, and cascading or unshackled NHPs stop viewing you with indifference.
+
+**Take this if** your GM leans on Cascade, or if you want ATHENA to be a character rather than a
+system. The cost is real: no **Last Argument of Kings** finisher, no **Leader III** dice for the squad.
+
+#### Swaps worth knowing
+
+| Talent | Why it fits this build |
+|---|---|
+| **Stormbringer I — Seismic Deluge** | 1/round, hit with a **Launcher** and consume Lock On → also **knock Prone**. AVERNA carries three Launchers — the **Autopod** and two **Missile Racks** — and wants marks cashed |
+| **Stormbringer II — Stormbending** | 1/round on a Launcher hit: **Lightning** (target makes a **Hull save** or is knocked 3 spaces away) or **Thunder** (**Agility save** on a Burst 2). The cheapest way to make AVERNA force saves against her **Save Target** |
+| **Grease Monkey II — Machine Bond** | When you **Stabilize**, clear **Impaired, Jammed, Immobilized, Slowed and Lock On** conditions that you did not cause yourself. On a **6 Heat Cap** hull facing enemy hackers, this is the reset button. Grease Monkey I is the cost of entry |
+| **Combined Arms I — Shield of Blades** | While **Engaged**, you and adjacent allies count as having **soft cover**. Pairs with the Spotter adjacency requirement — but it does invite melee |
+
+### Mech Skills and GRIT
+
+Every level also hands you **+1 mech skill point** and **+1 GRIT**.
+
+- **Push SYSTEMS.** Each point is **+1 Tech Attack** (your Invades *and* your Smart launchers) and
+  **+1 E-Defense**, plus **+1 SP per two points**. AVERNA runs SYSTEMS 2 now; SYSTEMS 4 or 6 makes her
+  the hardest mech in the lance to hack and the most accurate one in it.
+- **HULL only for HP** (+2 HP per point, **+1 Repair Cap per two points**). Worth considering on a 10 HP
+  frame — but every point of HULL is a point not spent on the build's spine.
+- **GRIT is free Save Target.** GRIT is half your LL rounded up (first point at **LL1**) and adds to
+  **HP, SP, attack rolls, and Save Target**. AVERNA's **Save Target is 11 now and 13 at LL3** — her
+  shutdown tools sharpen themselves as the campaign goes on.
 
 ---
 
