@@ -56,9 +56,11 @@ function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  const stat=w=>table(kw("MOUNT",w.mount)+kw("TYPE",w.type)+kw("DAMAGE",w.damage)+kw("RANGE",w.range)+kw("TAGS",w.tags)+kw("LICENSE",w.license));
  /* One blurb covers every weapon of a manufacturer, so it prints once above the list rather than per weapon. */
  const blurb=[...new Set(items.map(x=>x[1].desc).filter(t=>t&&seen[t]>1))].map(t=>dnote(t)).join("");
- const wep=items.map(([n,w])=>dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
+ /* Each weapon is one grid cell, so a wide monitor reads two or three across instead of one
+    full-width stack each. The blurb stays outside the grid: it covers the whole section. */
+ const wep=`<div class="wep-grid">`+items.map(([n,w])=>`<div class="weapon">`+(dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
   +(w.profiles||[]).map(p=>dhead(p.name)+table(kw("DAMAGE",p.damage)+kw("RANGE",p.range)+kw("TAGS",p.tags))+dnote(p.effect)
-    +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join("")).join("");
+    +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join(""))+`</div>`).join("")+`</div>`;
  const sys=dnames(m.systems).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n)+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
  const f=(d.frames||{})[m.frame];
  const fr=f?dhead(m.frame)+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";
@@ -122,8 +124,8 @@ function holomap(level){
  const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
     hostile areas and the muster hull. situation() owns the roles, the map only draws them. */
- /* One ground can hold two roles — the Rio Grande is both the extraction destination and the
-    recorded muster hull — so a location maps to a list of badges, not to whichever was pushed last. */
+ /* One ground can hold two roles: the Rio Grande is both the extraction destination and the
+    recorded muster hull, so a location maps to a list of badges, not to whichever was pushed last. */
  const marks=new Map();
  situation().badges.forEach(b=>{const a=marks.get(b.loc)||[];a.push(b);marks.set(b.loc,a)});
  const nodes=here.map(l=>{const hosts=hostsOf(l.id),bs=marks.get(l.id)||[];
@@ -205,7 +207,7 @@ const latest=filed[0];
 if(el("hero-tagline")&&C.meta&&C.meta.tagline)el("hero-tagline").textContent=C.meta.tagline;
 const upcoming=ops.filter(o=>o.type==="PLANNED").pop();
 if(el("hero-meta")&&(latest||upcoming))el("hero-meta").innerHTML=(latest?`<div>CURRENT AREA<strong>${esc(L[latest.loc].name)}</strong></div><div>OPEN CONTRACTS<strong>${String(filed.length-filed.filter(o=>/COMPLETED/.test(o.status)).length).padStart(2,"0")}</strong></div><div>LAST DEPLOYMENT<strong>OPERATION ${esc(latest.id)}</strong></div>`:`<div>HEADING<strong>${esc(L[upcoming.loc].name)}</strong></div><div>NEXT DEPLOYMENT<strong>OP ${esc(upcoming.id)} · ${esc(upcoming.title)}</strong></div>`)+(C.meta&&C.meta.updated?`<div>LAST UPDATE<strong>${esc(C.meta.updated)}</strong></div>`:"");
-if(el("stats"))el("stats").innerHTML=[["MISSIONS",filed.length],["COMPLETED",filed.filter(o=>/COMPLETED/.test(o.status)).length],["ACTIVE PILOTS",C.pilots.filter(p=>p.status==="ACTIVE").length],["KNOWN FACTIONS",C.factions.length]].map(([k,v])=>`<div class="stat"><label>${k}</label><strong>${String(v).padStart(2,"0")}</strong></div>`).join("");
+if(el("stats"))el("stats").innerHTML=[["MISSIONS",filed.length],["COMPLETED",filed.filter(o=>/COMPLETED/.test(o.status)).length],["ACTIVE PILOTS",C.pilots.filter(p=>p.status==="ACTIVE").length],["KNOWN FACTIONS",C.factions.length],["KILLS",(C.ledger||[]).reduce((n,e)=>n+(Number(e.kills)||0),0)]].map(([k,v])=>`<div class="stat"><label>${k}</label><strong>${String(v).padStart(2,"0")}</strong></div>`).join("");
 if(el("readiness")){const open=C.threads.filter(t=>t.status!=="CLOSED").length;
  el("ready-count").textContent=`${C.mechs.length} CHASSIS · ${open} OPEN THREADS`;
  el("readiness").innerHTML=`<table class="threads-table"><thead><tr><th>CHASSIS</th><th>PILOT</th><th>ROLE</th><th>HULL</th><th>STATUS</th></tr></thead><tbody>`+C.mechs.map(m=>{const p=P[m.pilot],nw=p?p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").replace(/\s+/g," ").trim().split(" "):[];return `<tr><td>${esc(m.name)}</td><td>${p?esc(nw.length>1?nw[0].charAt(0)+". "+nw[nw.length-1]:nw[0]):"UNASSIGNED"}</td><td class="muted">${esc(m.role||"")}</td><td>${m.hp!=null&&m.hp!==""?`<span class="hp-pips">${"\u25b0".repeat(Math.max(0,Math.round(hpNow(m)/2)))}${"\u25b1".repeat(Math.max(0,Math.round(m.hp/2)-Math.round(hpNow(m)/2)))} ${hpNow(m)}/${m.hp}</span>`:'<span class="muted">\u2014</span>'}</td><td>${mechPill(m)}</td></tr>`}).join("")+"</tbody></table>"+
@@ -252,26 +254,13 @@ const ledgerPanel=log=>{const byPilot=new Map();log.forEach(e=>{const r=byPilot.
  :`<p class="muted">No sessions logged yet.</p>`};
 };
 if(el("ledger-body")){const panel=ledgerPanel(C.ledger||[]);const lc=el("ledger-count");if(lc)lc.textContent=panel.count;el("ledger-body").innerHTML=panel.html;}
-/* Campaign page (#27): the op header and the session-log form. sessionBlock is pure, so the block
-   the page emits is what the suite pins; the form's click wiring cannot run under the stub DOM
-   (no value, no checked, and querySelectorAll returns nothing), which is why none of it lives here. */
+/* Campaign page (#27): the op header. The session-log form that lived here was 60 spinners
+   (10 stats x 6 pilots) with no way to skip a pilot who did not deploy, so it is removed
+   pending #28; a session is logged by hand until that design lands. */
 const opOf=id=>C.ops.find(o=>String(o.id)===String(id));
 const campaignHead=o=>{const loc=C.locations.find(x=>x.id===(o&&o.loc))||{};
  return table(th("OPERATION",esc(o?o.id+" · "+o.title:"UNKNOWN"))+th("THEATER",esc(loc.name||C.meta.station||""))+th("MISSION",o&&o.mission&&o.mission.href?link(o.mission.href,"OPEN BRIEFING →"):"NOT FILED"));};
-/* One session as the tool's block grammar: a header line, then one line per pilot. */
-const sessionBlock=e=>{const rows=(e.rows||[]).map(r=>{const vals=LEDGER_STATS.filter(([k])=>r[k]!=null&&r[k]!=="").map(([k])=>`${k}=${r[k]}`);return r.pilot&&vals.length?`${r.pilot} ${vals.join(" ")}`:"";}).filter(Boolean);
- return ["session op="+e.op+" date="+e.date,...rows].join("\n");};
 if(el("campaign-head")){const host=el("campaign-head");host.innerHTML=campaignHead(opOf(host.dataset.op));}
-if(el("session-form")){const opId=(el("campaign-head")||{dataset:{}}).dataset.op||"";
- const fields=p=>LEDGER_STATS.map(([k,l])=>`<label>${esc(l)}<input type="number" min="0" step="1" data-stat="${esc(k)}" data-pilot="${esc(p)}" aria-label="${esc(l)} for ${esc(p)}"></label>`).join("");
- el("session-form").innerHTML=`<div class="session-pilot" data-pilot="__date"><div class="tag">SESSION</div><label>DATE<input type="date" id="session-date" aria-label="session date"></label></div>`+
-  C.pilots.map(p=>`<div class="session-pilot" data-pilot="${esc(p.id)}"><div class="tag">${esc(shortName(p.id).toUpperCase())}</div>${fields(p.id)}</div>`).join("")+
-  `<button class="chip" type="button" id="session-make">BUILD BLOCK</button>`;
- const btn=el("session-make"),out=el("session-block");
- if(btn&&out)btn.addEventListener("click",()=>{const rows=[];
-  document.querySelectorAll("[data-stat]").forEach(n=>{if(!n.value||Number(n.value)===0)return; /* a zero is "not logged", not a stat */let r=rows.find(x=>x.pilot===n.dataset.pilot);if(!r)rows.push(r={pilot:n.dataset.pilot});r[n.dataset.stat]=Number(n.value);});
-  out.textContent=sessionBlock({op:opId,date:(el("session-date")||{}).value||"",rows:rows});});
-}
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
  host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
@@ -289,7 +278,8 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
   (p.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div></div>`:"")+`</section>`+
   `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
-  th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
+  th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+
+  (p.doctrine?th("DOCTRINE",link(p.doctrine,(p.doctrineTitle||"BUILD GUIDE")+" →")):"")+th("GEAR",esc(p.gear||"NOT FILED"))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
   `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
@@ -365,7 +355,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,sessionBlock,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

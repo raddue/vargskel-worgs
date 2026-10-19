@@ -11,15 +11,15 @@ source: "design"
 
 The map draws one frame for two scales and mislabels what it draws.
 
-`campaign.js` treats Nov Elysia as a city — "frontier city under Vestan control and only
-real foothold Union has on planet" — and lists `ops[0].loc` as `elysia`. The map disagrees:
+`campaign.js` treats Nov Elysia as a city, "frontier city under Vestan control and only
+real foothold Union has on planet", and lists `ops[0].loc` as `elysia`. The map disagrees:
 Nov Elysia carries `kind: "PLANET"`, Pell carries `parent: "elysia"` so a moon orbits a
-city, and Cressidium — the planet named on the OPORD page — has no record at all.
+city, and Cressidium, the planet named on the OPORD page, has no record at all.
 
 Reference counts, corrected by review: **Tarn, Harrow's Gate, Kessen Relay and Cairn Drift
 appear in zero prose.** The two hits each in `campaign.js` are their own `id` and `name`
 fields. Pell's three hits are its `id`, its `name`, and the substring inside
-"Rocket-Pro**pell**ed" — so Pell is a data name too. The names prose actually uses are
+"Rocket-Pro**pell**ed", so Pell is a data name too. The names prose actually uses are
 Nov Elysia (the city), FOB Saber, the central district, the Leandric coast and the high
 orbit the Rio Grande holds. **FOB Saber has no record**: the standing record is `dock`
 (`DOCK / FOB`). Four of the six system markers are dictionary entries drawn with the same
@@ -37,16 +37,16 @@ Spelling follows the live OPORD page, which already reads `THEATER`: the level i
 Four structural commitments come out of review, and all four come first:
 
 1. **The map builder moves out of `index.html` into `archive.js` as a pure function**,
-   `UI.holomap(level)`, returning `{world, key}` markup strings — the shape `ledgerPanel`
+   `UI.holomap(level)`, returning `{world, key}` markup strings, the shape `ledgerPanel`
    already uses with `{count, html}`. Today the builder lives in the inline IIFE at
    `index.html:57-83` (`X/Y`, `shape`, `nodes`, `rings`, `zones`, `lines`, `zoomTo`), and
    `mount("index.html")` cannot run under the harness: the stub's `querySelector` returns
    `null`, so it throws at `index.html:72`. That is why `check-all.cjs:185-188` asserts
-   source substrings instead of rendered markup. **`zones` and `lines` move too** — if they
+   source substrings instead of rendered markup. **`zones` and `lines` move too**: if they
    stay in `index.html`, the invariant about levels cannot be tested through `UI.holomap`.
 2. **The pane renderer gains a pure sibling.** `showUnit` currently writes into
    `#record-detail`. Split it into `UI.unitFile(id)` returning markup plus a `showUnit`
-   that inserts it, so the `ENTER THEATER` chip — which belongs in Cressidium's pane — is
+   that inserts it, so the `ENTER THEATER` chip, which belongs in Cressidium's pane, is
    assertable without a DOM.
 3. **Theater records carry an owner**, `frame: "cressidium"`, and the descent reads it.
    `parent` stays orbit-only and same-level only, so it cannot express "this theater
@@ -55,7 +55,7 @@ Four structural commitments come out of review, and all four come first:
    (see Cross-frame selection), and one switch point keeps the map, the key and the pane
    consistent.
 
-## Level 1 — Cressidium system (viewBox 1000×480)
+## Level 1: Cressidium system (viewBox 1000×480)
 
 | Site | kind | parent |
 |---|---|---|
@@ -68,9 +68,9 @@ Four structural commitments come out of review, and all four come first:
 
 Markup: `#holo-world` holds `.orbit-ring` per parented site and `.body` per planet; no
 `.plot-grid`. Selecting Cressidium opens its pane. Tarn descending to a frame of its own is
-deferred — nothing is placed there in prose.
+deferred, nothing is placed there in prose.
 
-## Level 2 — Nov Elysia theater (viewBox 1000×480)
+## Level 2: Nov Elysia theater (viewBox 1000×480)
 
 **Provisional: grounded only.** Every site is named in prose. Invented geography later is
 additive work on one data table.
@@ -85,7 +85,7 @@ additive work on one data table.
 | Leandric Edge | `coast` | `ZONE` | `Leandric States Alliance holding` |
 | VSAF Advance | `vsaf` | `ZONE` | `VSAF moving on` |
 
-`elysia` keeps its id — `check-all.cjs:98` asserts `op.loc === "elysia"`, and the city
+`elysia` keeps its id: `check-all.cjs:98` asserts `op.loc === "elysia"`, and the city
 reading is what makes that assertion true. `dock` keeps its id because `index.html:61`
 hardcodes `routes=["dock",…]`; the route then reads as the insertion leg. Renaming the
 record's `name` to `FOB SABER` is safe; changing its `id` is not. Every `grounded in`
@@ -98,9 +98,9 @@ the advance line drawn dashed and hostile. The detail pane stays the leaf.
 
 Added to each `C.locations` record:
 
-- `level: "SYSTEM" | "THEATER"` — uppercase, matching `kind`. Absent is invalid.
-- `parent: string | null` — an id on the **same level**, orbit ring only, else `null`.
-- `frame: string` — **theater records only**: the system-level id owning this theater.
+- `level: "SYSTEM" | "THEATER"`: uppercase, matching `kind`. Absent is invalid.
+- `parent: string | null`: an id on the **same level**, orbit ring only, else `null`.
+- `frame: string`, **theater records only**: the system-level id owning this theater.
 
 `kind` stays a closed, uppercase set extended with `CITY`, `DISTRICT`, `FOB`, `ZONE`,
 `ORBITAL`. `shape()` ends in a diamond default, so an unknown or lowercased kind renders
@@ -113,8 +113,8 @@ one marker on one level.
 Levels of the other drawn layers:
 
 - **Zones:** `factions[].zone` gains `level`, and the zone centre moves with it. All three
-  zones are `THEATER`. Two of them currently sit on system sites — `campaign.js:34` centres
-  Leandric on `kessen` (60,68) and `campaign.js:35` centres Union on Cairn Drift (86,64) — so
+  zones are `THEATER`. Two of them currently sit on system sites: `campaign.js:34` centres
+  Leandric on `kessen` (60,68) and `campaign.js:35` centres Union on Cairn Drift (86,64), so
   both move to theater coordinates. Vestan's centre (38,44) already coincides with the city
   and stays. A zone centred on a system site is exactly the scale-mixing this redesign
   removes.
@@ -128,7 +128,7 @@ Levels of the other drawn layers:
 
 Level state lives in `UI` beside the map. `UI.fitLevel(level)` is the single switch point and
 the only mutator: it sets the level, resets the camera, and writes `{world, key}` into
-`#holo-world` and the key element itself — the pane path in `archive.js` calls it and has
+`#holo-world` and the key element itself, the pane path in `archive.js` calls it and has
 nothing to insert a return value with. `UI.holomap(level)` stays the pure part, and it is what
 the tests call. `#record-detail` lives inside `#holomap`'s innerHTML, so `#holomap` is never
 rebuilt wholesale.
@@ -152,8 +152,8 @@ state now lives in `UI` too, so the rule runs **inside the pane's select path in
 `UI.fitLevel(site.level)` before `mark()`. Without that, `zoomTo` pans to coordinates that
 are not drawn and `mark()` finds no node.
 
-Reachability, stated honestly: theater sites are reachable by keyboard — Tab to a system
-site, open its pane, activate `ENTER THEATER`, then Tab through the theater markers — which
+Reachability, stated honestly: theater sites are reachable by keyboard, Tab to a system
+site, open its pane, activate `ENTER THEATER`, then Tab through the theater markers, which
 is one extra activation, not a pointer-only path. `NEARBY SITES` lists same-`level` sites
 rather than only `parent` children, so moving Pell to `cressidium` does not strand it.
 
@@ -178,20 +178,20 @@ possible after the builder move):
 
 - Each frame renders exactly its own site list, and neither leaks the other's ids.
 - Each frame's key holds that level's chips; `ENTER THEATER` is asserted through
-  `UI.unitFile("cressidium")` — it is a pane chip, not a key chip — and `SYSTEM VIEW`
+  `UI.unitFile("cressidium")`, it is a pane chip, not a key chip, and `SYSTEM VIEW`
   through `UI.holomap("THEATER")`.
 - Every `grounded in` string is a substring of `campaign.js`.
 - The builder throws on an unknown kind, on a missing `level`, and on a cross-level route.
 
 Existing assertions the rewrite touches, listed so they are not discovered late:
 
-- `check-all.cjs:187` — all seven substrings break once the template moves: `holo-key`,
+- `check-all.cjs:187`: all seven substrings break once the template moves: `holo-key`,
   `k-cur`, `CURRENT OP`, `PLANNED LEG`, `TRAVELLED`, `holo-world`, `holo-reset`.
-- `check-all.cjs:188` — both `'l.id===cur?" cur":""'` and `", current operation"`, since the
+- `check-all.cjs:188`: both `'l.id===cur?" cur":""'` and `", current operation"`, since the
   current-op marker is built in the template that moves.
-- `check-all.cjs:181` — `page.includes('id="record-detail"')`, kept true by never
+- `check-all.cjs:181`: `page.includes('id="record-detail"')`, kept true by never
   rebuilding `#holomap`.
-- `check-all.cjs:98` — `sr.loc !== "elysia"` stays **unchanged**, since the id is kept.
+- `check-all.cjs:98`: `sr.loc !== "elysia"` stays **unchanged**, since the id is kept.
 - Untested strings the rename touches: the `SECTOR VIEW` button and its `aria-label`, and
   the `SECTOR HOLOMAP` / `RIM SECTOR` heads.
 - `tools/` needs no update: no script there counts locations or names labels.
@@ -200,14 +200,14 @@ Existing assertions the rewrite touches, listed so they are not discovered late:
 
 ## Files touched
 
-- `archive.js` — pure `holomap(level)` builder (`X/Y`, `shape`, `nodes`, `rings`, `zones`,
+- `archive.js`: pure `holomap(level)` builder (`X/Y`, `shape`, `nodes`, `rings`, `zones`,
   `lines` all move), pure `unitFile(id)` split out of `showUnit`, `fitLevel`, level state,
   the cross-frame select rule, `UI` export.
-- `index.html` — thin wiring only: call `fitLevel`, camera listeners, the key's static shell.
-- `campaign.js` — location records: reclassify, add `level`/`parent`/`frame`, add the
+- `index.html`: thin wiring only: call `fitLevel`, camera listeners, the key's static shell.
+- `campaign.js`: location records: reclassify, add `level`/`parent`/`frame`, add the
   theater sites, add `level` to faction zones, rename `dock` to FOB Saber.
-- `style.css` — `.orbit-ring`, `.body`, `.plot-grid`, `.orbit-band`, per-level key chips.
-- `check-all.cjs` — builder and pane assertions replacing the string assertions it can drop.
+- `style.css`: `.orbit-ring`, `.body`, `.plot-grid`, `.orbit-band`, per-level key chips.
+- `check-all.cjs`: builder and pane assertions replacing the string assertions it can drop.
 
 ## Acceptance
 

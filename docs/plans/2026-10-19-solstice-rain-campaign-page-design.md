@@ -8,6 +8,10 @@ revision: 2
 
 # Solstice Rain campaign page
 
+> Status: the logging form this doc specifies was built, then removed: 60 spinners on screen
+> with no way to skip a pilot who did not deploy. A real design is #28. The block grammar the doc
+> defines still stands, and `tools/apply-compcon.cjs --log-block` still applies it.
+
 ## Problem
 
 The campaign is the one thing the site does not present as a record. Its parts are scattered:
@@ -18,7 +22,7 @@ The campaign is the one thing the site does not present as a record. Its parts a
 - the operation order renders on the **M1 mission briefing** (`solstice-rain.html`), not on a
   campaign page;
 - the faction ledger is a tab in `intel.html`, and the roster is `mechbay.html`'s chassis register;
-- logging a session was a terminal command advertised in the ledger's empty state — a string that
+- logging a session was a terminal command advertised in the ledger's empty state, a string that
   was just deleted, because a player-facing page should not be telling people to run a script.
 
 ## Decisions
@@ -34,7 +38,7 @@ reads the op named by its own `data-op`, exactly as the mission page does), them
 ## Shape
 
 A new page `campaign.html`, driven from `campaign.js` the way `solstice-rain.html` already is.
-**Nothing is copied into HTML** — `campaign.js` stays the single source, so a section cannot drift
+**Nothing is copied into HTML**: `campaign.js` stays the single source, so a section cannot drift
 from the record.
 
 Every section host is named here, because the ids are the interface:
@@ -42,7 +46,7 @@ Every section host is named here, because the ids are the interface:
 | Host id | Filled by |
 |---|---|
 | `#campaign-head` | a new op header renderer in `archive.js`, resolving the op from the host's `data-op` (no `C.ops[0]` indexing, so a second op needs no rewrite) |
-| `#ledger-count`, `#ledger-body` | `UI.ledgerPanel(C.ledger)` — both ids are required, because `archive.js:253` writes `ledger-count` without checking it exists, so a page with only `ledger-body` throws during mount |
+| `#ledger-count`, `#ledger-body` | `UI.ledgerPanel(C.ledger)`: both ids are required, because `archive.js:253` writes `ledger-count` without checking it exists, so a page with only `ledger-body` throws during mount |
 | `#timeline` | `C.events`; its links switch to `opLink` / `index.html#op-…`, since `#op-NNN` anchors exist only on `index.html` and would be dead here |
 | `#opord`, `#conflict-history` | `data-op` lookup, exactly as on `solstice-rain.html` |
 | `#faction-list` | `UI.factionTable()` (it takes no arguments) |
@@ -53,7 +57,7 @@ Every section host is named here, because the ids are the interface:
 register and loses the CAMPAIGN LEDGER section, so the session log has one home instead of two.
 `check-all.cjs`'s existing ledger panel assertions (`:341-362`) move from the `mechbay.html` mount to
 the `campaign.html` mount, and a new assertion pins that `mechbay.html` no longer carries
-`id="ledger-body"`. Nothing else touches the ledger — `print-check`, `plate-check`, `personnel-*`
+`id="ledger-body"`. Nothing else touches the ledger, `print-check`, `plate-check`, `personnel-*`
 and the render selftest never do.
 
 Nav: a new `CAMPAIGN` entry in every page's shell nav, added to `navPages` (`check-all.cjs:85`) with
@@ -64,8 +68,8 @@ its own assertion, mirroring the rule that already keeps every page's `INTEL` li
 One pure function, one rendered form, one tool mode.
 
 - `UI.sessionBlock(entry)` → the block text for one session. The block reuses the grammar
-  `tools/apply-compcon.cjs --log` already accepts — `<pilot> stat=n`, split on whitespace
-  (`apply-compcon.cjs:166-182`) — with a header line the tool's flags carried until now, since op and
+  `tools/apply-compcon.cjs --log` already accepts, `<pilot> stat=n`, split on whitespace
+  (`apply-compcon.cjs:166-182`), with a header line the tool's flags carried until now, since op and
   date came from `--op`/`--date` (`:233-234`):
 
   ```
@@ -81,7 +85,7 @@ One pure function, one rendered form, one tool mode.
 - **The form is rendered by `archive.js`, not hand-written in HTML.** Behind an `el("session-form")`
   guard it fills the host with `innerHTML` built from `C.pilots` and `LEDGER_STATS` (six pilots × ten
   stats is sixty inputs, which would otherwise be hand-copied HTML that goes stale), and wires it
-  with `el()` plus `addEventListener` — the stub DOM supports both, while
+  with `el()` plus `addEventListener`, the stub DOM supports both, while
   `querySelector(...).addEventListener` throws during mount. `sessionBlock` is exported in the `UI`
   return object (`archive.js:347`).
   The wiring is still the untestable part (the stub has no `value` or `checked`), so **the pure
@@ -99,26 +103,26 @@ One pure function, one rendered form, one tool mode.
 
 Written RED first, per `AGENTS.md`; suite is `node check-all.cjs && node tools/render.cjs --selftest`.
 
-1. `campaign.html` exists, mounts under the stub DOM, and carries its section hosts — including
-   `id="ledger-body"` — while `mechbay.html` no longer carries `id="ledger-body"`.
+1. `campaign.html` exists, mounts under the stub DOM, and carries its section hosts, including
+   `id="ledger-body"`, while `mechbay.html` no longer carries `id="ledger-body"`.
 2. Every page's nav reaches `campaign.html`, and `campaign.html` is in `navPages`.
 3. The ledger panel assertions that live on `mechbay.html` today (`check-all.cjs:341-362`) pass
-   unchanged against the `campaign.html` mount, including the empty-ledger copy — which now reads
+   unchanged against the `campaign.html` mount, including the empty-ledger copy, which now reads
    `No sessions logged yet.` with no command in it.
 4. `UI.sessionBlock` round trips through `parseBlock`: the text the page emits is read back into the
    same rows, and the header's `op` and `date` survive.
 5. `parseBlock` refuses a block naming an unknown stat and one naming an unknown pilot, each with the
    offending name in `errors`, and refuses a block whose header omits `op` or `date`. The write path
-   aborts on non-empty `errors` **by construction** — the parser is pure and the mode checks it before
-   the first `appendLedgerRow` — so the suite asserts the parser, not the file.
+   aborts on non-empty `errors` **by construction**: the parser is pure and the mode checks it before
+   the first `appendLedgerRow`, so the suite asserts the parser, not the file.
 6. `solstice-rain.html` keeps its own expectations: the OPORD copy and `COMMS UNDER JAMMING`
    (`tools/print-check.cjs:61`), and the `hero-planet` blend hook (`tools/plate-check.cjs:29-34`).
 7. Deployment state on the page matches the record: the stations and deployment links assert against
    the **live roster**, the way `check-all.cjs:335-337` does. `mechOps`, `pilotOps` and `stationed`
    read closures built from `C` (`archive.js:12-17`) rather than their arguments, so they cannot be
    driven by fixture rows.
-8. `archive.js` grows `module.exports`-free exports as today — `sessionBlock` appears in the `UI`
-   return object — and the page still mounts when `#session-form` is absent, so no other page breaks.
+8. `archive.js` grows `module.exports`-free exports as today, `sessionBlock` appears in the `UI`
+   return object, and the page still mounts when `#session-form` is absent, so no other page breaks.
 
 ## Risks
 

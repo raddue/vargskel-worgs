@@ -35,13 +35,13 @@
         <a class="tab" role="tab" id="tl-relations" aria-controls="tab-relations" aria-selected="false" href="#relations" data-tab="relations">RELATIONS</a>
         <a class="tab" role="tab" id="tl-personnel" aria-controls="tab-personnel" aria-selected="false" href="#personnel" data-tab="personnel">PERSONNEL</a>
       </div>
-      <p class="tab-hint">Sector and theater holomap of the Cressidium contract — tap a site to read its file.</p>
+      <p class="tab-hint">Sector and theater holomap of the Cressidium contract. Tap a site to read its file.</p>
     </div>
     <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><button class="level" type="button" data-level="SYSTEM">SYSTEM</button><button class="level" type="button" data-level="THEATER">THEATER</button></div><section id="holomap"></section></section>
     <section class="tabpanel" id="tab-relations" role="tabpanel" aria-labelledby="tl-relations" hidden><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
     <section class="tabpanel" id="tab-personnel" role="tabpanel" aria-labelledby="tl-personnel" hidden><div class="section-head"><h2>NOTABLE PERSONNEL</h2><span>PERSONNEL</span></div><div class="people" id="people-list"></div></section>
   </main>
-  <footer class="footer"><span>VARGSKEL WORGS / INTELLIGENCE</span><span>LOCAL MOCKUP · PUBLIC RELEASE NOT CONFIGURED</span></footer>
+  <footer class="footer"><span>VARGSKEL WORGS / INTELLIGENCE</span></footer>
 </div>
 <script src="campaign.js"></script>
 <script src="archive.js"></script>
@@ -56,7 +56,7 @@ document.getElementById("readout").innerHTML=UI.situation().html;
 document.getElementById("people-list").innerHTML=UI.personnelList();
 UI.fitLevel();
 /* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
-   pinch and pointer handling either way. Touch or mouse only — no keyboard tab-strip in scope. */
+   pinch and pointer handling either way. Touch or mouse only; no keyboard tab-strip in scope. */
 let currentLoc="";   /* the ground the pane is about, so a tab round trip puts it back in the URL */
 const tabs=[...document.querySelectorAll(".tab")];
 const pickTab=(n,push)=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});const was=tabFromHash(),unresolved=!!locRaw()&&!L[locFromHash()]; /* URL names a ground we could not resolve: leave it as typed */
@@ -80,7 +80,7 @@ svg.addEventListener("pointerleave",()=>{far.style.transform=""});
 const back=document.getElementById("holo-back");
 const zoomed=()=>!!world.style.transform;
 /* Camera only: the frame has its own SYSTEM VIEW button in the map key, so this control never has to
-   describe which frame is showing — which is exactly what let its label go stale. */
+   describe which frame is showing, which is exactly what let its label go stale. */
 const syncBack=()=>{if(back)back.hidden=!zoomed()};
 const backOut=()=>{if(!zoomed())return;resetView();syncBack()};
 /* Two fingers on the map are a map zoom, not a page zoom: the svg claims the gesture in CSS. */

@@ -8,7 +8,7 @@ gpt-6-sol high (what-the-map-shows lens), both re-read `intel.html`, `archive.js
 ## Why
 
 At 1440x900 the map was 664px tall (svg is a fixed 2.08:1 viewBox) with 504px of chrome above
-its first pixel, so the reading pane — the payoff for every tap — was never on screen with the
+its first pixel, so the reading pane, the payoff for every tap, was never on screen with the
 map. The hero alone cost more vertical than the theater frame's useful height on a laptop.
 
 ## Decided (each `1`, the recommended option)
@@ -38,7 +38,7 @@ compact brandrow 64 + pagebar 44 + map head strip 34), plus ~44px for the situat
 | 390x844 phone | 358 (stacked) | 172 | 386 |
 
 Reading pane moves **beside** the map (`.columns.holo-split`, primary 2fr / aside 400px) and
-collapses to a single column under **1100px** — deliberately not 900px, so 1024x768 landscape
+collapses to a single column under **1100px**, deliberately not 900px, so 1024x768 landscape
 keeps a big map and 54px hit targets.
 
 ## Tabs
@@ -47,7 +47,7 @@ Hash is the state, matching the house convention (`index.html#op-NNN`, `pilot.ht
 `intel.html`, `#map`, `#relations`, `#personnel`, plus `#map/<locId>`.
 
 1. Tabs are `<a href="#...">` in `role="tablist"`; glue maintains `aria-selected` and `hidden`.
-2. Off panels are **hidden, never re-rendered** — level, camera transform, `.sel` marks, pane
+2. Off panels are **hidden, never re-rendered**: level, camera transform, `.sel` marks, pane
    HTML and scroll survive a tab switch with zero state code. Re-entering MAP must not call
    `fitLevel` (that would reset the camera).
 3. Site selection uses `history.replaceState` (no history spam, shareable); `hashchange`
@@ -56,7 +56,7 @@ Hash is the state, matching the house convention (`index.html#op-NNN`, `pilot.ht
    reveals MAP before `archive.js`'s bubble handler renders and scrolls the pane.
 5. Load order: build map, `fitLevel()`, parse hash, `setTab`, then select if the hash has one,
    else `D4`'s op site. Unknown tab falls back to `map`; unknown id falls through to
-   `SELECT A TARGET` — no crash path.
+   `SELECT A TARGET`, no crash path.
 6. `.pagebar` is sticky, and `.tabpanel` gets `scroll-margin-top`.
 
 ## Situation overlay (the map's own content)
@@ -80,7 +80,7 @@ readout; prose stays in the reading pane):
 | `HOSTILE` | location's faction `standing === "HOSTILE"` |
 | `RECORDED MUSTER` | `loc.name === meta.station` |
 
-Wording must stay `planned` / `last known` / `recorded` — never imply live tracking. The
+Wording must stay `planned` / `last known` / `recorded`; never imply live tracking. The
 existing green "current op" marker on a planned, unbriefed operation needs the same treatment.
 
 **One data addition:** `op.sites = {insertion, rendezvous, extraction}`, location ids. The two
@@ -90,24 +90,24 @@ asserts each id resolves and sits in the same frame as `op.loc`.
 
 ## Files
 
-- `intel.html` — delete hero; add pagebar (h1 + tablist + hint); three `role="tabpanel"`
+- `intel.html`: delete hero; add pagebar (h1 + tablist + hint); three `role="tabpanel"`
   sections; map head strip with `SECTOR|THEATER` buttons (`[data-level]` is already delegated);
   `.columns.holo-split` around key + pane; `.holo-back` simplifies to camera-only; tab/hash
   glue, capture listener, load-order selection.
-- `style.css` — pagebar/tabs/holo-head/holo-split/badge rules, phone single-row key, print
+- `style.css`: pagebar/tabs/holo-head/holo-split/badge rules, phone single-row key, print
   rules (`.pagebar{display:none}`, `.tabpanel[hidden]{display:block!important}`). Append after
   the existing holo block so source order wins the equal-specificity `th` width override.
-- `archive.js` — split `personFile(id)` out of `showPerson` (pure, like `unitFile`);
+- `archive.js`: split `personFile(id)` out of `showPerson` (pure, like `unitFile`);
   `personnelList()`; `factionTable()` as a `threads-table` with zone-coloured standing pills;
   `situation()` returning readout + badge map; badge markup inside `holomap(level)`'s world
   string. Expose the new pure functions on `UI`.
-- `campaign.js` — add `op.sites`.
-- `check-all.cjs` — new assertions (below).
+- `campaign.js`: add `op.sites`.
+- `check-all.cjs`: new assertions (below).
 
 ## Invariants that must stay green
 
 - `id="holomap"` and `id="faction-list"` still in `intel.html`; `index.html` still without them.
-- `href="intel.html">INTEL` literal in all seven navs — never add a tab hash to a nav link.
+- `href="intel.html">INTEL` literal in all seven navs; never add a tab hash to a nav link.
 - `id="record-detail"` stays in `intel.html`'s inline template.
 - `intel.html` source must not contain `.holo-chips` or `data-mech-class`.
 - `UI.holomap(level)` keeps returning `{world,key}`; THEATER key keeps `SYSTEM VIEW`, SYSTEM
@@ -133,7 +133,7 @@ planned/last-known/recorded wording.
 - Pixel budgets are hand-computed from CSS, not browser-measured: re-measure 1024x768 and
   390x844 first and correct the 1100px breakpoint if the render disagrees.
 - The capture-phase chip listener fires on every chip click, including in-pane
-  `[data-mech]`/`[data-pilot]` chips where forcing `tab=map` is a no-op today — it needs a
+  `[data-mech]`/`[data-pilot]` chips where forcing `tab=map` is a no-op today, it needs a
   `closest(".tabpanel")` guard if another tab ever grows its own pane.
 - `.holo-split .operation-table th{width:120px}` depends on source order beating
   `.holo-detail .operation-table th{width:150px}` at equal specificity.
