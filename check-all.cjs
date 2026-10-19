@@ -82,16 +82,16 @@ if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter po
 if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scooteroo artwork missing from assets');
 /* INTEL is a page of its own: the map and the faction ledger live on intel.html, and every
    page's nav must reach it, so a link cannot quietly rot back into an index anchor. */
-const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html"];
+const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html", "docs/guides/averna-omniscient-overlord.html"];
 navPages.forEach(p => {
   const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
-  if (!/href="intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
+  if (!/href="(?:\.\.\/){0,2}intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
 });
 /* The campaign page is the session log's home (#27): every page must reach it, the ledger section
    must be gone from mechbay.html, and the panel assertions below mount campaign.html instead. */
 navPages.forEach(p => {
   const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
-  if (!/href="campaign\.html">CAMPAIGN</.test(src)) problems.push(`${p}: nav must link to campaign.html as CAMPAIGN`);
+  if (!/href="(?:\.\.\/){0,2}campaign\.html">CAMPAIGN</.test(src)) problems.push(`${p}: nav must link to campaign.html as CAMPAIGN`);
   /* One status label on every page: two different ones changed the box width and dragged the nav. */
   if (!/● DEPLOYMENT STATUS: [A-Z]+</.test(src)) problems.push(`${p}: the status chip must read CLASS "DEPLOYMENT STATUS", not a per-page label`);
 });

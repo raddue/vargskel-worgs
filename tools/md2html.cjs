@@ -219,8 +219,8 @@ function render() {
 <div class="topline"><span>VW // TACTICAL DOCTRINE</span><span>BUILD GUIDE · AVERNA</span></div>
 <header class="brandrow">
 <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">TACTICAL WIKI · BUILD GUIDE</div></div></div>
-<nav class="nav"><a href="${p("index.html")}#overview">OVERVIEW</a><a href="${p("index.html")}#missions">MISSIONS</a><a href="${p("intel.html")}">INTEL</a><a href="${p("pilots.html")}">PILOTS</a><a href="${p("mechbay.html")}">MECHS</a></nav>
-<div class="status">● CREW STATUS: ACTIVE</div>
+<nav class="nav"><a href="${p("index.html")}#overview">OVERVIEW</a><a href="${p("index.html")}#missions">MISSIONS</a><a href="${p("intel.html")}">INTEL</a><a href="${p("campaign.html")}">CAMPAIGN</a><a href="${p("pilots.html")}">PILOTS</a><a href="${p("mechbay.html")}">MECHS</a></nav>
+<div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
 </header>
 <main class="guide">${tooltips(H.join("\n"))}</main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
