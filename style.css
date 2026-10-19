@@ -150,3 +150,6 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
 .lo-rw{display:flex;gap:10px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--line)}
 .lo-acc{color:var(--lime);font-weight:700;min-width:8ch}
 .lo-prof{color:var(--muted);font-size:.8rem}
+.lo-sys{display:flex;align-items:center;gap:6px;padding:2px 0;color:var(--text);font-size:.9rem}
+.lo-sys-sp{margin-left:auto;color:var(--lime);font-size:.72rem;letter-spacing:.1em}
+.lo-sys-sp.lo-free{color:var(--muted)}

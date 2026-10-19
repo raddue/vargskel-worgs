@@ -147,7 +147,7 @@ if (core && cat) {
   const norm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const frameOf = rec => Object.values(cat.frames).find(f => f && (norm(f.name) === norm(rec.frame) || norm(`${f.source || ""} ${f.name}`) === norm(rec.frame))) || null;
   const pilotOf = rec => (C.pilots || []).find(p => p.id === rec.pilot) || null;
-  /* systems is still the printed string until the rename lands, so read both forms. */
+  /* records carry systems as a list of names, so the page seeds them straight in */
   const systemsOf = rec => Array.isArray(rec.systems) ? rec.systems.slice() : String(rec.systems || "").split(",").map(x => x.trim()).filter(Boolean);
   const buildOf = rec => ({ mech: rec.id, frame: rec.frame, pilot: rec.pilot, sys: rec.sys, mounts: rec.mounts || [], systems: systemsOf(rec) });
 
@@ -274,6 +274,24 @@ else {
       picker.value = "Missile Rack";
       picker.fire("change");
       if (!/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
+    }
+  }
+
+  /* the checklist seeds the record's printed systems as names, ticks one, and puts it back */
+  const sysPage = mount("loadout.html", "#averna");
+  const beforeSys = sysPage.html("lo-export");
+  if (!/systems&quot;:\[/.test(beforeSys)) errs.push("the page must hand the core a systems list, not the record's printed string");
+  const box = sysPage.nodes["lo-sys-0"];
+  if (!box) errs.push("loadout.html needs a systems checklist (id lo-sys-<index>)");
+  else {
+    box.checked = true; box.fire("change");
+    const ticked = sysPage.html("lo-export");
+    if (ticked === beforeSys) errs.push("ticking a system must reach the build and the export");
+    const boxAgain = sysPage.nodes["lo-sys-0"];
+    if (!boxAgain) errs.push("the checklist must survive its own re-render");
+    else {
+      boxAgain.checked = false; boxAgain.fire("change");
+      if (sysPage.html("lo-export") !== beforeSys) errs.push("unticking must put the build back");
     }
   }
 

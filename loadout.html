@@ -30,6 +30,8 @@
     <section>
       <div class="section-head"><h2>LOADOUT SANDBOX</h2><span id="lo-sp"></span></div>
       <div id="lo-slots"></div>
+      <div class="section-head"><h2>SYSTEMS</h2><span>SP COUNTS THESE</span></div>
+      <div id="lo-systems"></div>
       <div class="section-head"><h2>RANGE FINDER</h2><span>FIELD DETAIL</span></div>
       <div class="lo-distrow"><input type="range" id="lo-dist" min="0" max="20" step="1" value="0"
         aria-label="Distance in hexes"><span id="lo-dist-val">0</span><span class="lo-dist-unit">HEX</span></div>
@@ -113,13 +115,41 @@
       Object.keys(p).filter(k => typeof p[k] === "string").map(k => esc(p[k])).join(" ") + '</span>').join("") +
     '</div>').join("");
   };
+  const sysNames = () => Object.keys(CAT.systems).sort();
+  const renderSystems = () => {
+    const chosen = build.systems || [];
+    el("lo-systems").innerHTML =
+      (sysRefusal ? '<p class="lo-refusal">' + esc(sysRefusal) + '</p>' : "") +
+      sysNames().map((n, i) => {
+        const sp = CAT.systems[n].sp;
+        return '<label class="lo-sys"><input type="checkbox" id="lo-sys-' + i + '"' +
+          (chosen.indexOf(n) >= 0 ? " checked" : "") + '> ' + esc(n) +
+          (sp ? '<span class="lo-sys-sp">' + sp + ' SP</span>' : '<span class="lo-sys-sp lo-free">FREE</span>') + '</label>';
+      }).join("");
+  };
+  const wireSystems = () => {
+    sysNames().forEach((n, i) => {
+      const box = el("lo-sys-" + i);
+      if (!box) return;
+      box.addEventListener("change", () => {
+        const list = (build.systems || []).slice();
+        const at = list.indexOf(n);
+        if (box.checked && at < 0) list.push(n);
+        else if (!box.checked && at >= 0) list.splice(at, 1);
+        const r = LO.setSystems(build, list, CAT, pilot);
+        if (r && r.ok) { build = r.build; sysRefusal = ""; } else sysRefusal = (r && r.reason) || "REFUSED";
+        render();
+      });
+    });
+  };
   const renderSp = () => {
     const sp = LO.spCheck(build, frame, CAT, pilot);
     el("lo-sp").innerHTML = 'SP ' + sp.spend + ' / ' + (sp.cap == null ? "?" : sp.cap);
   };
+  let sysRefusal = "";
   let currentDistance = F ? (F.distance || 0) : 0;
   const render = () => {
-    renderSlots(); wireSlots(); renderSp();
+    renderSlots(); wireSlots(); renderSystems(); wireSystems(); renderSp();
     el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
     drawRange(currentDistance);
   };
