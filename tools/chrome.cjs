@@ -16,7 +16,6 @@ const nav = (prefix = "", samePageHome = false) => {
   const home = samePageHome ? "" : prefix + "index.html";
   return `<nav class="nav">` +
     `<a href="${home}#overview">OVERVIEW</a>` +
-    `<a href="${home}#missions">MISSIONS</a>` +
     `<a href="${prefix}intel.html">INTEL</a>` +
     `<a href="${prefix}campaign.html">CAMPAIGN</a>` +
     `<a href="${prefix}pilots.html">PILOTS</a>` +
@@ -43,7 +42,7 @@ module.exports = { STATUS_LABEL, statusRe, nav, status, topline, brand, hero, he
 
 if (process.argv.includes("--selftest")) {
   const assert = require("assert");
-  assert.strictEqual(nav().match(/href="/g).length, 7, "nav carries seven links");
+  assert.strictEqual(nav().match(/href="/g).length, 6, "nav carries six links");
   assert.ok(nav().includes('<a href="loadout.html">LOADOUT</a>'), "the loadout sandbox is reachable");
   assert.ok(nav().startsWith('<nav class="nav"><a href="index.html#overview">'), "root pages link to index.html");
   assert.ok(nav("", true).includes('<a href="#overview">'), "index.html keeps its same-page anchors");
