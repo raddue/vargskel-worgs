@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vargskel Worgs | Solstice Rain · Campaign</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | Solstice Rain · Campaign">
+<meta property="og:description" content="Operation Solstice Rain: session log, operation order, faction ledger and roster.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/campaign.html">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+  <div class="topline"><span>VW // CAMPAIGN RECORD</span><span>OPERATION SOLSTICE RAIN · ACCESS: CREW</span></div>
+  <header class="brandrow">
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">CAMPAIGN RECORD</div></div></div>
+    <nav class="nav"><a href="index.html#overview">OVERVIEW</a><a href="index.html#missions">MISSIONS</a><a href="intel.html">INTEL</a><a href="campaign.html">CAMPAIGN</a><a href="pilots.html">PILOTS</a><a href="mechbay.html">MECHS</a></nav>
+    <div class="status">● CAMPAIGN STATUS: ACTIVE</div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-copy"><div class="eyebrow">OPERATION DOSSIER</div><h1>SOLSTICE RAIN</h1>
+        <p>Every session the lance has flown: the log, the order it flew under, who is owed what, and who is standing where.</p>
+      </div>
+    </section>
+    <section id="operation"><div class="section-head"><h2>OPERATION</h2><span>OP 001</span></div><div id="campaign-head" data-op="001"></div><div id="conflict-history" data-op="001"></div></section>
+    <section id="log">
+      <div class="section-head"><h2>SESSION LOG</h2><span id="ledger-count"></span></div><div id="ledger-body"></div>
+      <div class="card"><div class="card-pad"><ol class="timeline" id="timeline"></ol></div></div>
+      <div class="section-head"><h2>LOG A SESSION</h2><span>BUILD A BLOCK</span></div>
+      <div class="card"><div class="card-pad" id="session-form"></div><pre class="muted" id="session-block"></pre></div>
+    </section>
+    <section id="order"><div class="section-head"><h2>OPERATION ORDER</h2><span>FROM UNS RIO GRANDE</span></div><div id="opord" data-op="001"></div></section>
+    <section id="factions"><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
+    <section id="roster">
+      <div class="section-head"><h2>PILOT ROSTER</h2><span id="crew-count"></span></div><div id="crew-list"></div>
+      <div class="section-head"><h2>CHASSIS</h2><span id="mech-count"></span></div><div id="mech-list"></div>
+    </section>
+  </main>
+  <footer class="footer"><span>VARGSKEL WORGS / OPERATION SOLSTICE RAIN</span><span>LOCAL MOCKUP · PUBLIC RELEASE NOT CONFIGURED</span></footer>
+</div>
+<script src="campaign.js"></script>
+<script src="archive.js"></script>
+</body>
+</html>
