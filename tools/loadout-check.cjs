@@ -212,5 +212,36 @@ if (core && cat) {
   }
 }
 
+
+/* --- the page itself (design test 8): a fixture build through render.cjs's globals argument --- */
+const loPage = path.join(ROOT, "loadout.html");
+if (!fs.existsSync(loPage)) errs.push("loadout.html is missing (the #26 sandbox page)");
+else {
+  const { mount } = require("./render.cjs");
+  const fixture = {
+    mech: "tombstone",
+    frame: "GMS Everest", /* the record's own frame string is uppercase and does not resolve */
+    distance: 5,
+    /* a Heavy weapon into a Main seat: the core must refuse it, beside that slot */
+    place: [{ slotIndex: 0, seat: 0, weapon: "Thermal Lance" }]
+  };
+  const page = mount("loadout.html", "", { __LOADOUT_FIXTURE: fixture });
+  const slots = page.html("lo-slots");
+  if (!/WRONG MOUNT TYPE/.test(slots)) errs.push(`loadout.html must render the refusal beside the slot that caused it, got: ${slots.slice(0, 120)}`);
+  if (!/Main/.test(slots)) errs.push("loadout.html must render the record's own slots");
+  const sp = page.html("lo-sp");
+  if (!/SP \d+ \/ \d+/.test(sp)) errs.push(`loadout.html must render the SP counter, got: ${sp.slice(0, 80)}`);
+  /* with a frame the catalogue does not hold, the cap must read unknown rather than 0 */
+  const unknownFrame = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "tombstone", frame: "GMS NOPE", place: [] } }).html("lo-sp");
+  if (!/SP \d+ \/ \?/.test(unknownFrame)) errs.push(`an unresolved frame must show an unknown cap, got: ${unknownFrame.slice(0, 80)}`);
+  if (!/in band|out of range|out of band/.test(page.html("lo-range"))) errs.push("loadout.html must render the range readout");
+  if (!/tombstone/.test(page.html("lo-export"))) errs.push("loadout.html must render the export block for the fixture's mech");
+}
+/* every page's shell has to link to it, since navPages asserts one direction only */
+for (const f of fs.readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
+  const src = fs.readFileSync(path.join(ROOT, f), "utf8");
+  if (!/href="loadout\.html"/.test(src)) errs.push(`${f}: the shell must link to loadout.html`);
+}
+
 if (errs.length) { console.error("loadout: " + errs.length + " problem(s)\n - " + errs.join("\n - ")); process.exit(1); }
 console.log("loadout ok: catalogue resolves and its gate is current");

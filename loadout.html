@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOADOUT SANDBOX / VARGSKEL WORGS</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | Chassis Dossier">
+<meta property="og:description" content="Chassis dossier: stat block, loadout, and mounted systems.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/mech.html">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+  <div class="topline"><span>VW // CHASSIS DOSSIER</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
+  <header class="brandrow">
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">CHASSIS DOSSIER</div></div></div>
+    <nav class="nav"><a href="index.html#overview">OVERVIEW</a><a href="index.html#missions">MISSIONS</a><a href="intel.html">INTEL</a><a href="campaign.html">CAMPAIGN</a><a href="pilots.html">PILOTS</a><a href="mechbay.html">MECHS</a><a href="loadout.html">LOADOUT</a></nav>
+    <div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
+  </header>
+  <main class="panel">
+    <section>
+      <div class="section-head"><h2>LOADOUT SANDBOX</h2><span id="lo-sp"></span></div>
+      <div id="lo-slots"></div>
+      <div class="section-head"><h2>RANGE FINDER</h2><span>FIELD DETAIL</span></div>
+      <div id="lo-range"></div>
+      <div class="section-head"><h2>EXPORT</h2><span>PASTE BACK TO THE GM</span></div>
+      <div id="lo-export"></div>
+    </section>
+  </main>
+  <footer class="footer"><span>VARGSKEL WORGS / LOADOUT SANDBOX</span></footer>
+</div>
+<script src="campaign.js"></script>
+<script src="detail.js"></script>
+<script src="archive.js"></script>
+<script>
+(()=>{
+ const id=decodeURIComponent(location.hash.slice(1));
+ if(!id){location.replace("mechbay.html");return;}
+ document.getElementById("dossier").innerHTML=UI.mechDossier(id);
+ document.title="Vargskel Worgs | "+((window.CAMPAIGN.mechs.find(m=>m.id===id)||{}).name||id);
+})();
+</script>
+<script src="catalogue.js"></script>
+<script src="loadout.js"></script>
+<script>
+/* #26 glue: host nodes and innerHTML only. The render stub has no createElement, no value and no
+   checked, so every control the tests drive arrives through window.__LOADOUT_FIXTURE rather than a
+   click. The page also works by hand: the mech id comes from the URL hash. */
+(function () {
+  const C = window.CAMPAIGN, CAT = window.CATALOGUE, LO = window.LOADOUT;
+  const el = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const F = window.__LOADOUT_FIXTURE || null;
+  const want = (F && F.mech) || String(location.hash || "").replace(/^#/, "") || (C.mechs[0] || {}).id;
+  const rec = (C.mechs || []).filter(m => m.id === want)[0];
+  if (!rec) { el("lo-slots").innerHTML = '<p class="muted">no record for ' + esc(want) + '</p>'; return; }
+  const frame = LO.frameOf({ frame: (F && F.frame) || rec.frame }, CAT);
+  const pilot = (C.pilots || []).filter(p => p.id === rec.pilot)[0] || null;
+  let build = { mech: rec.id, frame: rec.frame, pilot: rec.pilot, attackBonus: rec.attackBonus || 0,
+    sys: rec.sys || 0,
+    mounts: (rec.mounts || []).map(m => ({ slot: m.slot, weapons: (m.weapons || []).slice(), locked: !!m.locked })),
+    systems: (rec.systems || []).slice() };
+  const refused = {};
+  for (const a of (F && F.place) || []) {
+    const r = LO.place(pilot, build, a.slotIndex, a.seat, a.weapon, CAT, a);
+    if (r && r.ok) build = r.build; else refused[a.slotIndex] = (r && r.reason) || "REFUSED";
+  }
+  el("lo-slots").innerHTML = build.mounts.map((m, i) =>
+    '<div class="lo-slot"><span class="lo-slot-name">' + esc(m.slot) + '</span>' +
+    ((m.weapons || []).filter(Boolean).map(w => '<span class="lo-wep">' + esc(w) + '</span>').join("") ||
+      '<span class="lo-wep muted">EMPTY</span>') +
+    (m.locked ? '<span class="lo-lock">LOCKED</span>' : "") +
+    (refused[i] ? '<span class="lo-refusal">' + esc(refused[i]) + '</span>' : "") + '</div>').join("");
+  const sp = LO.spCheck(build, frame, CAT, pilot);
+  el("lo-sp").innerHTML = 'SP ' + sp.spend + ' / ' + (sp.cap == null ? "?" : sp.cap);
+  const distance = F ? (F.distance || 0) : 0;
+  el("lo-range").innerHTML = LO.rangeReadout(build, distance, CAT).map(r =>
+    '<div class="lo-rw"><span class="lo-wep">' + esc(r.weapon) + '</span>' +
+    '<span class="lo-acc">' + (r.accuracy.attackBonus >= 0 ? "+" : "") + r.accuracy.attackBonus +
+    (r.accuracy.dice > 0 ? " +1d6" : r.accuracy.dice < 0 ? " -1d6" : "") + '</span>' +
+    r.profiles.map(p => '<span class="lo-prof">' + (p.name ? esc(p.name) + ": " : "") +
+      Object.keys(p).filter(k => typeof p[k] === "string").map(k => esc(p[k])).join(" ") + '</span>').join("") +
+    '</div>').join("");
+  el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
+})();
+</script>
+</body>
+</html>
