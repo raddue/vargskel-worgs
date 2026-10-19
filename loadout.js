@@ -178,7 +178,24 @@
     return out;
   }
 
-  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, rangeReadout, seats, licenceOk };
+
+  /* The exported build as a pasteable block: a heading that names the mech, then one line of JSON.
+     JSON and not the site's writer style, because the other end parses it with JSON.parse and never
+     with eval. `sys` stays out: it is the record's allowance, not the build the page edits. Empty
+     seats are kept as null so a seat index survives the trip, and trailing ones are dropped. */
+  function exportLoadout(build) {
+    const mounts = (build.mounts || []).map(m => {
+      const weapons = (m.weapons || []).map(w => w || null);
+      while (weapons.length && weapons[weapons.length - 1] === null) weapons.pop();
+      const out = { slot: m.slot, weapons };
+      if (m.locked) out.locked = true;
+      return out;
+    });
+    const out = { mech: build.mech, frame: build.frame, pilot: build.pilot, mounts, systems: (build.systems || []).slice() };
+    return "LOADOUT " + out.mech + "\n" + JSON.stringify(out) + "\n";
+  }
+
+  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, rangeReadout, exportLoadout, seats, licenceOk };
   global.LOADOUT = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -77,6 +77,38 @@ function mapMechState(cm) {
 
 /* Replace or insert fields inside one mech object's text region. A value match stops at
    the next comma or closing brace, so the object's punctuation and spacing survive. */
+/* One canonical writer for the migration and for every later write: object keys unquoted, strings
+   through JSON.stringify, one space after each comma. The no-op check compares JSON.stringify of the
+   two values rather than deep-equalling them, because a span evaluated in a vm sandbox carries
+   different prototypes across that boundary. */
+const lit = (v) => Array.isArray(v)
+  ? `[${v.map(lit).join(", ")}]`
+  : (v && typeof v === "object")
+    ? `{ ${Object.entries(v).map(([k, x]) => `${k}: ${lit(x)}`).join(", ")} }`
+    : typeof v === "string" ? JSON.stringify(v) : String(v);
+
+/* The field's whole value span, bracket-aware: a list or an object runs to its matching closer, so
+   a comma inside it cannot cut the match short. Quoted strings are skipped over. */
+function spanOf(region, field) {
+  const m = new RegExp(`(^|[\\s,{])${field}:\\s*`).exec(region);
+  if (!m) return null;
+  const at = m.index + m[0].length;
+  let depth = 0, quote = null, end = at;
+  for (let i = at; i < region.length; i++) {
+    const c = region[i];
+    if (quote) { if (c === "\\") i++; else if (c === quote) quote = null; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === "[" || c === "{") { depth++; continue; }
+    if (c === "]" || c === "}") {
+      if (!depth) { end = i; break; }
+      if (!--depth) { end = i + 1; break; }
+      continue;
+    }
+    if (!depth && (c === "," || c === "\n")) { end = i; break; }
+  }
+  return { at, end };
+}
+
 function applyToText(text, siteId, set) {
   const start = text.indexOf(`{ id: "${siteId}",`);
   if (start < 0) return null;
@@ -85,26 +117,53 @@ function applyToText(text, siteId, set) {
   let region = text.slice(start, end);
   const notes = [], add = [];
   for (const [field, value] of Object.entries(set)) {
-    const literal = Array.isArray(value) ? `[${value.map(v => JSON.stringify(v)).join(", ")}]` : String(value);
-    const re = new RegExp(`(^|[\\s,{])${field}:\\s*([^,}\\n]*)`);
-    const m = re.exec(region);
-    if (!m) {
-      if (!(Array.isArray(value) && !value.length)) add.push(`${field}: ${literal}`);
+    const span = spanOf(region, field);
+    if (!span) {
+      if (!(Array.isArray(value) && !value.length)) add.push(`${field}: ${lit(value)}`);
       continue;
     }
-    const current = m[2].trim();
-    if (current === literal) continue;
-    const trailing = m[2].match(/\s*$/)[0];
-    region = region.slice(0, m.index) + m[1] + `${field}: ${literal}` + trailing + region.slice(m.index + m[0].length);
-    notes.push(`${field} ${current} -> ${literal}`);
+    const raw = region.slice(span.at, span.end);
+    const trailing = raw.match(/\s*$/)[0];
+    const current = raw.trim();
+    let same = false;
+    try { same = JSON.stringify(vm.runInNewContext("(" + current + ")")) === JSON.stringify(value); } catch (e) { same = false; }
+    if (same) continue;
+    region = region.slice(0, span.at) + lit(value) + trailing + region.slice(span.end);
+    notes.push(`${field} ${current} -> ${lit(value)}`);
   }
   if (add.length) {
     const anchored = region.replace(/(state: "[^"]*",)/, (token) => `${token} ${add.join(", ")},`);
     region = anchored !== region ? anchored : region.replace(/(\{ id: "[^"]*",)/, (token) => `${token} ${add.join(", ")},`);
-    add.forEach(a => notes.push(`${a.split(":")[0]} (added) -> ${a.slice(a.indexOf(": ") + 2)}`));
+    add.forEach(x => notes.push(`${x.split(":")[0]} (added) -> ${x.slice(x.indexOf(": ") + 2)}`));
   }
   if (!notes.length) return { text, notes: [] };
   return { text: text.slice(0, start) + region + text.slice(end), notes };
+}
+
+/* The block crosses a trust boundary, so this is JSON.parse and a shape check, never eval. */
+function parseLoadoutBlock(text) {
+  const bad = (m) => ({ error: m });
+  const lines = String(text).split("\n").map(l => l.trim()).filter(Boolean);
+  const json = lines.filter(l => l.startsWith("{")).pop();
+  if (!json) return bad("no JSON object in the block");
+  let o;
+  try { o = JSON.parse(json); } catch (e) { return bad("the block is not JSON: " + e.message); }
+  const keys = ["mech", "frame", "pilot", "mounts", "systems"];
+  for (const k of Object.keys(o)) if (!keys.includes(k)) return bad(`unknown key ${k}`);
+  for (const k of keys) if (!(k in o)) return bad(`missing ${k}`);
+  for (const k of ["mech", "frame", "pilot"]) if (typeof o[k] !== "string" || !o[k]) return bad(`${k} must be a name`);
+  if (!Array.isArray(o.mounts)) return bad("mounts must be a list");
+  for (const m of o.mounts) {
+    if (!m || typeof m !== "object") return bad("each mount must be an object");
+    if (typeof m.slot !== "string" || !m.slot) return bad("each mount needs a slot");
+    if (!Array.isArray(m.weapons)) return bad("each mount needs a weapons list");
+    if (m.weapons.some(w => w !== null && typeof w !== "string")) return bad("weapon names must be strings");
+    if (m.locked !== undefined && m.locked !== true) return bad("locked may only be true");
+  }
+  if (!Array.isArray(o.systems) || o.systems.some(s => typeof s !== "string")) return bad("systems must be a list of names");
+  return { mech: o.mech, frame: o.frame, pilot: o.pilot,
+    mounts: o.mounts.map(m => m.locked ? { slot: m.slot, weapons: m.weapons.slice(), locked: true } : { slot: m.slot, weapons: m.weapons.slice() }),
+    systems: o.systems.slice() };
 }
 
 function selftest() {
@@ -149,6 +208,40 @@ function selftest() {
   const filled = appendLedgerRow('  ledger: [\n    { op: "001", date: "2026-10-17", pilot: "spook", taken: 2 },\n  ],\n  meta: {},', row);
   if (!/taken: 2 \},\n    \{ op: "001", date: "2026-10-18"/.test(filled)) errs.push("a row must append after existing ledger rows");
   if (appendLedgerRow("window.CAMPAIGN = { meta: {} };", row) !== null) errs.push("a missing ledger array must be reported, not guessed");
+  /* --- the loadout export round trip (design test 6), on fixture text only --- */
+  const LO = require("../loadout.js");
+  const want = { mech: "tombstone", frame: "GMS EVEREST", pilot: "tombstone",
+    mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)", "Nexus (Light)"] }, { slot: "Flex", weapons: ["Missile Rack"] }],
+    systems: ["Personalizations", "Custom Paint Job", "Deployable Cover, Mk II"] };
+  if (typeof LO.exportLoadout !== "function") errs.push("loadout.js must export exportLoadout");
+  else if (typeof parseLoadoutBlock !== "function") errs.push("apply-compcon must export parseLoadoutBlock");
+  else {
+    const back = parseLoadoutBlock(LO.exportLoadout(Object.assign({ sys: 0 }, want)));
+    if (back.error) errs.push("an exported block must parse: " + back.error);
+    else if (JSON.stringify(back) !== JSON.stringify(want)) errs.push("the export round trip must return the build unchanged, got " + JSON.stringify(back));
+    if (!parseLoadoutBlock("nonsense").error) errs.push("a block with no JSON object must be refused");
+    if (!parseLoadoutBlock('{"mech":"x","extra":1}').error) errs.push("an unknown key must be refused");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[],"mounts":"Main"}').error) errs.push("mounts must be a list");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[],"mounts":[{"slot":"Main"}]}').error) errs.push("a mount needs a weapons list");
+    if (!parseLoadoutBlock('{"mech":"x","frame":"f","pilot":"p","systems":[1],"mounts":[]}').error) errs.push("system names must be strings");
+    /* an empty seat keeps its index, so a build with the Aux seat filled is not read as the Main one */
+    const holed = { mech: "x", frame: "f", pilot: "p", mounts: [{ slot: "Main/Aux", weapons: [null, "Nexus (Light)"] }], systems: [] };
+    const backHoled = parseLoadoutBlock(LO.exportLoadout(holed));
+    if (JSON.stringify(backHoled) !== JSON.stringify(holed)) errs.push("an empty seat must survive the round trip, got " + JSON.stringify(backHoled.mounts));
+  }
+  /* a list with a comma inside it must be replaced whole, and an identical value must be a no-op */
+  const conds = '{ id: "skaldr", state: "OPERATIONAL", conditions: ["A", "B"] },';
+  const fixed = applyToText(conds, "skaldr", { conditions: ["C"] });
+  if (!fixed || fixed.text.includes('], "B"]')) errs.push("a comma inside a list must not survive the replacement");
+  if (!/conditions: \["C"\] \},/.test(fixed.text || "")) errs.push("a list must be replaced whole and keep the closing brace");
+  const spaced = '    { id: "tombstone",\n      mounts: [\n        { slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] },\n      ],\n      systems: ["Personalizations"],\n    },';
+  const same = applyToText(spaced, "tombstone", { mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }], systems: ["Personalizations"] });
+  if (!same || same.notes.length !== 0 || same.text !== spaced) errs.push("an identical multi-line value must be a no-op, not a reformat");
+  const multi = applyToText(spaced, "tombstone", { systems: ["Personalizations", "Custom Paint Job", "A, B"] });
+  if (!multi || !/systems: \["Personalizations", "Custom Paint Job", "A, B"\]/.test(multi.text)) errs.push("a multi-item list must replace the whole span");
+  if (!multi || !multi.text.includes('{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }')) errs.push("replacing one list must not disturb another field's span");
+  const outd = applyToText(spaced, "tombstone", { mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }] });
+  if (!outd || !outd.text.includes('mounts: [{ slot: "Heavy", weapons: ["Howitzer"] }]')) errs.push("a replaced object list must be written through one canonical serialiser");
   if (errs.length) {
     console.error("apply-compcon selftest FAILED:\n - " + errs.join("\n - "));
     process.exit(1);
@@ -406,4 +499,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, applyToText, lit };
