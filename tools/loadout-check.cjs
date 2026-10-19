@@ -295,6 +295,14 @@ else {
     }
   }
 
+  /* the thumbs crop from the top too, so the same focus has to reach the card, and only for records that set it */
+  const cards = mount("campaign.html", "").html("mech-list");
+  const cardOf = id => cards.split('data-mech="').find(x => x.startsWith(id + '"')) || "";
+  if (!/object-position:\s*center 41%/.test(cardOf("alba")))
+    errs.push("Alba's mech card thumb must use the record's imgFocus");
+  if (/object-position/.test(cardOf("averna")))
+    errs.push("only a record with imgFocus may override the thumb crop");
+
   /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
   const hero = mount("mech.html", "#alba").html("dossier");
   if (!/object-position:\s*center 41%/.test(hero)) errs.push("Alba's hero must focus the head and chest, not the rifle");
