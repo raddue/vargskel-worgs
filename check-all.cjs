@@ -378,7 +378,7 @@ const campPath = __dirname + "/campaign.html";
 if (!fs.existsSync(campPath)) problems.push("campaign.html: the campaign page is missing (issue #27)");
 const campPage = fs.existsSync(campPath) ? mount("campaign.html") : null;
 if (campPage) {
-  ["campaign-head", "ledger-count", "ledger-body", "timeline", "opord", "conflict-history", "faction-list", "crew-list", "mech-list", "session-form", "session-block"]
+  ["campaign-head", "ledger-count", "ledger-body", "timeline", "opord", "conflict-history", "faction-list", "crew-list", "mech-list"]
     .forEach(id => { if (!campPage.nodes[id]) problems.push(`campaign.html: missing section host #${id}`); });
   if (cardsOf(campPage.html("crew-list")).length !== C.pilots.length) problems.push(`campaign.html: crew list rendered ${cardsOf(campPage.html("crew-list")).length} pilots, want ${C.pilots.length}`);
   if (cardsOf(campPage.html("mech-list")).length !== C.mechs.length) problems.push(`campaign.html: roster rendered ${cardsOf(campPage.html("mech-list")).length} mechs, want ${C.mechs.length}`);
@@ -387,18 +387,10 @@ if (campPage) {
   if (!campPage.html("campaign-head")) problems.push("campaign.html: the operation header did not render");
   if (!campPage.html("timeline")) problems.push("campaign.html: the timeline did not render");
   if (/href="#op-/.test(campPage.html("timeline"))) problems.push("campaign.html: timeline links must not use #op- anchors, which exist only on index.html");
-  const form = campPage.html("session-form");
-  const wantInputs = C.pilots.length * LEDGER_STATS.length;
-  const gotInputs = (form.match(/data-stat=/g) || []).length;
-  if (gotInputs !== wantInputs) problems.push(`campaign.html: session form should render ${wantInputs} stat inputs (${C.pilots.length} pilots × ${LEDGER_STATS.length} stats), got ${gotInputs}`);
-  if (!/type="date"/.test(form)) problems.push("campaign.html: session form needs the session date field");
-  if (!form.includes(`data-pilot="${C.pilots[0].id}"`)) problems.push("campaign.html: session form rows must be tagged with data-pilot");
-  if (typeof campPage.window.UI.sessionBlock !== "function") problems.push("archive.js: sessionBlock must be exported on UI");
-  else {
-    const block = campPage.window.UI.sessionBlock({ op: C.ops[0].id, date: "2099-12-31", rows: [{ pilot: C.pilots[0].id, dealt: 14, taken: 9 }] });
-    const lines = String(block).split("\n").filter(l => l.trim());
-    if (!/^session op=\S+ date=\d{4}-\d{2}-\d{2}$/.test(lines[0] || "")) problems.push(`UI.sessionBlock: first line must carry op and date, got "${lines[0]}"`);
-    if (!new RegExp(`^${C.pilots[0].id} .*dealt=14`).test(lines[1] || "")) problems.push(`UI.sessionBlock: second line must be one pilot's stats, got "${lines[1]}"`);
+  /* The logging form is gone until #28 designs a real one, so the block grammar is exercised
+     from the literal block a hand-typed session has to satisfy. */
+  const block = `session op=${C.ops[0].id} date=2099-12-31\n${C.pilots[0].id} dealt=14 taken=9`;
+  {
     const toolSrc = fs.readFileSync(__dirname + "/tools/apply-compcon.cjs", "utf8");
     if (!/require\.main === module/.test(toolSrc)) problems.push("apply-compcon.cjs: main() must be guarded by require.main, or checks cannot require the parser");
     else {
@@ -407,7 +399,7 @@ if (campPage) {
       else {
         const known = { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(x => x.id), stats: LEDGER_STATS, ledger: C.ledger };
         const parsed = tool.parseBlock(String(block), known);
-        if (parsed.errors.length) problems.push(`apply-compcon: the page's own block must parse clean, got ${JSON.stringify(parsed.errors[0])}`);
+        if (parsed.errors.length) problems.push(`apply-compcon: a hand-typed block must parse clean, got ${JSON.stringify(parsed.errors[0])}`);
         else if (parsed.rows.length !== 1 || parsed.rows[0].pilot !== C.pilots[0].id || parsed.rows[0].stats.dealt !== 14 || parsed.rows[0].stats.taken !== 9 || parsed.rows[0].op !== String(C.ops[0].id) || parsed.rows[0].date !== "2099-12-31") problems.push(`apply-compcon: round trip lost a field — ${JSON.stringify(parsed.rows[0])}`);
         const badStat = tool.parseBlock("session op=" + C.ops[0].id + " date=2099-12-31\n" + C.pilots[0].id + " noodles=3", known);
         if (!badStat.errors.some(e => /noodles/.test(e))) problems.push("apply-compcon: an unknown stat must be refused by name");

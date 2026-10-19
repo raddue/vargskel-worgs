@@ -254,26 +254,13 @@ const ledgerPanel=log=>{const byPilot=new Map();log.forEach(e=>{const r=byPilot.
  :`<p class="muted">No sessions logged yet.</p>`};
 };
 if(el("ledger-body")){const panel=ledgerPanel(C.ledger||[]);const lc=el("ledger-count");if(lc)lc.textContent=panel.count;el("ledger-body").innerHTML=panel.html;}
-/* Campaign page (#27): the op header and the session-log form. sessionBlock is pure, so the block
-   the page emits is what the suite pins; the form's click wiring cannot run under the stub DOM
-   (no value, no checked, and querySelectorAll returns nothing), which is why none of it lives here. */
+/* Campaign page (#27): the op header. The session-log form that lived here was 60 spinners
+   (10 stats x 6 pilots) with no way to skip a pilot who did not deploy, so it is removed
+   pending #28; a session is logged by hand until that design lands. */
 const opOf=id=>C.ops.find(o=>String(o.id)===String(id));
 const campaignHead=o=>{const loc=C.locations.find(x=>x.id===(o&&o.loc))||{};
  return table(th("OPERATION",esc(o?o.id+" · "+o.title:"UNKNOWN"))+th("THEATER",esc(loc.name||C.meta.station||""))+th("MISSION",o&&o.mission&&o.mission.href?link(o.mission.href,"OPEN BRIEFING →"):"NOT FILED"));};
-/* One session as the tool's block grammar: a header line, then one line per pilot. */
-const sessionBlock=e=>{const rows=(e.rows||[]).map(r=>{const vals=LEDGER_STATS.filter(([k])=>r[k]!=null&&r[k]!=="").map(([k])=>`${k}=${r[k]}`);return r.pilot&&vals.length?`${r.pilot} ${vals.join(" ")}`:"";}).filter(Boolean);
- return ["session op="+e.op+" date="+e.date,...rows].join("\n");};
 if(el("campaign-head")){const host=el("campaign-head");host.innerHTML=campaignHead(opOf(host.dataset.op));}
-if(el("session-form")){const opId=(el("campaign-head")||{dataset:{}}).dataset.op||"";
- const fields=p=>LEDGER_STATS.map(([k,l])=>`<label>${esc(l)}<input type="number" min="0" step="1" data-stat="${esc(k)}" data-pilot="${esc(p)}" aria-label="${esc(l)} for ${esc(p)}"></label>`).join("");
- el("session-form").innerHTML=`<div class="session-pilot" data-pilot="__date"><div class="tag">SESSION</div><label>DATE<input type="date" id="session-date" aria-label="session date"></label></div>`+
-  C.pilots.map(p=>`<div class="session-pilot" data-pilot="${esc(p.id)}"><div class="tag">${esc(shortName(p.id).toUpperCase())}</div>${fields(p.id)}</div>`).join("")+
-  `<button class="chip" type="button" id="session-make">BUILD BLOCK</button>`;
- const btn=el("session-make"),out=el("session-block");
- if(btn&&out)btn.addEventListener("click",()=>{const rows=[];
-  document.querySelectorAll("[data-stat]").forEach(n=>{if(!n.value||Number(n.value)===0)return; /* a zero is "not logged", not a stat */let r=rows.find(x=>x.pilot===n.dataset.pilot);if(!r)rows.push(r={pilot:n.dataset.pilot});r[n.dataset.stat]=Number(n.value);});
-  out.textContent=sessionBlock({op:opId,date:(el("session-date")||{}).value||"",rows:rows});});
-}
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
  host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
@@ -368,7 +355,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,sessionBlock,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

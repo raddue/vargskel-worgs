@@ -8,6 +8,10 @@ revision: 2
 
 # Solstice Rain campaign page
 
+> Status: the logging form this doc specifies was built, then removed — 60 spinners on screen
+> with no way to skip a pilot who did not deploy. A real design is #28. The block grammar the doc
+> defines still stands, and `tools/apply-compcon.cjs --log-block` still applies it.
+
 ## Problem
 
 The campaign is the one thing the site does not present as a record. Its parts are scattered:
