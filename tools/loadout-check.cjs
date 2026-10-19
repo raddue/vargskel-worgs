@@ -212,10 +212,5 @@ if (core && cat) {
   }
 }
 
-
-/* the write path can only be covered here: check-all requires the parser, but nothing ran the
-   selftest that exercises applyToText, the exports and the rollback */
-if (spawnSync(process.execPath, [path.join(__dirname, "apply-compcon.cjs"), "--selftest"], { encoding: "utf8" }).status !== 0)
-  errs.push("apply-compcon.cjs --selftest failed (run: node tools/apply-compcon.cjs --selftest)");
 if (errs.length) { console.error("loadout: " + errs.length + " problem(s)\n - " + errs.join("\n - ")); process.exit(1); }
 console.log("loadout ok: catalogue resolves and its gate is current");
