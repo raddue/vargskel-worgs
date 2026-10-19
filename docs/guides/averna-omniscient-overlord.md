@@ -486,7 +486,7 @@ Equally, a tech hit does **not** hand out a free Lock On, marking is its own act
 | Stat | **CHOMOLUNGMA** | **AVERNA** (SYS 2) | **GOBLIN** | Read |
 |---|---|---|---|---|
 | Size | 1 | 1 | **1/2** | Goblin is smaller: easier to shelter, harder to block |
-| **HP** | 10 | **10** | **6** | **+4 for GMS**, a Goblin dies to one good hit |
+| **HP** | 10 | **12** | **6** | **12 as fielded** = 10 frame + **2 from Personalizations**; a Goblin dies to one good hit |
 | **Repairs** | 4 | **4** | **2** | **Double**, and Replaceable Parts makes each one stretch further |
 | Structure / Stress | 4 / 4 | 4 / 4 | 4 / 4 | Tie |
 | **Heat Cap** | **6** | 6 | 4 | +2 for GMS; Goblin cooks faster |
@@ -507,7 +507,8 @@ Equally, a tech hit does **not** hand out a free Lock On, marking is its own act
 - **The GOBLIN is not built to survive being noticed.** **6 HP**, **2 Repairs**, and **Fragile**
   (**+1 Difficulty on Hull checks and saves**) means the first enemy that decides to kill the hacker
   probably does.
-- **The CHOMOLUNGMA trades hacking ceiling for legs.** 10 HP, 4 Repairs, Replaceable Parts, **two
+- **The CHOMOLUNGMA trades hacking ceiling for legs.** 10 HP (**12 as fielded**, with
+  Personalizations), 4 Repairs, Replaceable Parts, **two
   mounts**, and **+1 SP at equal SYSTEMS**, a mech that is still on the board when the shooting stops.
 - **The core system is the closer.** **Advanced Intrusion Package** grants **Balance Control Lockout**
   (Push 2 + Prone) and **System Crusher** (+2 Heat, 4 Burn on overheat) to *Invade*, the two strongest
@@ -544,7 +545,7 @@ the brief was wrong:
 | "LL5, SSC Swallowtail II: Light Laser" | **No such weapon.** The closest Burn option is HA Sherman's **SOL-Pattern Laser Rifle** (HA license). Swallowtail rank II is **Retractable Profile** |
 | "SSC Core Bonus: Integrated Weapon" | **Integrated Weapon is a GMS core bonus.** Core bonuses arrive **every three LLs**; non-GMS ones need **three ranks** in that manufacturer |
 | "ATHENA ignores walls / wall-ignoring line of sight" | **Simulacrum** grants full **visibility** in a Blast 3 within **Range 50**, explicitly **not line of sight**. It also strips cover and blocks Hide/Invisible |
-| "12 HP hull" | The frame is **10 HP**. SYSTEMS 2 adds no HP (**HULL** adds +2 HP/point) |
+| "12 HP hull" | Both numbers are right: the frame is **10 HP** and **Personalizations** adds **+2**, for **12 as fielded**. SYSTEMS adds no HP (**HULL** is +2 HP/point), and **HULL 1 is impossible at LL0**, where the budget is only 2 mech-skill points |
 
 **Two things in the campaign roster to decide on** (campaign data, not rules data, left untouched):
 
