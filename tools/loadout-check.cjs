@@ -147,7 +147,7 @@ if (core && cat) {
   const norm = x => String(x || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const frameOf = rec => Object.values(cat.frames).find(f => f && (norm(f.name) === norm(rec.frame) || norm(`${f.source || ""} ${f.name}`) === norm(rec.frame))) || null;
   const pilotOf = rec => (C.pilots || []).find(p => p.id === rec.pilot) || null;
-  /* systems is still the printed string until the rename lands, so read both forms. */
+  /* records carry systems as a list of names, so the page seeds them straight in */
   const systemsOf = rec => Array.isArray(rec.systems) ? rec.systems.slice() : String(rec.systems || "").split(",").map(x => x.trim()).filter(Boolean);
   const buildOf = rec => ({ mech: rec.id, frame: rec.frame, pilot: rec.pilot, sys: rec.sys, mounts: rec.mounts || [], systems: systemsOf(rec) });
 
@@ -199,6 +199,24 @@ if (core && cat) {
   };
 
   for (const rec of C.mechs || []) for (const p of recordProblems(rec)) errs.push(`${rec.id}: ${p}`);
+  /* The records spell frames in caps ("GMS EVEREST") while the catalogue is keyed by name. A
+     resolution that misses drops the SP cap silently, so pin both halves of that contract. */
+  {
+    if (!core.frameOf) errs.push("the core must export frameOf so the page and the gate agree on resolution");
+    else if (!core.frameOf({ frame: "GMS EVEREST" }, cat)) errs.push("frameOf must resolve a caps-spelled frame against the catalogue");
+    let resolved = 0;
+    for (const rec of C.mechs || []) {
+      const frame = frameOf(rec);
+      if (!frame) continue;
+      resolved += 1;
+      const chk = core.spCheck(buildOf(rec), frame, cat, pilotOf(rec));
+      if (typeof chk.cap !== "number") errs.push(`${rec.id}: a resolved frame must produce a numeric SP cap`);
+    }
+    if (!resolved) errs.push("no real record's frame resolves, so the SP cap never applies to the roster");
+    /* a frame the catalogue lacks must stay an explicit null cap, not a fabricated one */
+    const missing = core.spCheck(buildOf({ frame: "GMS NOWHERE", sys: 0, mounts: [], systems: [] }), core.frameOf({ frame: "GMS NOWHERE" }, cat), cat, { ll: 0 });
+    if (missing.cap !== null) errs.push("an unresolvable frame must report a null cap rather than a number");
+  }
   /* negative control: the record check must fire on wrong data, not just pass on right data */
   const victim = JSON.parse(JSON.stringify((C.mechs || []).find(m => (m.mounts || []).length) || {}));
   const uniqName = Object.keys(cat.systems).find(n => cat.systems[n].tg_unique);
@@ -231,6 +249,63 @@ else {
   if (!/Main/.test(slots)) errs.push("loadout.html must render the record's own slots");
   const sp = page.html("lo-sp");
   if (!/SP \d+ \/ \d+/.test(sp)) errs.push(`loadout.html must render the SP counter, got: ${sp.slice(0, 80)}`);
+
+  /* the distance slider drives the readout: at 15 the Range 20 rifle still fires, the rest do not */
+  const rng = mount("loadout.html", "#alba");
+  const slider = rng.nodes["lo-dist"];
+  if (!slider) errs.push("loadout.html needs a distance slider (id lo-dist) beside the readout");
+  else {
+    slider.value = "15";
+    slider.fire("input");
+    const readout = rng.html("lo-range");
+    if (!/out of range/i.test(readout)) errs.push("the readout must follow the slider: nothing reported out of range at 15");
+    if (!/in band/i.test(readout)) errs.push("the readout must keep the Range 20 rifle in band at 15");
+  }
+  /* by hand the GM drops a weapon and picks one back into the seat it leaves */
+  const edit = mount("loadout.html", "#alba");
+  const dropBtn = edit.nodes["lo-drop-0-0"];
+  if (!dropBtn) errs.push("a placed weapon needs a remove control (lo-drop-<slot>-<seat>)");
+  else {
+    dropBtn.fire("click");
+    if (/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("removing a weapon must take it out of the slot");
+    const picker = edit.nodes["lo-pick-0-0"];
+    if (!picker) errs.push("an empty seat needs a weapon picker (lo-pick-<slot>-<seat>)");
+    else {
+      picker.value = "Missile Rack";
+      picker.fire("change");
+      if (!/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
+    }
+  }
+
+  /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
+  const hero = mount("mech.html", "#alba").html("dossier");
+  if (!/object-position:\s*center 41%/.test(hero)) errs.push("Alba's hero must focus the head and chest, not the rifle");
+  const plainHero = mount("mech.html", "#tombstone").html("dossier");
+  if (/object-position/.test(plainHero)) errs.push("only a record with imgFocus may override the hero crop");
+
+  /* the checklist seeds the record's printed systems as names, ticks one, and puts it back */
+  const sysPage = mount("loadout.html", "#averna");
+  const beforeSys = sysPage.html("lo-export");
+  if (!/systems&quot;:\[/.test(beforeSys)) errs.push("the page must hand the core a systems list, not the record's printed string");
+  const box = sysPage.nodes["lo-sys-0"];
+  if (!box) errs.push("loadout.html needs a systems checklist (id lo-sys-<index>)");
+  else {
+    box.checked = true; box.fire("change");
+    const ticked = sysPage.html("lo-export");
+    if (ticked === beforeSys) errs.push("ticking a system must reach the build and the export");
+    const boxAgain = sysPage.nodes["lo-sys-0"];
+    if (!boxAgain) errs.push("the checklist must survive its own re-render");
+    else {
+      boxAgain.checked = false; boxAgain.fire("change");
+      if (sysPage.html("lo-export") !== beforeSys) errs.push("unticking must put the build back");
+    }
+  }
+
+  /* the export block is the one thing the GM pastes back, so it has to carry the record's own plan */
+  const expo = mount("loadout.html", "#alba").html("lo-export");
+  if (!/LOADOUT/.test(expo)) errs.push("loadout.html must render the pasteable LOADOUT block in lo-export");
+  if (!/Missile Rack/.test(expo)) errs.push("the exported block must carry the record's own weapons");
+
   /* with a frame the catalogue does not hold, the cap must read unknown rather than 0 */
   const unknownFrame = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "tombstone", frame: "GMS NOPE", place: [] } }).html("lo-sp");
   if (!/SP \d+ \/ \?/.test(unknownFrame)) errs.push(`an unresolved frame must show an unknown cap, got: ${unknownFrame.slice(0, 80)}`);

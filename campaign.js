@@ -122,7 +122,7 @@ window.CAMPAIGN = {
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 5, eva: 10, edef: 8, sens: 10, save: 10,
       mounts: [{"slot":"Main","weapons":["Charged Blade"]},{"slot":"Flex","weapons":["Nexus (Hunter-Killer)"]},{"slot":"Heavy","weapons":["Heavy Charged Blade"]}],
       systems: ["Type-3 Projected Shield","Personalizations","Rapid Burst Jump Jet System","Custom Paint Job"] },
-    { id: "alba", name: "ALBA", frame: "GMS EVEREST", pilot: "spook", role: "SABOTEUR", glyph: "▰", img: "assets/alba.png", state: "OPERATIONAL", size: 1,
+    { id: "alba", name: "ALBA", frame: "GMS EVEREST", pilot: "spook", role: "SABOTEUR", glyph: "▰", img: "assets/alba.png", imgFocus: "center 41%", state: "OPERATIONAL", size: 1,
       hull: 0, agi: 2, sys: 0, eng: 0, structure: 4, hp: 12, armor: 0, stress: 4, heat: 6, repair: 5,
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 5, eva: 10, edef: 8, sens: 10, save: 10,
       mounts: [{"slot":"Main","weapons":["Missile Rack"]},{"slot":"Flex","weapons":["Pistol","Tactical Knife"]},{"slot":"Heavy","weapons":["Anti-Materiel Rifle"]}],
