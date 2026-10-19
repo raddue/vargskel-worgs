@@ -159,27 +159,29 @@ Superheavy would lock, and it never returns or mutates a build. The mutation is 
 decision that also writes cannot be asked without being obeyed. `seat` is the index inside a mount's
 `weapons`, because a composite mount holds two.
 
-- `UI.place(build, slotIndex, seat, weapon, catalogue, opts)` → `{ok, reason, build}` runs
+- `UI.place(pilot, build, slotIndex, seat, weapon, catalogue, opts)` → `{ok, reason, build}` runs
   `canMount(build.pilot, …)` first and **returns its refusal unchanged**, so `UNLICENSED` and
   `OVER SP CAP` read the same whether they are asked or attempted; on `ok` it returns the new build, and an already-occupied seat is refused `SLOT FULL`
   rather than silently replaced.
-- `UI.unplace(build, slotIndex, seat)` → `build` removes that seat's weapon and **clears the lock**
+- `UI.unplace(build, slotIndex, seat, catalogue)` → `build` removes that seat's weapon and **clears the lock**
   when the weapon removed is the Superheavy, since the lock has no meaning without it and an export
   that left it behind would fail test 2.
-- `UI.setFrame(build, frame)` → `{ok, reason, build}` refuses `UNLICENSED` or
+- `UI.setFrame(build, frame, catalogue, pilot)` → `{ok, reason, build}` refuses `UNLICENSED` or
   `UNKNOWN FRAME LICENCE` and **resets `mounts` to the new frame's slot list**, because mounts
   carried over from another frame are the silent mismatch the export check exists to catch;
-  `UI.setSystems(build, systems, catalogue)` → `{ok, reason, build}` checks the SP cap, duplicates
+  `UI.setSystems(build, systems, catalogue, pilot)` → `{ok, reason, build}` checks the SP cap, duplicates
   and the AI limit. Every builder is pure and returns a new build, so nothing mutates one
   in place.
-- `UI.exportLoadout(build)` takes the edited build rather than the record:
-  `{ mech, frame, pilot, mounts, systems }`, where `mech` is the record id that `--loadout <mech>`
-  needs and `pilot` is the field `canMount` reads licences from.
+- `UI.exportLoadout(build)` takes the edited build rather than the record, and
+  `{ mech, frame, pilot, sys, mounts, systems }` is the whole shape: `mech` is the record id that
+  `--loadout <mech>` needs, `pilot` is the record id whose object the caller resolves, and `sys` is
+  the record's system-point allowance, the cap's other input. The builders take that resolved pilot
+  record as their first argument because `licences` and `ll` are what they read from it.
 
 Reasons: `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `SLOT LOCKED`, `NEEDS SECOND MOUNT`, `OVER SP CAP`, `UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`, `DUPLICATE UNIQUE ITEM`, `AI LIMIT`.
 Uniqueness is a real gate, not a nicety: 104 systems and 3 weapons carry `tg_unique`
 (`Personalizations`, `Custom Paint Job`, `Type-3 Projected Shield`, `EVA Module` among them), and 13
-systems carry `tg_ai` with a one-AI-per-mech limit. `UI.spCheck(build, frame, catalogue)` is
+systems carry `tg_ai` with a one-AI-per-mech limit. `UI.spCheck(build, frame, catalogue, pilot)` is
 separate, since the cap depends on the whole build.
 
 ### Where the code lives

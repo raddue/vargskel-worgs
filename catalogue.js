@@ -5,6 +5,7 @@ window.CATALOGUE = {
  "weapons": {
   "ERR: DATA NOT FOUND": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [],
@@ -14,6 +15,7 @@ window.CATALOGUE = {
   },
   "Anti-Materiel Rifle": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -50,6 +52,7 @@ window.CATALOGUE = {
   },
   "Assault Rifle": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -74,6 +77,7 @@ window.CATALOGUE = {
   },
   "Charged Blade": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -98,6 +102,7 @@ window.CATALOGUE = {
   },
   "Cyclone Pulse Rifle": {
    "mount": "Superheavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -130,6 +135,7 @@ window.CATALOGUE = {
   },
   "Heavy Charged Blade": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -154,6 +160,7 @@ window.CATALOGUE = {
   },
   "Heavy Machine Gun": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -178,6 +185,7 @@ window.CATALOGUE = {
   },
   "Heavy Melee Weapon": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -197,6 +205,7 @@ window.CATALOGUE = {
   },
   "Howitzer": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -237,6 +246,7 @@ window.CATALOGUE = {
   },
   "Missile Rack": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -265,6 +275,7 @@ window.CATALOGUE = {
   },
   "Mortar": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -297,6 +308,7 @@ window.CATALOGUE = {
   },
   "Nexus (Hunter-Killer)": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -321,6 +333,7 @@ window.CATALOGUE = {
   },
   "Nexus (Light)": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -345,6 +358,7 @@ window.CATALOGUE = {
   },
   "Pistol": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -373,6 +387,7 @@ window.CATALOGUE = {
   },
   "Segment Knife": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -397,6 +412,7 @@ window.CATALOGUE = {
   },
   "Rocket-Propelled Grenade": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -429,6 +445,7 @@ window.CATALOGUE = {
   },
   "Shotgun": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -452,6 +469,7 @@ window.CATALOGUE = {
   },
   "Tactical Knife": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -480,6 +498,7 @@ window.CATALOGUE = {
   },
   "Tactical Melee Weapon": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -499,6 +518,7 @@ window.CATALOGUE = {
   },
   "Thermal Lance": {
    "mount": "Heavy",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -523,6 +543,7 @@ window.CATALOGUE = {
   },
   "Thermal Pistol": {
    "mount": "Auxiliary",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -542,6 +563,7 @@ window.CATALOGUE = {
   },
   "Thermal Rifle": {
    "mount": "Main",
+   "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "damage": [
@@ -698,5 +720,24 @@ window.CATALOGUE = {
    "license_level": 0,
    "mechtype": "Balanced"
   }
+ },
+ "fittings": {
+  "Auxiliary": [
+   "Auxiliary"
+  ],
+  "Main": [
+   "Main",
+   "Auxiliary"
+  ],
+  "Flex": [
+   "Main",
+   "Auxiliary"
+  ],
+  "Heavy": [
+   "Superheavy",
+   "Heavy",
+   "Main",
+   "Auxiliary"
+  ]
  }
 };

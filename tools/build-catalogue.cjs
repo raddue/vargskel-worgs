@@ -9,7 +9,7 @@ const ROOT = path.join(__dirname, "..");
 const LIB = process.env.LANCER_DATA || (!process.argv[2]?.startsWith("--") ? process.argv[2] : "") || "/tmp/ld/lancer-data-3.1.7/lib";
 if (process.argv.includes("--check") && !fs.existsSync(LIB)) { console.log(`catalogue.js check skipped: lancer-data absent at ${LIB}`); process.exit(0); }
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
-const W = load("weapons.json"), S = load("systems.json"), F = load("frames.json");
+const W = load("weapons.json"), S = load("systems.json"), F = load("frames.json"), R = load("rules.json");
 
 const sandbox = { window: {} };
 vm.createContext(sandbox);
@@ -41,7 +41,7 @@ const bands = x => [
 ];
 const tags = x => (x.tags || []).map(t => ({ id: t.id, val: t.val == null ? null : t.val }));
 const damage = x => (x.damage || []).map(d => ({ val: d.val, type: d.type }));
-const weapon = w => ({ mount: w.mount, license: w.license || w.source || "", license_level: w.license_level ?? null,
+const weapon = w => ({ mount: w.mount, sp: w.sp ?? 0, license: w.license || w.source || "", license_level: w.license_level ?? null,
   damage: damage(w), bands: bands(w), tags: tags(w),
   profiles: (w.profiles || []).map(p => ({ name: p.name, damage: damage(p), bands: bands(p), tags: tags(p) })) });
 const system = s => ({ sp: s.sp ?? 0, license: s.license || s.source || "", license_level: s.license_level ?? null,
@@ -49,7 +49,8 @@ const system = s => ({ sp: s.sp ?? 0, license: s.license || s.source || "", lice
 const frame = f => ({ mounts: f.mounts || [], sys: (f.stats && f.stats.sp) ?? null, license: f.source || "",
   license_level: f.license_level ?? null, mechtype: (f.mechtype || []).join("/") });
 
-const CATALOGUE = { weapons: {}, systems: {}, frames: {} };
+/* mount_fittings is the authoritative table: which weapon sizes a mount of a given size takes. */
+const CATALOGUE = { weapons: {}, systems: {}, frames: {}, fittings: R.mount_fittings };
 const wanted = new Set(), wantedFrames = new Set();
 for (const m of C.mechs) {
   for (const n of loadoutItems(m.loadout)) wanted.add(norm(n));
