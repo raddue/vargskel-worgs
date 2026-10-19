@@ -160,17 +160,23 @@ window.DETAIL = {
    "license": "GMS LL0",
    "effect": "The use of turret drones is a rather traditional form of force multiplication – one that has remained the backbone of defense in many theaters. Expend a charge to deploy a turret drone that attaches to any object or surface within Sensors and line of sight. Gain the Turret Attack reaction, which can be taken once for each deployed turret drone. Turret drones cannot be recalled and expire at the end of the scene."
   },
-  "Type-I Flight System": {
-   "sp": 3,
+  "Rapid Burst Jump Jet System": {
+   "sp": 2,
    "tags": "Unique",
    "license": "GMS LL0",
-   "effect": "You may choose to count any and all of your movement as flying; however, you take Size +1 Heat at the end of any of your turns in which you fly this way."
+   "effect": "You can fly when you Boost; however, you must end the movement on the ground or another solid surface, or else immediately begin falling."
   },
   "Type-3 Projected Shield": {
    "sp": 2,
    "tags": "Shield, Unique, Heat 1 (Self)",
    "license": "GMS LL0",
    "effect": "The GMS Type-3 Projected Shield traps and denies incoming projectiles by projecting an aggressive, superpositional anti-ballistic barrier."
+  },
+  "Custom Paint Job": {
+   "sp": 1,
+   "tags": "Unique, Indestructible",
+   "license": "GMS LL0",
+   "effect": "When you take structure damage, roll 1d6. On a 6, you return to 1 HP and ignore the damage – the hit simply ‘scratched your paint’.<br>This system can only be used once before each Full Repair, and is not a valid target for system destruction."
   },
   "Pattern-A Jericho Deployable Cover": {
    "sp": 2,
@@ -196,12 +202,6 @@ window.DETAIL = {
    "license": "GMS LL0",
    "effect": "Your mech has space for one additional non-Mech character or object of Size 1/2 to ride as a passenger in the cockpit. While inside the mech, they cannot suffer any effect from outside or be targeted by attacks, as if they were a pilot. You can hand over or take back control to or from them as a protocol (following the same rules as pilot and AIs), but if they take over the controls from you, the mech becomes Impaired and Slowed to reflect the lack of appropriate licenses and integration."
   },
-  "Custom Paint Job": {
-   "sp": 1,
-   "tags": "Unique, Indestructible",
-   "license": "GMS LL0",
-   "effect": "When you take structure damage, roll 1d6. On a 6, you return to 1 HP and ignore the damage – the hit simply ‘scratched your paint’.<br>This system can only be used once before each Full Repair, and is not a valid target for system destruction."
-  },
   "Pattern-A Smoke Charges": {
    "sp": 2,
    "tags": "Limited 3, Unique, Grenade",
@@ -225,12 +225,6 @@ window.DETAIL = {
    "tags": "Unique",
    "license": "GMS LL0",
    "effect": "Precise interaction with built and natural environments, soft targets, and hazardous materials is part of the daily routine for support-class mechs. This is made possible by manipulators – added multi-digit “hands” with haptic sensors. Your mech has an extra set of limbs. They are too small to have any combat benefit, but allow the mech to interact with objects that would otherwise be too small or sensitive (e.g., pilot-sized touch pads)."
-  },
-  "Rapid Burst Jump Jet System": {
-   "sp": 2,
-   "tags": "Unique",
-   "license": "GMS LL0",
-   "effect": "You can fly when you Boost; however, you must end the movement on the ground or another solid surface, or else immediately begin falling."
   }
  },
  "talents": {

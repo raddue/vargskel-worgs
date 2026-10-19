@@ -101,7 +101,7 @@ window.CAMPAIGN = {
     { id: "averna", name: "AVERNA", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/averna.png",
       state: "OPERATIONAL", size: 1, hp: 12, structure: 4, stress: 4, armor: 0, repair: 4, heat: 6, hull: 0, agi: 0, sys: 2, eng: 0, eva: 8, spd: 4, tech: "+3", edef: 12, sens: 15, save: 11, attackBonus: 0, limitedBonus: 0,
       loadout: "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
-      systems: "Personalizations, Turret Drones, Type-I Flight System, Type-3 Projected Shield" },
+      systems: "Personalizations, Turret Drones, Rapid Burst Jump Jet System, Type-3 Projected Shield, Custom Paint Job" },
     { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "SKIRMISHER", glyph: "▰▱", img: "assets/tombstone.png",
       state: "OPERATIONAL", size: 1, hp: 10, structure: 4, stress: 4, armor: 0, repair: 5, heat: 6,
       hull: 0, agi: 2, sys: 0, eng: 0, eva: 10, spd: 5, tech: "+0", edef: 8, sens: 10, save: 10, attackBonus: 0, limitedBonus: 0,

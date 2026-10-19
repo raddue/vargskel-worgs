@@ -134,7 +134,7 @@ WAYWARD, SCOOTEROO, ALBA.
 | **Main/Aux** | **NEXUS (LIGHT)** | Auxiliary Nexus | **1d3 Kinetic** | 10 | **Smart** |
 | **Flex** | **MISSILE RACK ×2** | Auxiliary Launcher | **1d3+1 Explosive**, Blast 1 | 10 | **Loading** |
 
-**Systems:** Personalizations · Turret Drones · Type-I Flight System · Type-3 Projected Shield
+**Systems:** Personalizations · Turret Drones · **Rapid Burst Jump Jet System** · Type-3 Projected Shield · **Custom Paint Job**
 
 **Why this loadout is legal · and why it is right:**
 
@@ -294,36 +294,48 @@ SP."*
 | **LL0** | 2 | 0 | **8** | 7 frame + 1 from SYSTEMS |
 | **LL1** | 3 | 1 | **9** | GRIT starts paying into the budget |
 | **LL2** | 4 | 1 | **10** | second SYSTEMS point lands |
-| **LL3** | 4 | 2 | **11** | Goblin I now fits with no cuts |
+| **LL3** | 4 | 2 | **11** | H0R_OS I fits with no further cuts |
 
-**Current load · 8 SP, exactly the budget:**
+**Current load — 8 SP, exactly the budget:**
 
 | Item | SP | What it actually does |
 |---|---|---|
 | **Personalizations** | 1 | +2 HP, plus a narrative mod (+1 Accuracy on a skill check if the GM agrees it helps) |
 | **Turret Drones** | 2 | Deployable turret drones with a **Turret Attack** reaction; expire at the end of the scene |
-| **Type-I Flight System** | 3 | Count all movement as flying; you take **Size+1 Heat** at the end of any turn you fly this way |
+| **Rapid Burst Jump Jet System** | 2 | Fly **while you Boost**; you must end on solid ground or immediately begin falling |
 | **Type-3 Projected Shield** | 2 | Protocol: **+2 Difficulty** on melee/ranged attacks between you and a nominated character until your next turn; using it costs **1 Heat** |
+| **Custom Paint Job** | 1 | On structure damage roll **1d6**; on a **6** you return to **1 HP** and ignore the damage |
 | Nexus (Hunter-Killer) · Nexus (Light) · Missile Rack ×2 | 0 | Weapons |
 | **Total** | **8** | no slack at LL0 |
 
-**What the ranks want to add:** Autopod **1** (weapon, Goblin I) · H0R_OS I / II / III **2 each** ·
-Metahook **2** · OSIRIS-Class NHP **3** · Lotus Projector **2** · Markerlight **2**.
+**Why Jump Jets replaced the Type-I Flight System.** Flight cost **3 SP** and **Size+1 Heat at the end of
+every turn you flew** (~2 Heat against a 6 Heat Cap) for sustained straight-line flight and Immunity to
+Prone while airborne. Jump Jets cost **2 SP and no Heat** and fly only during a **Boost** — the
+gap-crossing job for a point less. The freed point buys **Custom Paint Job**, a structure-damage negate
+on a 10 HP frame.
+
+**What you gave up, and what covers it:**
+
+- **Jumping:** half SPEED in a straight line, ignoring a gap at ground level — **2 spaces** at SPEED 4.
+  Vertically, up to your SIZE (**1 space**) and **1 space over**. End a jump mid-air and you fall.
+- **Climbing** is half speed, with a Hull or Agility check on hard surfaces. **Falling** is 3 AP Kinetic
+  per 3 spaces fallen, to a maximum of 9, and counts as involuntary movement.
+- **Water and void:** underwater or in zero gravity, mechs are **Slowed** without a propulsion or flight
+  system — **EVA Module (1 SP)** is the fix if the campaign ever goes there.
 
 **Fitting Goblin I (Autopod 1 + H0R_OS I 2 = 3 SP):**
 
-- **No cuts needed by LL3.** Put both HASE points into SYSTEMS and the 11 SP budget swallows it whole.
-- **Want it at LL1 (9 SP)? Cut 2.** Drop **Type-I Flight System** (3 SP, and it charges Size+1 Heat per
-  flying turn on a **6 Heat Cap** hull) or **Turret Drones** (2 SP, an exact fit).
+- **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact.
+- **H0R_OS I lands at LL3** (budget 11 = 8 + 1 + 2). To take it a level earlier at LL2 you must free
+  1 SP — the lever is **Custom Paint Job** or **Turret Drones**.
 - **Keep the Type-3 Projected Shield.** It taxes only melee and ranged attacks, and tech attacks are
-  neither, so 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
-- **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options:
+  neither — 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
+- **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options —
   II adds Quick Tech **Ideal Image** and **False Idol**, III adds Invade **Dimensional Emblems** and
   **Celestial Shackles**. Nothing in the data requires H0R_OS I to be installed for them to work.
 - **Remember what is already free.** The Chomolungma core grants **Balance Control Lockout** (Push 2 +
   Prone) and **System Crusher** (+2 Heat, 4 Burn on overheat). H0R_OS I buys you *Puppet System's*
-  longer, reaction-provoking walk and *Eject Power Cores*' Jam, worth it, but only if you will use them.
-
+  longer, reaction-provoking walk and *Eject Power Cores*' Jam — worth it, but only if you will use them.
 ---
 
 ## 4. Feature Profile: ATHENA-Class NHP
