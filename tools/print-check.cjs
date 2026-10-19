@@ -22,7 +22,9 @@ for (const variable of ['bg', 'panel', 'panel2', 'text', 'text-soft', 'muted', '
   'hero-start', 'hero-glow', 'hero-mid', 'silhouette', 'avatar-bg', 'thumb-bg', 'thumb-muted', 'photo-start', 'photo-muted', 'chip-hover', 'holo-bg', 'holo-button-bg', 'rust-wash']) {
   assert.match(print, new RegExp(`--${variable}:`), `print theme lacks --${variable}`);
 }
-for (const selector of ['.topline', '.nav', '.status', '.hero-art', '.holo-chips', '.lightbox', '.footer span:last-child', '#holomap',
+/* No '#holomap' here: that rule left the print block in 7f87e82 with the console move. The map
+   container now sits inside intel.html's tabpanel, and printing the console keeps its panels. */
+for (const selector of ['.topline', '.nav', '.status', '.hero-art', '.holo-chips', '.lightbox', '.footer span:last-child',
   '.sweep', '.route-pulse', '.card', 'article', '.vip', '.opord-para', '.shell', 'a[href^="http"]::after']) {
   assert.ok(print.includes(selector), `print selector missing: ${selector}`);
 }
