@@ -325,7 +325,22 @@ if(el("campaign-head")){const host=el("campaign-head");host.innerHTML=campaignHe
 if(el("opord")){const host=el("opord"),o=C.ops.find(x=>String(x.id)===(host.dataset.op||""));
  host.innerHTML=o&&o.opord?opordDoc(o):notFound("operation order",host.dataset.op||"");}
 if(el("threads-body"))el("threads-body").innerHTML=C.threads.slice().sort((a,b)=>a.op.localeCompare(b.op)).map(t=>`<tr><td>${esc(t.text)}</td><td>OP ${esc(t.op)}</td><td>${threadPill(t)}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">Nothing seeded yet.</td></tr>`;
+/* #14 session cards: ledger rows grouped by op and date, one card per logged session, so the
+   index shows what actually happened without GM-side content. Pure over the rows given, like
+   ledgerPanel; zeros kept, absent stats omitted. */
+const sessionCards=log=>{
+  const groups=new Map();
+  (log||[]).forEach(e=>{const k=`${e.op}|${e.date}`;const g=groups.get(k)||{date:e.date,op:e.op,rows:[]};g.rows.push(e);groups.set(k,g);});
+  const list=[...groups.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.op).localeCompare(String(b.op)));
+  return {count:list.length,html:list.length?list.map(g=>{
+    const o=C.ops.find(x=>String(x.id)===String(g.op));
+    const per=g.rows.map(r=>{const nums=LEDGER_STATS.filter(([k])=>r[k]!=null).map(([k])=>`${k} ${r[k]}`);
+      return `<div class="sc-row"><span>${esc(shortName(r.pilot))}</span><span>${nums.join(" · ")||"no stats"}</span></div>`;}).join("");
+    return `<li><div class="time">${esc(g.date)}</div><div class="activity-title">${o?esc(o.title):"OP "+esc(g.op)}</div><div class="sc-rows">${per}</div></li>`;
+  }).join(""):`<li><div class="muted">No sessions logged yet.</div></li>`};
+};
 if(el("timeline"))el("timeline").innerHTML=C.events.map(ev=>`<li><div class="time">${esc(ev.date)}</div><div class="activity-title">${esc(ev.title)}</div><div class="muted" style="font:13px var(--mono)">${ev.op?`<a href="index.html#op-${esc(ev.op)}">OP ${esc(ev.op)}</a> · `:""}${esc(ev.note)}</div></li>`).join("")||`<li><div class="muted">No deeds filed yet.</div></li>`;
+if(el("session-cards"))el("session-cards").innerHTML=sessionCards(C.ledger||[]).html;
 if(el("crew-list")){el("crew-count").textContent=`${String(C.pilots.length).padStart(2,"0")} ACTIVE RECORDS`;
  el("crew-list").innerHTML=C.pilots.map(p=>{const mine=pilotOps(p.id).reverse();
  return `<article class="card patrol" data-pilot="${esc(p.id)}"><div class="card-pad mech-card">${p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:`<div class="avatar">${esc(p.name.replace(/\u201c([^\u201d]*)\u201d/,"$1").trim()[0])}</div>`}<div class="mech-id"><a class="crew-name" href="pilot.html#${esc(p.id)}">${esc(p.name)}</a><div class="crew-role">${esc(p.background||"")}</div>${table(th("STATUS",pill(p.status,"lime"))+th("CHASSIS",p.mech&&M[p.mech]?`<a href="mech.html#${esc(p.mech)}">${esc(M[p.mech].name)}</a>`:"None assigned"))}<div style="margin-top:8px">${link("pilot.html#"+p.id,"VIEW DOSSIER →")}</div></div><div class="mech-matrix">${table(th("TRIGGERS",esc(p.triggers||""))+th("TALENTS",esc(p.talents||""))+th("GEAR",esc(p.gear||""))+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))}</div></div></article>`}).join("")}
@@ -416,7 +431,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,sessionCards,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

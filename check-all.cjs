@@ -466,6 +466,27 @@ const { mount } = require("./tools/render.cjs");
   if (!nodate.nodes["sl-review"] || !/SET A DATE/i.test(nodate.nodes["sl-review"].innerHTML)) problems.push("without a date the review must ask for one, not emit a block the CLI would refuse");
   }
 }
+
+/* #14 ledger session cards: grouped by op and date, one card per logged session, per-pilot
+   numbers with zeros kept; asserted on fixture rows because the live ledger is empty by design. */
+{
+  const S2 = mount("index.html").window.UI;
+  const fx = [
+    { op: "001", date: "2026-10-19", pilot: "daemon", dealt: 14, taken: 0 },
+    { op: "001", date: "2026-10-19", pilot: "dusty", hacks: 2 },
+    { op: "001", date: "2026-10-12", pilot: "spook", dealt: 9 },
+  ];
+  const cards = S2.sessionCards(fx);
+  if (cards.count !== 2) problems.push(`sessionCards must group by op and date, got ${cards.count} cards`);
+  if ((cards.html.match(/<li>/g) || []).length !== 2) problems.push("each logged session must render exactly one card");
+  if (!cards.html.includes("taken 0")) problems.push("a logged zero must reach the session card");
+  if (!/R\. VARGSKEL[\s\S]{0,80}?dealt 14/.test(cards.html)) problems.push("a session card must carry its pilot's numbers beside the pilot's name");
+  if (!(cards.html.indexOf("2026-10-12") < cards.html.indexOf("2026-10-19"))) problems.push("session cards must read oldest first");
+  const empty = S2.sessionCards([]);
+  if (empty.count || !/No sessions logged yet/.test(empty.html)) problems.push("an empty ledger must render no cards");
+  const idx = mount("index.html");
+  if (!idx.nodes["session-cards"] || !/No sessions logged yet/.test(idx.nodes["session-cards"].innerHTML)) problems.push("index DEEDS must say so while the ledger is empty");
+}
 const cardsOf = h => h.split("</article>").filter(c => c.includes("<article"));
 const crewPage = mount("pilots.html"), crewCards = cardsOf(crewPage.html("crew-list"));
 if (crewCards.length !== C.pilots.length) problems.push(`pilots.html: crew-list rendered ${crewCards.length} cards, want ${C.pilots.length}`);

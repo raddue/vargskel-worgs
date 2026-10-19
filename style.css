@@ -169,3 +169,8 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
 .lo-pickrow{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
 .lo-frame-note{display:flex;align-items:center;gap:8px}
 .lo-confirm{background:var(--panel);border:1px solid var(--line);color:var(--cyan);font:12px var(--mono);padding:3px 8px;cursor:pointer}
+
+/* #14 session cards: per-pilot numbers under each session's date and op title. */
+.sc-rows{display:grid;gap:2px;margin-top:6px}
+.sc-row{display:flex;justify-content:space-between;gap:14px;font:13px var(--mono);padding:2px 0}
+.sc-row span:last-child{color:var(--muted)}
