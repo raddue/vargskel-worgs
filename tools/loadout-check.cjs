@@ -261,6 +261,11 @@ else {
     if (!/out of range/i.test(readout)) errs.push("the readout must follow the slider: nothing reported out of range at 15");
     if (!/in band/i.test(readout)) errs.push("the readout must keep the Range 20 rifle in band at 15");
   }
+  /* the export block is the one thing the GM pastes back, so it has to carry the record's own plan */
+  const expo = mount("loadout.html", "#alba").html("lo-export");
+  if (!/LOADOUT/.test(expo)) errs.push("loadout.html must render the pasteable LOADOUT block in lo-export");
+  if (!/Missile Rack/.test(expo)) errs.push("the exported block must carry the record's own weapons");
+
   /* with a frame the catalogue does not hold, the cap must read unknown rather than 0 */
   const unknownFrame = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "tombstone", frame: "GMS NOPE", place: [] } }).html("lo-sp");
   if (!/SP \d+ \/ \?/.test(unknownFrame)) errs.push(`an unresolved frame must show an unknown cap, got: ${unknownFrame.slice(0, 80)}`);
