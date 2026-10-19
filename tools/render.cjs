@@ -6,6 +6,8 @@ const root = path.join(__dirname, "..");
 function stub(id, attrs = "", register) {
   const dataset = {}, cls = new Set();
   for (const [, k, v] of attrs.matchAll(/data-([\w-]+)="([^"]*)"/g)) dataset[k.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = v;
+  /* a freshly rendered input carries value/checked from its own attributes, like the real DOM */
+  const val = /(?:^|\s)value="([^"]*)"/.exec(attrs), chk = /(?:^|\s)checked(\s|>|$|=)/.test(attrs), dis = /(?:^|\s)disabled(\s|>|$|=)/.test(attrs);
   const classList = { add: (...c) => c.forEach(x => cls.add(x)), remove: (...c) => c.forEach(x => cls.delete(x)), contains: c => cls.has(c), toggle: (c, on = !cls.has(c)) => (on ? cls.add(c) : cls.delete(c), on) };
   /* listeners records what a page wired; fire lets a check drive it the way a visitor would */
   let markup = "";
@@ -14,7 +16,7 @@ function stub(id, attrs = "", register) {
     /* a page renders its controls into innerHTML, so the ids it writes must become stubs */
     get innerHTML() { return markup; },
     set innerHTML(v) { markup = String(v); if (register) register(markup); },
-    textContent: "", value: "", checked: false, hidden: false, dataset, classList,
+    textContent: "", value: val ? val[1] : "", checked: chk, disabled: dis, hidden: false, dataset, classList,
     listeners: {},
     addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); },
     fire(type, ev = {}) { for (const fn of [...(this.listeners[type] || [])]) fn({ type, target: this, preventDefault() {}, ...ev }); },
@@ -41,7 +43,7 @@ const box = { document: doc, location: { hash, replace() {} }, matchMedia: () =>
     vm.runInContext(src ? fs.readFileSync(path.join(root, src), "utf8") : body, box, { filename: src || page + " inline" });
   return { nodes, doc, window: box, html: id => (nodes[id] ? nodes[id].innerHTML : "") };
 }
-module.exports = { mount };
+module.exports = { mount, stub };
 
 if (process.argv.includes("--selftest")) {
   const assert = require("assert");
@@ -58,6 +60,8 @@ if (process.argv.includes("--selftest")) {
   wired.addEventListener("change", () => { fired++; });
   wired.fire("change");
   assert(fired === 1, "mount must let a test fire the handler a page registered");
+  const attrd = stub("x", ' type="number" value="14" checked');
+  assert(attrd.value === "14" && attrd.checked === true, "a rendered input must carry value and checked from its own attributes");
   /* a page renders its controls into innerHTML, so ids it writes must get stubs too */
   const rendered = mount("loadout.html");
   rendered.nodes["lo-slots"].innerHTML = '<button id="rendered-probe"></button>';
