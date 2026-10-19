@@ -327,6 +327,64 @@ else {
       errs.push("picking another pilot must reach the export block");
   }
 
+  /* the counter follows the pick rather than the mount: cap = frame.sys + floor(sys/2) + ceil(ll/2) */
+  {
+    const before = mount("loadout.html", "#alba").html("lo-sp");
+    const capOf = html => {
+      const m = /SP \d+ \/ (\d+)/.exec(html);
+      return m ? +m[1] : null;
+    };
+    const ll = id => { const p = (C.pilots || []).filter(x => x.id === id)[0] || {}; return p.ll || 0; };
+    const alba = (C.mechs || []).filter(m => m.id === "alba")[0] || {};
+    const other = (C.pilots || []).map(x => x.id).find(id => id !== alba.pilot);
+    const who2 = mount("loadout.html", "#alba");
+    who2.nodes["lo-pilot"].value = other;
+    who2.nodes["lo-pilot"].fire("change");
+    const want = capOf(before) === null ? null : capOf(before) - Math.ceil(ll(alba.pilot) / 2) + Math.ceil(ll(other) / 2);
+    if (want !== null && capOf(who2.html("lo-sp")) !== want)
+      errs.push(`the SP cap must follow the pilot pick: expected ${want}, got ${capOf(who2.html("lo-sp"))}`);
+  }
+
+  /* the systems checklist reaches the counter and the export, not just the markup */
+  {
+    const sysPage = mount("loadout.html", "#averna");
+    const boxes = Object.keys(sysPage.nodes).filter(k => /^lo-sys-\d+$/.test(k));
+    if (!boxes.length) errs.push("loadout.html needs a systems checklist (id lo-sys-<index>)");
+    else {
+      const systemsIn = html => (JSON.stringify(/systems&quot;:\[([^\]]*)\]/.exec(html)) || "").length;
+      const before = systemsIn(sysPage.html("lo-export"));
+      const box = sysPage.nodes[boxes[boxes.length - 1]];
+      box.checked = !box.checked; /* a synthetic change does not flip it, a click does */
+      box.fire("change");
+      if (systemsIn(sysPage.html("lo-export")) === before)
+        errs.push("toggling a system must change the systems the export carries");
+    }
+  }
+
+  /* an unplace packs the seats, so a picker's index after a removal is not the one it had before */
+  {
+    const pack = mount("loadout.html", "#averna");
+    const weapons = () => (/weapons&quot;:\[[^\]]*\]/.exec(pack.html("lo-export")) || [""])[0];
+    const firstDrop = () => (/id="(lo-drop-\d+-\d+)"/.exec(pack.html("lo-slots")) || [])[1];
+    const before = weapons();
+    const drop = firstDrop();
+    if (drop) {
+      pack.nodes[drop].fire("change") || pack.nodes[drop].fire("click");
+      const after = weapons();
+      if (after === before) errs.push("removing a weapon must take it out of the slot");
+      const live = /id="(lo-pick-\d+-\d+)"/.exec(pack.html("lo-slots"));
+      if (live) {
+        const pick = pack.nodes[live[1]];
+        const options = (pack.html(live[1]).match(/value="([^"]+)"/g) || []).map(x => x.slice(7, -1));
+        if (options.length) {
+          pick.value = options[0];
+          pick.fire("change");
+          if (weapons() === after) errs.push("a picker read after an unplace must still place at the seat the markup shows");
+        }
+      }
+    }
+  }
+
   /* seats come from the fitting table, not from how many weapons a mount holds: a Main/Aux mount
      carrying one weapon still reports two seats, so the emptied one keeps a picker of its own */
   const half = mount("loadout.html", "#averna");
