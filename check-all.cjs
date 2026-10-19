@@ -191,6 +191,7 @@ for (const m of C.mechs) {
 }
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/build-detail.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs");
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/md2html.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("guide page stale vs markdown; regen: node tools/md2html.cjs");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/loadout-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("loadout checks failed; run: node tools/loadout-check.cjs");
 for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
@@ -672,39 +673,3 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(`campaign.js/index.html ok: ${C.locations.length} locations, ${C.pilots.length} pilots, ${C.mechs.length} mechs, ${C.ops.length} ops, ${C.threads.length} threads, ${C.events.length} events, ${C.factions.length} factions`);
-/* catalogue.js: the rules subset the bay reads, generated from lancer-data, so a stale or missing
-   copy has to fail here. The generator's own --check is the staleness gate, and it reports exit 2
-   when lancer-data is absent, which is the case in CI (build-detail's gate is local-only too). */
-{
-  const catErrs = [];
-  const catPath = __dirname + "/catalogue.js";
-  if (!fs.existsSync(catPath)) catErrs.push("catalogue.js is missing (run: node tools/build-catalogue.cjs)");
-  else {
-    const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
-    vm.runInNewContext(fs.readFileSync(catPath, "utf8"), box, { filename: "catalogue.js" });
-    const CAT = box.window.CATALOGUE;
-    if (!CAT || !CAT.weapons || !CAT.systems || !CAT.frames)
-      catErrs.push("catalogue.js must define window.CATALOGUE with weapons, systems and frames");
-    else {
-      const w = CAT.weapons["Nexus (Hunter-Killer)"];
-      if (!w) catErrs.push("catalogue: GMS Nexus (Hunter-Killer) must resolve by name");
-      else {
-        if (w.mount !== "Main") catErrs.push(`catalogue: Nexus (Hunter-Killer) mount must be Main, got ${JSON.stringify(w.mount)}`);
-        if (!Array.isArray(w.bands) || !w.bands.length) catErrs.push("catalogue: Nexus (Hunter-Killer) must carry per-profile bands");
-      }
-      const s = CAT.systems["Personalizations"];
-      if (!s || s.sp !== 1 || !s.tg_unique) catErrs.push("catalogue: Personalizations must carry sp 1 and tg_unique");
-      const f = CAT.frames["GMS Everest"];
-      if (!f || !Array.isArray(f.mounts) || f.mounts.join(",") !== "Main,Flex,Heavy")
-        catErrs.push(`catalogue: GMS Everest must carry mounts Main,Flex,Heavy, got ${JSON.stringify(f && f.mounts)}`);
-    }
-  }
-  const tool = __dirname + "/tools/build-catalogue.cjs";
-  if (!fs.existsSync(tool)) catErrs.push("tools/build-catalogue.cjs is missing");
-  else {
-    const r = require("child_process").spawnSync(process.execPath, [tool, "--check"], { encoding: "utf8" });
-    if (r.status !== 0) catErrs.push("build-catalogue --check failed:\n" + (r.stdout + r.stderr).trim());
-  }
-  if (catErrs.length) { console.error("catalogue: " + catErrs.length + " problem(s)\n - " + catErrs.join("\n - ")); process.exitCode = 1; }
-  else console.log("catalogue ok: weapons, systems and frames resolve");
-}
