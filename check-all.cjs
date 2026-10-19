@@ -83,7 +83,7 @@ if (!fs.existsSync(__dirname + "/assets/scooter.png")) problems.push('Scooter po
 if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scooteroo artwork missing from assets');
 /* INTEL is a page of its own: the map and the faction ledger live on intel.html, and every
    page's nav must reach it, so a link cannot quietly rot back into an index anchor. */
-const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html", "docs/guides/averna-omniscient-overlord.html"];
+const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html", "loadout.html", "docs/guides/averna-omniscient-overlord.html"];
 navPages.forEach(p => {
   const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
   if (!/href="(?:\.\.\/){0,2}intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
