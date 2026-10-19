@@ -336,8 +336,52 @@ else {
     /* the core packs the list, so removing seat 0 leaves the mount's other weapon at seat 0 and the
        empty second seat still exists, because a Main/Aux mount has two seats whatever it holds */
     half.nodes["lo-drop-0-0"].fire("click");
-    if (!half.nodes["lo-pick-0-1"]) errs.push("a Main/Aux mount holding one weapon still reports two seats");
-    if (!half.nodes["lo-drop-0-0"]) errs.push("the weapon left in a composite mount needs a control");
+    const after = half.html("lo-slots");
+    if (!/id="lo-pick-0-1"/.test(after)) errs.push("a Main/Aux mount holding one weapon still reports two seats");
+    if (!/id="lo-drop-0-0"/.test(after)) errs.push("the weapon left in a composite mount needs a control");
+  }
+
+  /* the frame pick is two-step where a change would drop mounted weapons: the candidate and a
+     confirm control appear first, and setFrame runs only on the second click (design rev 11). */
+  const CAT2 = (() => {
+    const b = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(path.join(ROOT, "catalogue.js"), "utf8"), b, { filename: "catalogue.js" });
+    return b.window.CATALOGUE;
+  })();
+  const candidate = Object.keys(CAT2.frames).find(n => n !== "GMS Everest");
+  const fr = mount("loadout.html", "#alba");
+  const framePick = fr.nodes["lo-frame"];
+  if (!framePick) errs.push("loadout.html needs a frame pick (id lo-frame)");
+  else {
+    const listed = (fr.html("lo-frame").match(/<option/g) || []).length;
+    if (listed !== Object.keys(CAT2.frames).length)
+      errs.push(`the frame pick must list every frame, got ${listed} of ${Object.keys(CAT2.frames).length}`);
+    const before = fr.html("lo-export");
+    framePick.value = candidate;
+    framePick.fire("change");
+    if (!fr.nodes["lo-frame-confirm"]) errs.push("a frame change that would drop weapons must ask first (id lo-frame-confirm)");
+    if (fr.html("lo-export") !== before) errs.push("a frame change must not land on the first click");
+    if (fr.nodes["lo-frame-confirm"]) fr.nodes["lo-frame-confirm"].fire("click");
+    if (fr.html("lo-export") === before) errs.push("confirming the frame change must land it");
+  }
+
+  /* the stub scans the page for ids, so it must not read the page's own script source: a control
+     built by concatenation would otherwise register a phantom node and a check would drive nothing */
+  const phantoms = Object.keys(mount("loadout.html", "#alba").nodes).filter(k => /[^\w-]/.test(k));
+  if (phantoms.length) errs.push(`the stub registered a phantom node from script source: ${phantoms.join(", ")}`);
+
+  /* with nothing mounted there is nothing to drop, so one click is enough */
+  const bare = mount("loadout.html", "#averna");
+  /* ids come from the current markup, because the stub's node map keeps every id it has ever seen,
+     so a stale control would be driven and refuse against markup that no longer has it */
+  const liveDrops = () => (bare.html("lo-slots").match(/id="lo-drop-\d+-\d+"/g) || []).map(x => x.slice(4, -1));
+  for (let n = 0; n < 8 && liveDrops().length; n++) bare.nodes[liveDrops()[0]].fire("click");
+  const bareBefore = bare.html("lo-export");
+  if (bare.nodes["lo-frame"]) {
+    bare.nodes["lo-frame"].value = candidate;
+    bare.nodes["lo-frame"].fire("change");
+    if (bare.nodes["lo-frame-confirm"]) errs.push("an empty mech must not be asked to confirm a frame change");
+    if (bare.html("lo-export") === bareBefore) errs.push("with nothing mounted a frame change must land on one click");
   }
 
   /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
