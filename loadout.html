@@ -191,7 +191,7 @@
     if (!note) return;
     note.innerHTML = pendingFrame
       ? '<span class="lo-refusal">' + esc(pendingFrame) + ' empties ' + mountedWeapons() + ' mounted weapon' +
-        (mountedWeapons() === 1 ? "" : "s") + '</span><button class="lo-confirm" id="lo-frame-confirm">CHANGE FRAME</button>'
+        (mountedWeapons() === 1 ? "" : "s") + ' from ' + (build.mounts || []).filter(m => (m.weapons || []).length).map(m => String(m.slot).toUpperCase()).join(", ") + '</span><button class="lo-confirm" id="lo-frame-confirm">CHANGE FRAME</button>'
       : frameNote;
     const confirm = el("lo-frame-confirm");
     if (confirm) confirm.addEventListener("click", () => { const go = pendingFrame; pendingFrame = ""; applyFrame(go); render(); });

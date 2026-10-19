@@ -360,6 +360,7 @@ else {
     framePick.value = candidate;
     framePick.fire("change");
     if (!fr.nodes["lo-frame-confirm"]) errs.push("a frame change that would drop weapons must ask first (id lo-frame-confirm)");
+    if (!/(MAIN\/AUX|FLEX|HEAVY|AUXILIARY)/.test(fr.html("lo-frame-note"))) errs.push("the frame confirm must name the mounts the change empties (rev 11)");
     if (fr.html("lo-export") !== before) errs.push("a frame change must not land on the first click");
     if (fr.nodes["lo-frame-confirm"]) fr.nodes["lo-frame-confirm"].fire("click");
     if (fr.html("lo-export") === before) errs.push("confirming the frame change must land it");
@@ -372,6 +373,10 @@ else {
 
   /* with nothing mounted there is nothing to drop, so one click is enough */
   const bare = mount("loadout.html", "#averna");
+  /* rev 12 packs the seat list, because a seat index is a position rather than a stable seat */
+  const packed = core.unplace({ mech: "averna", frame: "GMS Everest", mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)", "Nexus (Light)"], locked: false }], systems: [] }, 0, 0, null);
+  if (!packed.ok || packed.build.mounts[0].weapons.length !== 1 || packed.build.mounts[0].weapons[0] !== "Nexus (Light)") errs.push("unplace must pack the seat list, not leave a hole");
+
   /* ids come from the current markup, because the stub's node map keeps every id it has ever seen,
      so a stale control would be driven and refuse against markup that no longer has it */
   const liveDrops = () => (bare.html("lo-slots").match(/id="lo-drop-\d+-\d+"/g) || []).map(x => x.slice(4, -1));
