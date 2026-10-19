@@ -134,8 +134,8 @@ window.CAMPAIGN = {
       date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["averna", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
       /* Mission-page conflict history, rendered above the OPORD. Original copy from facts the
       site already publishes: do not lift prose from the Solstice Rain adventure text. */
-      history: ["Cressidium sits on the periphery — one inhabited world at the far edge of Union's reach, dark to the charts long enough that its recontact is still recent. What Union found on its return was a world already split: the Vestan Sovereignty holding the cities and the industrial districts, the Leandric States Alliance holding the coast and the trade lanes, and no patience left on either side. Nov Elysia is the seam between them, a frontier city under Vestan control and the only real foothold Union has on the planet.",
-        "Union came back to talk rather than to fight. A delegation went down with the UNS Rio Grande in orbit behind it, to put both sides at a table and bring Cressidium into some settled relationship with the wider human sphere — and those talks were the only thing holding the peace. When they collapsed, they collapsed into open war: VSAF moving on the city, Leandric units holding inside it, and two Union principals missing in the central district before anyone could reach them. The Worgs are on contract because Union would rather pay a lance than commit a fleet to a periphery world."],
+      history: ["Cressidium sits on the periphery, one inhabited world at the far edge of Union's reach, dark to the charts long enough that its recontact is still recent. What Union found on its return was a world already split: the Vestan Sovereignty holding the cities and the industrial districts, the Leandric States Alliance holding the coast and the trade lanes, and no patience left on either side. Nov Elysia is the seam between them, a frontier city under Vestan control and the only real foothold Union has on the planet.",
+        "Union came back to talk rather than to fight. A delegation went down with the UNS Rio Grande in orbit behind it, to put both sides at a table and bring Cressidium into some settled relationship with the wider human sphere, and those talks were the only thing holding the peace. When they collapsed, they collapsed into open war: VSAF moving on the city, Leandric units holding inside it, and two Union principals missing in the central district before anyone could reach them. The Worgs are on contract because Union would rather pay a lance than commit a fleet to a periphery world."],
 
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
@@ -156,10 +156,10 @@ window.CAMPAIGN = {
         no: "OPORD 001-5016",
         hq: "UNS RIO GRANDE · DECK OPS, HIGH ORBIT OVER NOV ELYSIA",
         dtg: "5016U · D071",
-        hhour: "TBD · D--- — window and route issued with the H-hour message",
-        refs: ["SITREP CRESSIDIUM 5016U · D069 — peace talks suspended, general hostilities declared",
-          "VW-01 CONTRACT SOLSTICE RAIN — tasking, rules of engagement, payment terms",
-          "FOB SABER RENDEZVOUS INSTRUCTIONS — Amanta Motors plant, industrial district"],
+        hhour: "TBD · D---, window and route issued with the H-hour message",
+        refs: ["SITREP CRESSIDIUM 5016U · D069: peace talks suspended, general hostilities declared",
+          "VW-01 CONTRACT SOLSTICE RAIN: tasking, rules of engagement, payment terms",
+          "FOB SABER RENDEZVOUS INSTRUCTIONS: Amanta Motors plant, industrial district"],
         distribution: ["VW-01 (six pilots)", "RIO GRANDE DECK OPS", "FOB SABER"],
         vips: [
           { id: "farris", name: "CAPTAIN FARRIS", role: "UNION DELEGATION · SHIP CAPTAIN", img: "assets/captain-farris-thumb.webp", blurb: "Captain of the Union delegation's ship, last photographed on her own command deck before the talks collapsed. Missing in the central district since; deck ops holds her chair until she is aboard. Extraction priority one." },
@@ -171,7 +171,7 @@ window.CAMPAIGN = {
             ["Enemy forces", ["Vestan Sovereignty armed forces (VSAF) hold the approaches to Nov Elysia's central district and are conducting siege operations against the city.",
               "Disposition and strength inside the city are not confirmed. Jamming and the loss of local reporting mean the picture from orbit is stale: assume VSAF infantry and armour in both the industrial and central districts, and assume an armed chassis off a dropship is treated as hostile on sight.",
               "VSAF is the aggressor in this theatre. Do not count on a patrol challenging before it fires."]],
-            ["Friendly forces", ["Leandric States Alliance units are holding inside Nov Elysia and are friendly — do not fire on them.",
+            ["Friendly forces", ["Leandric States Alliance units are holding inside Nov Elysia and are friendly. Do not fire on them.",
               "FOB Saber, the Amanta Motors factory in the industrial district, is the friendly rendezvous point.",
               "Union assets: UNS Rio Grande in high orbit, lightly armed, strike wings exoatmospheric only. There is no orbital or air support once this lance is on the ground."]],
             ["Attachments and detachments", "None. VW-01 deploys as a single six-chassis lance: no attached Union or Leandric personnel, no organic artillery, no air tasking, no reserve."]]],
@@ -194,13 +194,13 @@ window.CAMPAIGN = {
               "Expect city-wide jamming to blank local comms and sensors at intervals; fallback procedure is Annex A."]]]],
 
           ["SUSTAINMENT", [
-            ["Logistics", "VW-01 deploys with what is aboard the chassis. Resupply at FOB Saber is limited to what Amanta holds and what Leandric units can spare — fuel, munitions and repair capacity are all local purchase. Rio Grande cannot push supplies inside the jamming envelope."],
+            ["Logistics", "VW-01 deploys with what is aboard the chassis. Resupply at FOB Saber is limited to what Amanta holds and what Leandric units can spare. Fuel, munitions and repair capacity are all local purchase. Rio Grande cannot push supplies inside the jamming envelope."],
             ["Personnel", "No replacements are allocated to this contract. Six pilots, six chassis: a downed pilot is recovered by the lance, not by a Union search-and-rescue asset."],
             ["Medical", "Field care is chassis-borne, with the FOB Saber aid station as the first fixed facility. Casualties move to Rio Grande on the extraction lift."]]],
 
           ["COMMAND AND SIGNAL", [
             ["Command", "Deck ops, UNS Rio Grande, holds tasking authority for this contract. On the ground the lance commands itself: nominate a lance lead before H-hour and report the name. Succession runs lance lead, then crew seniority."],
-            ["Signal", "Primary is chassis-to-chassis tightbeam, secondary is Rio Grande relay. Both are expected to black out under jamming — Annex A carries the fallback. Mandatory reports: link-up, VIP secure, extraction."]]]
+            ["Signal", "Primary is chassis-to-chassis tightbeam, secondary is Rio Grande relay. Both are expected to black out under jamming. Annex A carries the fallback. Mandatory reports: link-up, VIP secure, extraction."]]]
         ],
 
         annexes: [

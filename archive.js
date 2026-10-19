@@ -124,8 +124,8 @@ function holomap(level){
  const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
     hostile areas and the muster hull. situation() owns the roles, the map only draws them. */
- /* One ground can hold two roles — the Rio Grande is both the extraction destination and the
-    recorded muster hull — so a location maps to a list of badges, not to whichever was pushed last. */
+ /* One ground can hold two roles: the Rio Grande is both the extraction destination and the
+    recorded muster hull, so a location maps to a list of badges, not to whichever was pushed last. */
  const marks=new Map();
  situation().badges.forEach(b=>{const a=marks.get(b.loc)||[];a.push(b);marks.set(b.loc,a)});
  const nodes=here.map(l=>{const hosts=hostsOf(l.id),bs=marks.get(l.id)||[];
