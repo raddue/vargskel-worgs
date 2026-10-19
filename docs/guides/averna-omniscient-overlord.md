@@ -269,7 +269,9 @@ system. The cost is real: no **Last Argument of Kings** finisher, no **Leader II
 
 ### Mech Skills and GRIT
 
-Every level also hands you **+1 mech skill point** and **+1 GRIT**.
+Every level also hands you **+1 mech skill point**, **+1 talent rank** and **+1 license rank** —
+but **GRIT is not a per-level gain**: it is **half your LL, rounded up**, so it only steps up at
+**LL1, LL3, LL5** (and flat at LL2, LL4, LL6).
 
 - **Push SYSTEMS.** Each point is **+1 Tech Attack** (your Invades *and* your Smart launchers) and
   **+1 E-Defense**, plus **+1 SP per two points**. AVERNA runs SYSTEMS 2 now; SYSTEMS 4 or 6 makes her
