@@ -31,7 +31,10 @@ function mount(page, hash = "", globals = {}) {
   const html = fs.readFileSync(path.join(root, page), "utf8");
   const nodes = {};
   const register = markup => {
-    for (const [, pre, id, post] of String(markup).matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] = stub(id, pre + post, register);
+    /* a page's script source is not markup, and a concatenated id like id="lo-drop-' + i + " would
+       otherwise register a phantom node that a check could try to drive */
+    const html = String(markup).replace(/<script[\s\S]*?<\/script>/gi, "");
+    for (const [, pre, id, post] of html.matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] = stub(id, pre + post, register);
   };
   register(html);
   const doc = { getElementById: id => nodes[id] || null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: stub("body"), title: "" };

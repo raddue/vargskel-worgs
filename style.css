@@ -164,3 +164,8 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
 .sl-fields input:disabled{opacity:.4}
 .sl-nav{display:flex;justify-content:flex-end;gap:8px;margin:10px 0}
 .sl-block{background:var(--panel);border:1px solid var(--line);padding:10px;font:12px var(--mono);white-space:pre;overflow-x:auto}
+
+/* #26 loadout sandbox: the pick rows and the frame-change confirm */
+.lo-pickrow{display:flex;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap}
+.lo-frame-note{display:flex;align-items:center;gap:8px}
+.lo-confirm{background:var(--panel);border:1px solid var(--line);color:var(--cyan);font:12px var(--mono);padding:3px 8px;cursor:pointer}

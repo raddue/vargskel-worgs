@@ -74,6 +74,24 @@ else {
       errs.push("canMount: a weapon at or under the held licence rank must be allowed");
     const two = copy(); two.mounts[0].weapons = [gms];
     say("a second weapon in one seat", core.canMount(fixturePilot, two, 0, 0, gms, cat), "SLOT FULL");
+
+    /* unplace answers like place, because a decision that cannot report why it refused cannot be
+       asked without being obeyed. A seat with nothing at it and a locked mount are both refusals. */
+    const put = core.place(fixturePilot, copy(), 0, 0, gms, cat);
+    const off = core.unplace(put.build, 0, 0, cat);
+    if (!off || off.ok !== true || off.reason !== null)
+      errs.push(`unplace: taking a weapon out must answer {ok, reason, build}, got ${JSON.stringify(off)}`);
+    else if ((off.build.mounts[0].weapons || []).length)
+      errs.push("unplace: the removed weapon must be gone from the seat");
+    say("a seat with nothing in it", core.unplace(copy(), 0, 0, cat), "EMPTY SEAT");
+    say("a mount that does not exist", core.unplace(copy(), 9, 0, cat), "EMPTY SEAT");
+    const locked = copy(); locked.mounts[1].locked = true;
+    say("a locked mount", core.unplace(locked, 1, 0, cat), "SLOT LOCKED");
+    const plastic = copy(); plastic.mounts[1].weapons = [gms];
+    const freed = core.unplace(core.place(fixturePilot, copy(), 2, 0, "Cyclone Pulse Rifle", cat, { lockSlot: 1 }).build, 2, 0, cat);
+    if (!freed || freed.ok !== true) errs.push(`unplace: taking the Superheavy out must succeed, got ${JSON.stringify(freed)}`);
+    else if (freed.build.mounts.some(m => m.locked)) errs.push("unplace: taking the Superheavy out must clear the lock it took");
+    if (!plastic.mounts[1].weapons.length) errs.push("loadout-check: the lock fixture must keep its own weapon");
     say("an unknown weapon", core.canMount(fixturePilot, copy(), 0, 0, "Nonexistent Rifle", cat), "UNKNOWN WEAPON");
     /* over cap, on a second fixture with a cap of exactly 0 (frame sys 0, mech sys 0, LL0), so one
        SP-costing system is already over it. The subset holds no seven-SP build to spend against 7. */
@@ -275,6 +293,95 @@ else {
       picker.fire("change");
       if (!/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
     }
+  }
+
+  /* the thumbs crop from the top too, so the same focus has to reach the card, and only for records that set it */
+  const cards = mount("campaign.html", "").html("mech-list");
+  const cardOf = id => cards.split('data-mech="').find(x => x.startsWith(id + '"')) || "";
+  if (!/object-position:\s*center 41%/.test(cardOf("alba")))
+    errs.push("Alba's mech card thumb must use the record's imgFocus");
+  if (/object-position/.test(cardOf("averna")))
+    errs.push("only a record with imgFocus may override the thumb crop");
+
+  /* the pilot pick resolves the record the licence gate reads, so it reaches the export as well */
+  const C = (() => {
+    const b = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(path.join(ROOT, "campaign.js"), "utf8"), b, { filename: "campaign.js" });
+    return b.window.CAMPAIGN;
+  })();
+  const who = mount("loadout.html", "#alba");
+  const pilotPick = who.nodes["lo-pilot"];
+  if (!pilotPick) errs.push("loadout.html needs a pilot pick (id lo-pilot)");
+  else {
+    const shown = (who.html("lo-pilot").match(/<option/g) || []).length;
+    if (shown !== (C.pilots || []).length)
+      errs.push(`the pilot pick must list every pilot, got ${shown} of ${(C.pilots || []).length}`);
+    const alba = (C.mechs || []).filter(m => m.id === "alba")[0] || {};
+    const other = (C.pilots || []).map(x => x.id).find(id => id !== alba.pilot);
+    if (/data-/.test("")) errs.push("unreachable");
+    if (who.html("lo-export").indexOf(other) >= 0)
+      errs.push("loadout-check: Alba's export must not already name another pilot");
+    pilotPick.value = other;
+    pilotPick.fire("change");
+    if (who.html("lo-export").indexOf(other) < 0)
+      errs.push("picking another pilot must reach the export block");
+  }
+
+  /* seats come from the fitting table, not from how many weapons a mount holds: a Main/Aux mount
+     carrying one weapon still reports two seats, so the emptied one keeps a picker of its own */
+  const half = mount("loadout.html", "#averna");
+  if (!half.nodes["lo-drop-0-0"] || !half.nodes["lo-drop-0-1"])
+    errs.push("a Main/Aux mount needs a control at both seats");
+  else {
+    /* the core packs the list, so removing seat 0 leaves the mount's other weapon at seat 0 and the
+       empty second seat still exists, because a Main/Aux mount has two seats whatever it holds */
+    half.nodes["lo-drop-0-0"].fire("click");
+    const after = half.html("lo-slots");
+    if (!/id="lo-pick-0-1"/.test(after)) errs.push("a Main/Aux mount holding one weapon still reports two seats");
+    if (!/id="lo-drop-0-0"/.test(after)) errs.push("the weapon left in a composite mount needs a control");
+  }
+
+  /* the frame pick is two-step where a change would drop mounted weapons: the candidate and a
+     confirm control appear first, and setFrame runs only on the second click (design rev 11). */
+  const CAT2 = (() => {
+    const b = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(path.join(ROOT, "catalogue.js"), "utf8"), b, { filename: "catalogue.js" });
+    return b.window.CATALOGUE;
+  })();
+  const candidate = Object.keys(CAT2.frames).find(n => n !== "GMS Everest");
+  const fr = mount("loadout.html", "#alba");
+  const framePick = fr.nodes["lo-frame"];
+  if (!framePick) errs.push("loadout.html needs a frame pick (id lo-frame)");
+  else {
+    const listed = (fr.html("lo-frame").match(/<option/g) || []).length;
+    if (listed !== Object.keys(CAT2.frames).length)
+      errs.push(`the frame pick must list every frame, got ${listed} of ${Object.keys(CAT2.frames).length}`);
+    const before = fr.html("lo-export");
+    framePick.value = candidate;
+    framePick.fire("change");
+    if (!fr.nodes["lo-frame-confirm"]) errs.push("a frame change that would drop weapons must ask first (id lo-frame-confirm)");
+    if (fr.html("lo-export") !== before) errs.push("a frame change must not land on the first click");
+    if (fr.nodes["lo-frame-confirm"]) fr.nodes["lo-frame-confirm"].fire("click");
+    if (fr.html("lo-export") === before) errs.push("confirming the frame change must land it");
+  }
+
+  /* the stub scans the page for ids, so it must not read the page's own script source: a control
+     built by concatenation would otherwise register a phantom node and a check would drive nothing */
+  const phantoms = Object.keys(mount("loadout.html", "#alba").nodes).filter(k => /[^\w-]/.test(k));
+  if (phantoms.length) errs.push(`the stub registered a phantom node from script source: ${phantoms.join(", ")}`);
+
+  /* with nothing mounted there is nothing to drop, so one click is enough */
+  const bare = mount("loadout.html", "#averna");
+  /* ids come from the current markup, because the stub's node map keeps every id it has ever seen,
+     so a stale control would be driven and refuse against markup that no longer has it */
+  const liveDrops = () => (bare.html("lo-slots").match(/id="lo-drop-\d+-\d+"/g) || []).map(x => x.slice(4, -1));
+  for (let n = 0; n < 8 && liveDrops().length; n++) bare.nodes[liveDrops()[0]].fire("click");
+  const bareBefore = bare.html("lo-export");
+  if (bare.nodes["lo-frame"]) {
+    bare.nodes["lo-frame"].value = candidate;
+    bare.nodes["lo-frame"].fire("change");
+    if (bare.nodes["lo-frame-confirm"]) errs.push("an empty mech must not be asked to confirm a frame change");
+    if (bare.html("lo-export") === bareBefore) errs.push("with nothing mounted a frame change must land on one click");
   }
 
   /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
