@@ -105,6 +105,14 @@ navPages.forEach(p => {
   const got = (src.match(/<nav class="nav">[\s\S]*?<\/nav>/) || [])[0];
   if (got !== chrome.nav(prefix, p === "index.html"))
     problems.push(`${p}: nav differs from tools/chrome.cjs; copy chrome.nav("${prefix}") into the page`);
+  if (p === "mechbay.html") {
+    const gotHero = (src.match(/<section class="hero"[\s\S]*?<\/section>/) || [])[0];
+    const wantHero = chrome.hero({ eyebrow: "UNIT DOSSIER / VW-01", title: "CHASSIS REGISTER",
+      deck: "Mech records for the active lance. Select a chassis to open its file." });
+    if (gotHero !== wantHero) problems.push(`${p}: hero differs from tools/chrome.cjs; copy chrome.hero({...}) into the page`);
+  }
+  if (p === "docs/guides/averna-omniscient-overlord.html" && !/hero-art[\s\S]{0,140}averna\.png/.test(src))
+    problems.push(`${p}: the hero must carry the AVERNA plate`);
   const statusVal = (src.match(/<div class="status">([^<]*)</) || [])[1];
   if (!chrome.statusRe.test(statusVal || ""))
     problems.push(`${p}: status chip must be chrome.status("<UPPERCASE STATE>"), label included`);

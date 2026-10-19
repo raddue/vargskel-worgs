@@ -44,7 +44,7 @@ const tocNav = toc => !toc.length ? "" :
 
 function blocks(lines) {
   const H = [], toc = [];
-  let sec = false, afterH1 = false;
+  let sec = false, afterH1 = false, title = "";
   seenIds.clear();
   for (let i = 0; i < lines.length; i++) {
     const L = lines[i];
@@ -100,7 +100,7 @@ function blocks(lines) {
         H.push(`<h3 id="${id}">${t}</h3>`);
         toc.push([id, t, 1]);
       } else {
-        H.push(`<h1>${t}</h1>`);
+        title = t;                                        // the deck paragraph turns this into the hero
       }
       afterH1 = h[1].length === 1;
       continue;
@@ -110,7 +110,10 @@ function blocks(lines) {
     const buf = [L];                                       // paragraph, wrapped
     while (i + 1 < lines.length && lines[i + 1].trim() && !/^([-#>|`]|\s{2,})/.test(lines[i + 1]))
       buf.push(lines[++i]);
-    H.push(`<p${afterH1 ? ' class="lede"' : ""}>${inl(buf.join(" "))}</p>`);
+    H.push(afterH1
+      ? chrome.hero({ eyebrow: "TACTICAL DOCTRINE / AVERNA", title, deck: inl(buf.join(" ")),
+          prefix: "../../", art: "assets/averna.png", alt: "AVERNA, GMS Chomolungma" })
+      : `<p>${inl(buf.join(" "))}</p>`);
     afterH1 = false;
   }
   if (sec) H.push("</details>");

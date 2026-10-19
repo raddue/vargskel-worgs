@@ -28,7 +28,17 @@ const topline = (left, right) => `<div class="topline"><span>${left}</span><span
 const brand = sub => `<div class="brand"><div class="mark"><span>W</span></div>` +
   `<div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">${sub}</div></div></div>`;
 
-module.exports = { STATUS_LABEL, statusRe, nav, status, topline, brand };
+/* The page header block (eyebrow / title / deck). Pages with a photo pass art; pages without one
+   fall back to the unit patch, so the right side of the hero is never empty. */
+const PATCH = "assets/vargskel_worgs_patch_transparent.png";
+const heroArt = (prefix = "", art = PATCH, alt = "Vargskel Worgs unit patch") =>
+  `<div class="hero-art"><div class="plate plate-raw"><img class="hero-mech-img" src="${prefix}${art}" alt="${alt}"></div></div>`;
+const hero = ({ eyebrow, title, deck, id, prefix = "", art, alt }) =>
+  `<section class="hero"${id ? ` id="${id}"` : ""}><div class="hero-copy">` +
+  `<div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${deck ? `<p>${deck}</p>` : ""}</div>` +
+  heroArt(prefix, art, alt) + `</section>`;
+
+module.exports = { STATUS_LABEL, statusRe, nav, status, topline, brand, hero, heroArt, PATCH };
 
 if (process.argv.includes("--selftest")) {
   const assert = require("assert");
@@ -38,5 +48,9 @@ if (process.argv.includes("--selftest")) {
   assert.ok(nav("../../").startsWith('<nav class="nav"><a href="../../index.html#overview">'), "the guide gets a relative prefix");
   assert.strictEqual(status("UNBRIEFED"), '<div class="status">● DEPLOYMENT STATUS: UNBRIEFED</div>', "the chip carries the shared label with a page value");
   assert.ok(!statusRe.test("● CREW STATUS: ACTIVE"), "the label may not vary");
+  // a hero without a photo still fills its right side
+  assert.ok(hero({ eyebrow: "E", title: "T", deck: "D" }).includes('src="assets/vargskel_worgs_patch_transparent.png"'), "hero should fall back to the unit patch");
+  assert.ok(hero({ eyebrow: "E", title: "T", prefix: "../../", art: "assets/averna.png" }).includes('src="../../assets/averna.png"'), "hero should take a relative prefix and a page photo");
+  assert.ok(!hero({ eyebrow: "E", title: "T" }).includes("<p>"), "hero should omit an empty deck");
   console.log("chrome selftest ok: nav and status label are shared, values are not");
 }
