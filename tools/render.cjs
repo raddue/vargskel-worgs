@@ -10,7 +10,7 @@ function stub(id, attrs = "") {
   return { id, innerHTML: "", textContent: "", dataset, classList, addEventListener() {}, append() {}, focus() {}, querySelector: () => null, querySelectorAll: () => [] };
 }
 
-function mount(page, hash = "") {
+function mount(page, hash = "", globals = {}) {
   const html = fs.readFileSync(path.join(root, page), "utf8");
   const nodes = {};
   for (const [, pre, id, post] of html.matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] ??= stub(id, pre + post);
@@ -19,6 +19,7 @@ function mount(page, hash = "") {
    document-level listeners need a no-op here for the page to mount at all. */
 const box = { document: doc, location: { hash, replace() {} }, matchMedia: () => ({ matches: false }), CSS: { escape: s => s }, console, addEventListener() {}, removeEventListener() {} };
   box.window = box;
+  Object.assign(box, globals); /* the page tests hand a fixture build in this way */
   vm.createContext(box);
   /* Scripts in page order: campaign.js, detail.js, archive.js, then any inline glue (dossier pages). */
   for (const [, src, body] of html.matchAll(/<script(?: src="([^"]+)")?>([\s\S]*?)<\/script>/g))
@@ -34,5 +35,7 @@ if (process.argv.includes("--selftest")) {
   assert.strictEqual(cards.length, 6, "crew-list should render 6 articles");
   cards.forEach((c, i) => assert.ok(c.includes(">TRIGGERS<"), `crew card ${i} missing TRIGGERS row`));
   assert.ok(mount("pilot.html", "#sten").html("dossier").includes("STEN"), "pilot dossier glue should render from location.hash");
-  console.log("render selftest ok: 6 crew articles with TRIGGERS");
+  /* the page tests feed a fixture build through a global, so the third argument has to arrive */
+if (mount("index.html", "", { __PROBE: 7 }).window.__PROBE !== 7) throw new Error("mount must pass globals into the sandbox");
+console.log("render selftest ok: 6 crew articles with TRIGGERS");
 }
