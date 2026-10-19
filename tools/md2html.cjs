@@ -209,8 +209,8 @@ function render() {
 .guide details.gsec>summary:hover h2,.guide details.gsec>summary:focus-visible h2{color:var(--cyan)}
 .guide details.gsec>summary:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
 .guide .gcaret{color:var(--muted);font-size:11px}
-.guide .gcaret::before{content:"\25B8"}
-.guide details.gsec[open] .gcaret::before{content:"\25BE"}
+.guide .gcaret::before{content:"\\25B8"}
+.guide details.gsec[open] .gcaret::before{content:"\\25BE"}
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
 </head>
