@@ -128,8 +128,8 @@ function applyToText(text, siteId, set) {
     let same = false;
     let cur;
     try { cur = vm.runInNewContext("(" + current + ")"); } catch (e) { cur = undefined; }
-    /* a list field reaches us as a comma-separated string in the real records and as an array in an
-       export, so read the names out of both before comparing */
+    /* live records carry name lists since 0fdfb95; the string form survives only in hand-edited
+       or pre-migration campaign.js, so read the names out of both before comparing */
     if (typeof cur === "string" && Array.isArray(value)) cur = cur.split(",").map(x => x.trim()).filter(Boolean);
     same = cur !== undefined && JSON.stringify(cur) === JSON.stringify(value);
     if (same) continue;

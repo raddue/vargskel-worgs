@@ -68,10 +68,9 @@
 .p-face{width:44px;height:44px;flex-shrink:0;border:1px solid var(--line);background:var(--thumb-bg);display:grid;place-items:center;overflow:hidden}
 .p-face img{width:100%;height:100%;object-fit:cover;display:block}
 
-/* INTEL console (docs/plans/2026-10-18-intel-console-tabs-design.md): the pagebar carries the page
-   identity and the tab strip, so the map takes the vertical room the hero used to hold. */
+/* INTEL console (docs/plans/2026-10-18-intel-console-tabs-design.md): the hero owns the page
+   identity, so the sticky bar keeps only the tab strip and the hint. */
 .pagebar{position:sticky;top:0;z-index:30;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:14px 28px 0;background:var(--bg);border-bottom:1px solid var(--line)}
-.pagebar h1{margin:2px 0 0;font-size:clamp(22px,3vw,34px)}
 .tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
 .tab{font:12px var(--mono);letter-spacing:.12em;padding:10px 14px;background:none;border:1px solid var(--line);border-bottom:0;color:var(--muted);cursor:pointer}
 .tab[aria-selected="true"]{color:var(--text);border-color:var(--cyan);box-shadow:inset 0 -2px 0 var(--cyan)}

@@ -92,7 +92,7 @@ function blocks(lines) {
       if (h[1].length === 2) {                             // h2 opens a native collapsible section
         if (sec) H.push("</details>");
         const id = slug(h[2]);
-        H.push(`<details class="gsec" id="${id}" open><summary><h2>${t}</h2><span class="gcaret"></span></summary>`);
+        H.push(`<details class="gsec" id="${id}"${sec ? "" : " open"}><summary><h2>${t}</h2><span class="gcaret"></span></summary>`);
         toc.push([id, t, 0]);
         sec = true;
       } else if (h[1].length === 3) {
@@ -229,6 +229,11 @@ ${chrome.status("ACTIVE")}
 <aside class="aside fill">${tocNav(toc)}</aside></div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
+<script>/* sections below the first start collapsed; a rail link must open the one it points into */
+document.querySelectorAll(".aside a[href^='#']").forEach(a => a.addEventListener("click", () => {
+  const t = document.getElementById(a.hash.slice(1));
+  if (t) { const d = t.closest("details"); if (d) d.open = true; }
+}));</script>
 </body>
 </html>
 `;
@@ -241,6 +246,11 @@ if (process.argv.includes("--check")) {
   const coll = blocks(["## A Section", "body text", "### A Sub", "more"]).H.join("");
   assert.ok(coll.startsWith('<details class="gsec" id="a-section" open><summary>'), "h2 should open a collapsible section, got: " + coll.slice(0, 90));
   assert.ok(coll.includes('<h3 id="a-sub">') && coll.endsWith("</details>"), "h3 should get an anchor and the section should close, got: " + coll.slice(-40));
+  const two = blocks(["## One", "a", "## Two", "b"]).H.join("");
+  assert.ok(two.includes('id="one" open>') && two.includes('id="two">') && !two.includes('id="two" open>'),
+    "only the first section should default open, got: " + two.replace(/></g, ">\n<"));
+  assert.ok(/<script>[\s\S]*closest\("details"\)/.test(render()),
+    "a rail link must open the collapsed section it points into");
   const have = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
   if (have !== render()) {
     console.error("guide page stale vs markdown; run: node tools/md2html.cjs");

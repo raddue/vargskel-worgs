@@ -105,10 +105,15 @@ navPages.forEach(p => {
   const got = (src.match(/<nav class="nav">[\s\S]*?<\/nav>/) || [])[0];
   if (got !== chrome.nav(prefix, p === "index.html"))
     problems.push(`${p}: nav differs from tools/chrome.cjs; copy chrome.nav("${prefix}") into the page`);
-  if (p === "mechbay.html") {
+  /* Two pages carry a chrome hero; both are pinned to the component's exact output. */
+  const wantHero = {
+    "mechbay.html": chrome.hero({ eyebrow: "UNIT DOSSIER / VW-01", title: "CHASSIS REGISTER",
+      deck: "Mech records for the active lance. Select a chassis to open its file." }),
+    "intel.html": chrome.hero({ eyebrow: "UNIT DOSSIER / VW-01", title: "INTELLIGENCE",
+      deck: "Holomap, faction ledger, and personnel files for the Cressidium contract." }),
+  }[p];
+  if (wantHero) {
     const gotHero = (src.match(/<section class="hero"[\s\S]*?<\/section>/) || [])[0];
-    const wantHero = chrome.hero({ eyebrow: "UNIT DOSSIER / VW-01", title: "CHASSIS REGISTER",
-      deck: "Mech records for the active lance. Select a chassis to open its file." });
     if (gotHero !== wantHero) problems.push(`${p}: hero differs from tools/chrome.cjs; copy chrome.hero({...}) into the page`);
   }
   if (p === "docs/guides/averna-omniscient-overlord.html" && !/hero-art[\s\S]{0,140}averna\.png/.test(src))
@@ -480,8 +485,10 @@ docs/plans/2026-10-18-intel-console-tabs-design.md). Source text covers the shel
 const intel = bay.window.UI, op0 = C.ops[0] || {}, sites = op0.sites || {}, area = C.locations.find(x => x.id === op0.loc) || {};
 if (!/role="tablist"/.test(intelPage)) problems.push('intel.html: the page needs a role="tablist" for the MAP | RELATIONS | PERSONNEL tabs');
 ["map", "relations", "personnel"].forEach(t => { if (!new RegExp(`id="tab-${t}"`).test(intelPage)) problems.push(`intel.html: missing tabpanel id="tab-${t}"`); });
-if (!/class="pagebar"/.test(intelPage)) problems.push("intel.html: needs the sticky .pagebar that carries the h1 and the tabs");
-if (/class="hero"/.test(intelPage)) problems.push("intel.html: the hero must be gone now that the pagebar carries the page identity");
+if (!/class="pagebar"/.test(intelPage)) problems.push("intel.html: needs the sticky .pagebar that carries the tabs");
+/* The hero owns the page identity, so the sticky bar keeps only the tab strip; a second h1 would
+   put the title on screen twice and cost the map the vertical space the bar exists to save. */
+if ((intelPage.match(/<h1>/g) || []).length !== 1) problems.push("intel.html: the hero owns the page's single h1; the pagebar carries the tabs only");
 ["SYSTEM", "THEATER"].forEach(l => { if (!new RegExp(`data-level="${l}"`).test(intelPage)) problems.push(`intel.html: the map head strip needs a data-level="${l}" button`); });
 /* #record-detail lives in the map panel, so a record opened from another tab has to reveal that panel;
    and switching tabs must not re-fit, which would wipe the frame and the camera the user set. */
