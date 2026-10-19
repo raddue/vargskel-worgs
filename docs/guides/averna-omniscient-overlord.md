@@ -546,10 +546,3 @@ the brief was wrong:
 | "SSC Core Bonus: Integrated Weapon" | **Integrated Weapon is a GMS core bonus.** Core bonuses arrive **every three LLs**; non-GMS ones need **three ranks** in that manufacturer |
 | "ATHENA ignores walls / wall-ignoring line of sight" | **Simulacrum** grants full **visibility** in a Blast 3 within **Range 50**, explicitly **not line of sight**. It also strips cover and blocks Hide/Invisible |
 | "12 HP hull" | Both numbers are right: the frame is **10 HP** and **Personalizations** adds **+2**, for **12 as fielded**. SYSTEMS adds no HP (**HULL** is +2 HP/point), and **HULL 1 is impossible at LL0**, where the budget is only 2 mech-skill points |
-
-**Two things in the campaign roster to decide on** (campaign data, not rules data, left untouched):
-
-1. **AVERNA is listed at 12 HP.** With **HULL 0**, the frame's 10 HP is correct, and the LL0 HASE
-   budget of **2 points** is fully spent on SYSTEMS. Either the HP is a copy error, or the sheet means
-   **HULL 1** (10 + 2 HP), in which case SYSTEMS would drop to 1 and Tech Attack with it.
-2. **SP** works out to **8** (frame 7, +1 for two points of SYSTEMS). Worth confirming the sheet.
