@@ -303,6 +303,43 @@ else {
   if (/object-position/.test(cardOf("averna")))
     errs.push("only a record with imgFocus may override the thumb crop");
 
+  /* the pilot pick resolves the record the licence gate reads, so it reaches the export as well */
+  const C = (() => {
+    const b = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(path.join(ROOT, "campaign.js"), "utf8"), b, { filename: "campaign.js" });
+    return b.window.CAMPAIGN;
+  })();
+  const who = mount("loadout.html", "#alba");
+  const pilotPick = who.nodes["lo-pilot"];
+  if (!pilotPick) errs.push("loadout.html needs a pilot pick (id lo-pilot)");
+  else {
+    const shown = (who.html("lo-pilot").match(/<option/g) || []).length;
+    if (shown !== (C.pilots || []).length)
+      errs.push(`the pilot pick must list every pilot, got ${shown} of ${(C.pilots || []).length}`);
+    const alba = (C.mechs || []).filter(m => m.id === "alba")[0] || {};
+    const other = (C.pilots || []).map(x => x.id).find(id => id !== alba.pilot);
+    if (/data-/.test("")) errs.push("unreachable");
+    if (who.html("lo-export").indexOf(other) >= 0)
+      errs.push("loadout-check: Alba's export must not already name another pilot");
+    pilotPick.value = other;
+    pilotPick.fire("change");
+    if (who.html("lo-export").indexOf(other) < 0)
+      errs.push("picking another pilot must reach the export block");
+  }
+
+  /* seats come from the fitting table, not from how many weapons a mount holds: a Main/Aux mount
+     carrying one weapon still reports two seats, so the emptied one keeps a picker of its own */
+  const half = mount("loadout.html", "#averna");
+  if (!half.nodes["lo-drop-0-0"] || !half.nodes["lo-drop-0-1"])
+    errs.push("a Main/Aux mount needs a control at both seats");
+  else {
+    /* the core packs the list, so removing seat 0 leaves the mount's other weapon at seat 0 and the
+       empty second seat still exists, because a Main/Aux mount has two seats whatever it holds */
+    half.nodes["lo-drop-0-0"].fire("click");
+    if (!half.nodes["lo-pick-0-1"]) errs.push("a Main/Aux mount holding one weapon still reports two seats");
+    if (!half.nodes["lo-drop-0-0"]) errs.push("the weapon left in a composite mount needs a control");
+  }
+
   /* a tall art file in a wide hero band shows a thin slice, so a record can aim it at the head */
   const hero = mount("mech.html", "#alba").html("dossier");
   if (!/object-position:\s*center 41%/.test(hero)) errs.push("Alba's hero must focus the head and chest, not the rifle");

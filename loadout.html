@@ -29,6 +29,7 @@
   <main class="panel">
     <section>
       <div class="section-head"><h2>LOADOUT SANDBOX</h2><span id="lo-sp"></span></div>
+      <div class="lo-distrow"><label for="lo-pilot">PILOT</label><select class="lo-pick" id="lo-pilot" aria-label="pilot"></select></div>
       <div id="lo-slots"></div>
       <div class="section-head"><h2>SYSTEMS</h2><span>SP COUNTS THESE</span></div>
       <div id="lo-systems"></div>
@@ -59,7 +60,8 @@
   const rec = (C.mechs || []).filter(m => m.id === want)[0];
   if (!rec) { el("lo-slots").innerHTML = '<p class="muted">no record for ' + esc(want) + '</p>'; return; }
   const frame = LO.frameOf({ frame: (F && F.frame) || rec.frame }, CAT);
-  const pilot = (C.pilots || []).filter(p => p.id === rec.pilot)[0] || null;
+  const resolvePilot = id => (C.pilots || []).filter(p => p.id === id)[0] || null;
+  let pilot = resolvePilot(rec.pilot);
   let build = { mech: rec.id, frame: rec.frame, pilot: rec.pilot, attackBonus: rec.attackBonus || 0,
     sys: rec.sys || 0,
     mounts: (rec.mounts || []).map(m => ({ slot: m.slot, weapons: (m.weapons || []).slice(), locked: !!m.locked })),
@@ -148,10 +150,24 @@
   let sysRefusal = "";
   let currentDistance = F ? (F.distance || 0) : 0;
   const render = () => {
-    renderSlots(); wireSlots(); renderSystems(); wireSystems(); renderSp();
+    renderPilot(); renderSlots(); wireSlots(); renderSystems(); wireSystems(); renderSp();
     el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
     drawRange(currentDistance);
   };
+  /* the pilot pick decides which licences the gate reads, so the refusal follows the pick */
+  const renderPilot = () => {
+    const pick = el("lo-pilot");
+    if (!pick) return;
+    pick.innerHTML = (C.pilots || []).map(p =>
+      '<option value="' + esc(p.id) + '"' + (p.id === build.pilot ? " selected" : "") + '>' + esc(p.name) + '</option>').join("");
+    pick.value = build.pilot;
+  };
+  const pilotPick = el("lo-pilot");
+  if (pilotPick) pilotPick.addEventListener("change", () => {
+    build.pilot = pilotPick.value;
+    pilot = resolvePilot(build.pilot);
+    render();
+  });
   const slider = el("lo-dist");
   if (slider) {
     slider.value = String(currentDistance);
