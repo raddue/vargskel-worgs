@@ -3,7 +3,7 @@ ticket: "#26"
 title: "Mechbay: interactive loadout sandbox with a range finder"
 date: "2026-10-19"
 source: "design"
-revision: 10
+revision: 11
 ---
 
 # Mechbay: interactive loadout sandbox with a range finder
@@ -167,12 +167,20 @@ decision that also writes cannot be asked without being obeyed. `seat` is the in
   `canMount(build.pilot, …)` first and **returns its refusal unchanged**, so `UNLICENSED` and
   `OVER SP CAP` read the same whether they are asked or attempted; on `ok` it returns the new build, and an already-occupied seat is refused `SLOT FULL`
   rather than silently replaced.
-- `UI.unplace(build, slotIndex, seat, catalogue)` → `build` removes that seat's weapon and **clears the lock**
-  when the weapon removed is the Superheavy, since the lock has no meaning without it and an export
-  that left it behind would fail test 2.
+- `UI.unplace(build, slotIndex, seat, catalogue)` → `{ok, reason, build}`, the same shape
+ `UI.place` answers: refuses `EMPTY SEAT` (the mount does not exist, or the seat holds nothing)
+ and `SLOT LOCKED`; on `ok` removes the seat's weapon and **clears the lock** when the weapon
+ removed was a Superheavy, since the lock has no meaning without it and an export left behind
+ would fail test 2. Bad `slotIndex` used to throw; it refuses now.
 - `UI.setFrame(build, frame, catalogue, pilot)` → `{ok, reason, build}` refuses `UNLICENSED` or
   `UNKNOWN FRAME LICENCE` and **resets `mounts` to the new frame's slot list**, because mounts
   carried over from another frame are the silent mismatch the export check exists to catch;
+- The page's frame pick is two-step where a frame change empties mounts: when the candidate frame
+ would drop mounted weapons, the page renders the candidate and a `lo-frame-confirm` control in
+ the refusal slot, naming what the change empties; only the second click calls `setFrame`. A
+ frame change says plainly that it empties the mounts before it does, and never on one click.
+ `lo-pilot` resolves the pilot record whose `licences` and `ll` the gates read, so the licence
+ refusals name the pilot that lacks the rank, not just the frame.
   `UI.setSystems(build, systems, catalogue, pilot)` → `{ok, reason, build}` checks the SP cap, duplicates
   and the AI limit. Every builder is pure and returns a new build, so nothing mutates one
   in place.
@@ -182,7 +190,7 @@ decision that also writes cannot be asked without being obeyed. `seat` is the in
   the record's system-point allowance, the cap's other input. The builders take that resolved pilot
   record as their first argument because `licences` and `ll` are what they read from it.
 
-Reasons: `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `SLOT LOCKED`, `NEEDS SECOND MOUNT`, `OVER SP CAP`, `UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`, `DUPLICATE UNIQUE ITEM`, `AI LIMIT`.
+Reasons: `UNLICENSED`, `WRONG MOUNT TYPE`, `SLOT FULL`, `SLOT LOCKED`, `EMPTY SEAT`, `NEEDS SECOND MOUNT`, `OVER SP CAP`, `UNKNOWN WEAPON`, `UNKNOWN FRAME LICENCE`, `DUPLICATE UNIQUE ITEM`, `AI LIMIT`.
 Uniqueness is a real gate, not a nicety: 104 systems and 3 weapons carry `tg_unique`
 (`Personalizations`, `Custom Paint Job`, `Type-3 Projected Shield`, `EVA Module` among them), and 13
 systems carry `tg_ai` with a one-AI-per-mech limit. `UI.spCheck(build, frame, catalogue, pilot)` is
