@@ -205,6 +205,7 @@ for (const m of C.mechs) {
 }
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/build-detail.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("detail.js stale vs campaign.js; regen: node tools/build-detail.cjs");
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/md2html.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("guide page stale vs markdown; regen: node tools/md2html.cjs");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/chrome.cjs", "--selftest"], {stdio: "inherit"}).status !== 0) problems.push("tools/chrome.cjs selftest failed");
 for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */

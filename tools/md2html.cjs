@@ -34,11 +34,13 @@ const slug = s => {
   return id;
 };
 
-/* Contents rail: h2 sections plus their h3 subheads. */
+/* Contents rail: the site's own sidebar pattern (section-head + card) so it sits on the
+   right the way every other page's aside does. */
 const tocNav = toc => !toc.length ? "" :
-  `<nav class="gtoc"><h2>SECTIONS</h2><ol>` +
+  `<div class="section-head"><h2>SECTIONS</h2><span>BUILD GUIDE</span></div>` +
+  `<div class="card"><div class="card-pad gtoc"><ol>` +
   toc.map(([id, t, lvl]) => `<li${lvl ? ' class="sub"' : ""}><a href="#${id}">${t}</a></li>`).join("") +
-  `</ol></nav>`;
+  `</ol></div></div>`;
 
 function blocks(lines) {
   const H = [], toc = [];
@@ -156,8 +158,6 @@ function tooltips(html) {
 
 function render() {
   const { H, toc } = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
-  const first = H.findIndex(b => b.startsWith('<details class="gsec"'));
-  if (first >= 0) H.splice(first, 0, tocNav(toc));
   const p = x => "../../" + x;
   return `<!doctype html>
 <html lang="en">
@@ -180,7 +180,9 @@ function render() {
 <link rel="stylesheet" href="${p("style.css")}">
 <style>
 /* prose layer: the site ships component classes only, so a doc page brings its own type scale */
-.guide{max-width:900px}
+.guide{max-width:1180px}
+.guide .columns>.primary{min-width:0}
+.guide .columns>.aside{position:sticky;top:18px;align-self:flex-start}
 .guide h1{font:500 clamp(30px,4.4vw,52px)/1.05 var(--mono);letter-spacing:-.04em;margin:16px 0 8px}
 .guide .lede{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 22px}
 .guide h3{font:15px var(--mono);letter-spacing:.12em;color:var(--cyan);margin:24px 0 9px}
@@ -195,8 +197,6 @@ function render() {
 .guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
 .guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
 .guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
-.guide .gtoc{background:var(--panel);border:1px solid var(--line);padding:15px 17px;margin:0 0 26px}
-.guide .gtoc h2{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 11px}
 .guide .gtoc ol{margin:0;padding:0;list-style:none}
 .guide .gtoc li{font:13px var(--mono);margin:0 0 6px;color:var(--text)}
 .guide .gtoc li.sub{padding-left:15px;color:var(--muted)}
@@ -222,7 +222,8 @@ ${chrome.brand("TACTICAL WIKI · BUILD GUIDE")}
 ${chrome.nav("../../")}
 ${chrome.status("ACTIVE")}
 </header>
-<main class="guide">${tooltips(H.join("\n"))}</main>
+<main class="guide"><div class="columns"><div class="primary fill">${tooltips(H.join("\n"))}</div>
+<aside class="aside fill">${tocNav(toc)}</aside></div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
 </body>

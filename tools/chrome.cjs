@@ -36,7 +36,7 @@ if (process.argv.includes("--selftest")) {
   assert.ok(nav().startsWith('<nav class="nav"><a href="index.html#overview">'), "root pages link to index.html");
   assert.ok(nav("", true).includes('<a href="#overview">'), "index.html keeps its same-page anchors");
   assert.ok(nav("../../").startsWith('<nav class="nav"><a href="../../index.html#overview">'), "the guide gets a relative prefix");
-  assert.ok(statusRe.test(status("UNBRIEFED")), "the status value may vary");
+  assert.strictEqual(status("UNBRIEFED"), '<div class="status">● DEPLOYMENT STATUS: UNBRIEFED</div>', "the chip carries the shared label with a page value");
   assert.ok(!statusRe.test("● CREW STATUS: ACTIVE"), "the label may not vary");
   console.log("chrome selftest ok: nav and status label are shared, values are not");
 }
