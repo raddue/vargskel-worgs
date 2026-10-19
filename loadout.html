@@ -67,15 +67,42 @@
     const r = LO.place(pilot, build, a.slotIndex, a.seat, a.weapon, CAT, a);
     if (r && r.ok) build = r.build; else refused[a.slotIndex] = (r && r.reason) || "REFUSED";
   }
-  el("lo-slots").innerHTML = build.mounts.map((m, i) =>
-    '<div class="lo-slot"><span class="lo-slot-name">' + esc(m.slot) + '</span>' +
-    ((m.weapons || []).filter(Boolean).map(w => '<span class="lo-wep">' + esc(w) + '</span>').join("") ||
-      '<span class="lo-wep muted">EMPTY</span>') +
-    (m.locked ? '<span class="lo-lock">LOCKED</span>' : "") +
-    (refused[i] ? '<span class="lo-refusal">' + esc(refused[i]) + '</span>' : "") + '</div>').join("");
-  const sp = LO.spCheck(build, frame, CAT, pilot);
-  el("lo-sp").innerHTML = 'SP ' + sp.spend + ' / ' + (sp.cap == null ? "?" : sp.cap);
-  const distance = F ? (F.distance || 0) : 0;
+  /* seats come from the core's own table: a Main/Aux mount is two seats even with one empty */
+  const seatCount = m => (LO.seats(m.slot, CAT.fittings) || []).length || (m.weapons || []).length;
+  const renderSlots = () => {
+    el("lo-slots").innerHTML = build.mounts.map((m, i) => {
+      const list = m.weapons || [], cells = [];
+      for (let s = 0; s < seatCount(m); s++) {
+        const w = list[s];
+        cells.push(w
+          ? '<span class="lo-wep">' + esc(w) + '</span><button class="lo-drop" id="lo-drop-' + i + "-" + s + '" aria-label="remove ' + esc(w) + '">\u2715</button>'
+          : '<select class="lo-pick" id="lo-pick-' + i + "-" + s + '" aria-label="weapon for ' + esc(m.slot) + '"><option value="">\u2014</option>' +
+            Object.keys(CAT.weapons).sort().map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join("") + '</select>');
+      }
+      return '<div class="lo-slot"><span class="lo-slot-name">' + esc(m.slot) + '</span>' +
+        (cells.length ? cells.join("") : '<span class="lo-wep muted">EMPTY</span>') +
+        (m.locked ? '<span class="lo-lock">LOCKED</span>' : "") +
+        (refused[i] ? '<span class="lo-refusal">' + esc(refused[i]) + '</span>' : "") + '</div>';
+    }).join("");
+  };
+  const wireSlots = () => {
+    build.mounts.forEach((m, i) => {
+      /* place answers {ok, reason, build}; unplace answers the build itself */
+      const set = (r) => {
+        if (r && r.ok === false) refused[i] = r.reason || "REFUSED";
+        else if (r && r.build) { build = r.build; delete refused[i]; }
+        else if (r) { build = r; delete refused[i]; }
+        else refused[i] = "REFUSED";
+        render();
+      };
+      for (let s = 0; s < seatCount(m); s++) {
+        const drop = el("lo-drop-" + i + "-" + s);
+        if (drop) drop.addEventListener("click", () => set(LO.unplace(build, i, s, CAT)));
+        const pick = el("lo-pick-" + i + "-" + s);
+        if (pick) pick.addEventListener("change", () => set(LO.place(pilot, build, i, s, pick.value, CAT)));
+      }
+    });
+  };
   const drawRange = d => {
     el("lo-dist-val").innerHTML = String(d);
     el("lo-range").innerHTML = LO.rangeReadout(build, d, CAT).map(r =>
@@ -86,13 +113,22 @@
       Object.keys(p).filter(k => typeof p[k] === "string").map(k => esc(p[k])).join(" ") + '</span>').join("") +
     '</div>').join("");
   };
+  const renderSp = () => {
+    const sp = LO.spCheck(build, frame, CAT, pilot);
+    el("lo-sp").innerHTML = 'SP ' + sp.spend + ' / ' + (sp.cap == null ? "?" : sp.cap);
+  };
+  let currentDistance = F ? (F.distance || 0) : 0;
+  const render = () => {
+    renderSlots(); wireSlots(); renderSp();
+    el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
+    drawRange(currentDistance);
+  };
   const slider = el("lo-dist");
   if (slider) {
-    slider.value = String(distance);
-    slider.addEventListener("input", () => drawRange(Number(slider.value) || 0));
+    slider.value = String(currentDistance);
+    slider.addEventListener("input", () => { currentDistance = Number(slider.value) || 0; drawRange(currentDistance); });
   }
-  drawRange(distance);
-  el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
+  render();
 })();
 </script>
 </body>

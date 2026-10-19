@@ -17,7 +17,7 @@ function stub(id, attrs = "", register) {
     textContent: "", value: "", checked: false, hidden: false, dataset, classList,
     listeners: {},
     addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); },
-    fire(type, ev = {}) { for (const fn of this.listeners[type] || []) fn({ type, target: this, preventDefault() {}, ...ev }); },
+    fire(type, ev = {}) { for (const fn of [...(this.listeners[type] || [])]) fn({ type, target: this, preventDefault() {}, ...ev }); },
     append() {}, focus() {}, querySelector: () => null, querySelectorAll: () => []
   };
 }
@@ -26,7 +26,7 @@ function mount(page, hash = "", globals = {}) {
   const html = fs.readFileSync(path.join(root, page), "utf8");
   const nodes = {};
   const register = markup => {
-    for (const [, pre, id, post] of String(markup).matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] ??= stub(id, pre + post, register);
+    for (const [, pre, id, post] of String(markup).matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] = stub(id, pre + post, register);
   };
   register(html);
   const doc = { getElementById: id => nodes[id] || null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: stub("body"), title: "" };

@@ -261,6 +261,22 @@ else {
     if (!/out of range/i.test(readout)) errs.push("the readout must follow the slider: nothing reported out of range at 15");
     if (!/in band/i.test(readout)) errs.push("the readout must keep the Range 20 rifle in band at 15");
   }
+  /* by hand the GM drops a weapon and picks one back into the seat it leaves */
+  const edit = mount("loadout.html", "#alba");
+  const dropBtn = edit.nodes["lo-drop-0-0"];
+  if (!dropBtn) errs.push("a placed weapon needs a remove control (lo-drop-<slot>-<seat>)");
+  else {
+    dropBtn.fire("click");
+    if (/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("removing a weapon must take it out of the slot");
+    const picker = edit.nodes["lo-pick-0-0"];
+    if (!picker) errs.push("an empty seat needs a weapon picker (lo-pick-<slot>-<seat>)");
+    else {
+      picker.value = "Missile Rack";
+      picker.fire("change");
+      if (!/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
+    }
+  }
+
   /* the export block is the one thing the GM pastes back, so it has to carry the record's own plan */
   const expo = mount("loadout.html", "#alba").html("lo-export");
   if (!/LOADOUT/.test(expo)) errs.push("loadout.html must render the pasteable LOADOUT block in lo-export");
