@@ -15,7 +15,9 @@ function mount(page, hash = "") {
   const nodes = {};
   for (const [, pre, id, post] of html.matchAll(/<\w+([^>]*?)\bid="([^"]+)"([^>]*)>/g)) nodes[id] ??= stub(id, pre + post);
   const doc = { getElementById: id => nodes[id] || null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: stub("body"), title: "" };
-  const box = { document: doc, location: { hash, replace() {} }, matchMedia: () => ({ matches: false }), CSS: { escape: s => s }, console };
+  /* index.html's inline glue calls addEventListener bare (no window. prefix), so the page's
+   document-level listeners need a no-op here for the page to mount at all. */
+const box = { document: doc, location: { hash, replace() {} }, matchMedia: () => ({ matches: false }), CSS: { escape: s => s }, console, addEventListener() {}, removeEventListener() {} };
   box.window = box;
   vm.createContext(box);
   /* Scripts in page order: campaign.js, detail.js, archive.js, then any inline glue (dossier pages). */

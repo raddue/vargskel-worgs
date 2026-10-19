@@ -659,6 +659,14 @@ C.ops.forEach(o => {
   if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
 });
 
+/* COMPANY RECORD (index.html): the rolling summary must count the ledger's kills. */
+if (mount) {
+  const record = mount("index.html").html("stats");
+  const kills = (C.ledger || []).reduce((n, e) => n + (Number(e.kills) || 0), 0);
+  if (!record.includes("<label>KILLS</label>")) problems.push("index.html COMPANY RECORD must show KILLS");
+  else if (!record.includes(`<strong>${String(kills).padStart(2, "0")}</strong>`)) problems.push(`index.html COMPANY RECORD: KILLS must show the ledger total ${kills}`);
+}
+
 if (problems.length) {
   console.error("campaign.js/index.html: " + problems.length + " problem(s)\n - " + problems.join("\n - "));
   process.exit(1);
