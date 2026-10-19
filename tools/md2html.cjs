@@ -25,9 +25,25 @@ function table(rows) {
   return h;
 }
 
+/* Section anchors: lowercase, punctuation dropped, spaces to dashes, deduped. */
+const seenIds = new Set();
+const slug = s => {
+  let id = s.replace(/[*`]/g, "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  while (seenIds.has(id)) id += "-x";
+  seenIds.add(id);
+  return id;
+};
+
+/* Contents rail: h2 sections plus their h3 subheads. */
+const tocNav = toc => !toc.length ? "" :
+  `<nav class="gtoc"><h2>SECTIONS</h2><ol>` +
+  toc.map(([id, t, lvl]) => `<li${lvl ? ' class="sub"' : ""}><a href="#${id}">${t}</a></li>`).join("") +
+  `</ol></nav>`;
+
 function blocks(lines) {
-  const H = [];
-  let afterH1 = false;
+  const H = [], toc = [];
+  let sec = false, afterH1 = false;
+  seenIds.clear();
   for (let i = 0; i < lines.length; i++) {
     const L = lines[i];
     if (/^```/.test(L)) {                                  // fenced block
@@ -71,9 +87,19 @@ function blocks(lines) {
     const h = L.match(/^(#{1,3}) (.+)$/);
     if (h) {
       const t = inl(h[2]);
-      H.push(h[1].length === 1 ? `<h1>${t}</h1>`
-        : h[1].length === 2 ? `<div class="section-head"><h2>${t}</h2></div>`
-        : `<h3>${t}</h3>`);
+      if (h[1].length === 2) {                             // h2 opens a native collapsible section
+        if (sec) H.push("</details>");
+        const id = slug(h[2]);
+        H.push(`<details class="gsec" id="${id}" open><summary><h2>${t}</h2><span class="gcaret"></span></summary>`);
+        toc.push([id, t, 0]);
+        sec = true;
+      } else if (h[1].length === 3) {
+        const id = slug(h[2]);
+        H.push(`<h3 id="${id}">${t}</h3>`);
+        toc.push([id, t, 1]);
+      } else {
+        H.push(`<h1>${t}</h1>`);
+      }
       afterH1 = h[1].length === 1;
       continue;
     }
@@ -85,7 +111,8 @@ function blocks(lines) {
     H.push(`<p${afterH1 ? ' class="lede"' : ""}>${inl(buf.join(" "))}</p>`);
     afterH1 = false;
   }
-  return H;
+  if (sec) H.push("</details>");
+  return { H, toc };
 }
 
 /* Keyword hover tooltips: native browser titles, no JS. Definitions are the terse
@@ -128,7 +155,9 @@ function tooltips(html) {
 }
 
 function render() {
-  const H = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
+  const { H, toc } = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
+  const first = H.findIndex(b => b.startsWith('<details class="gsec"'));
+  if (first >= 0) H.splice(first, 0, tocNav(toc));
   const p = x => "../../" + x;
   return `<!doctype html>
 <html lang="en">
@@ -166,6 +195,22 @@ function render() {
 .guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
 .guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
 .guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.guide .gtoc{background:var(--panel);border:1px solid var(--line);padding:15px 17px;margin:0 0 26px}
+.guide .gtoc h2{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 11px}
+.guide .gtoc ol{margin:0;padding:0;list-style:none}
+.guide .gtoc li{font:13px var(--mono);margin:0 0 6px;color:var(--text)}
+.guide .gtoc li.sub{padding-left:15px;color:var(--muted)}
+.guide .gtoc a:hover,.guide .gtoc a:focus-visible{color:var(--cyan)}
+.guide details.gsec{border-top:1px solid var(--line);padding:0}
+.guide details.gsec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 4px}
+.guide details.gsec>summary::-webkit-details-marker{display:none}
+.guide details.gsec>summary::marker{content:""}
+.guide details.gsec>summary h2{font:16px var(--mono);letter-spacing:.1em;margin:0}
+.guide details.gsec>summary:hover h2,.guide details.gsec>summary:focus-visible h2{color:var(--cyan)}
+.guide details.gsec>summary:focus-visible{outline:1px solid var(--cyan);outline-offset:-1px}
+.guide .gcaret{color:var(--muted);font-size:11px}
+.guide .gcaret::before{content:"\25B8"}
+.guide details.gsec[open] .gcaret::before{content:"\25BE"}
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
 </head>
@@ -187,8 +232,11 @@ function render() {
 
 if (process.argv.includes("--check")) {
   const assert = require("assert");
-  const nested = blocks(["- parent", "  - child", "- second"]).join("");
+  const nested = blocks(["- parent", "  - child", "- second"]).H.join("");
   assert.ok(nested.includes("<li>parent<ul><li>child</li></ul></li>"), "nested bullets should render as a nested list, got: " + nested);
+  const coll = blocks(["## A Section", "body text", "### A Sub", "more"]).H.join("");
+  assert.ok(coll.startsWith('<details class="gsec" id="a-section" open><summary>'), "h2 should open a collapsible section, got: " + coll.slice(0, 90));
+  assert.ok(coll.includes('<h3 id="a-sub">') && coll.endsWith("</details>"), "h3 should get an anchor and the section should close, got: " + coll.slice(-40));
   const have = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
   if (have !== render()) {
     console.error("guide page stale vs markdown; run: node tools/md2html.cjs");
