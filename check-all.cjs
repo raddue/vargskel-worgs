@@ -409,6 +409,63 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
    reaches the page as text between tags, which a source regex cannot see; minified source also made
    template-text matches report false positives. */
 const { mount } = require("./tools/render.cjs");
+
+/* #28 session-log stepper: the emission is pure, the round trip goes through the CLI's own
+   parser, and the stepper is driven under the stub the way a GM clicks it. */
+{
+  const STATS10 = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "heat", "overcharge", "core", "moves"];
+  const S = mount("campaign.html").window.UI;
+  const entries = [
+    { pilot: "daemon", deployed: true, stats: { dealt: 14, taken: 0, repairs: 3 } },
+    { pilot: "spook", deployed: false, stats: { dealt: 9 } },
+    { pilot: "dusty", deployed: true, stats: {} },
+  ];
+  const block = S.sessionBlock(entries, "001", "2026-10-19");
+  if (block !== "session op=001 date=2026-10-19\ndaemon dealt=14 taken=0 repairs=3")
+    problems.push(`UI.sessionBlock emitted the wrong grammar:\n${block}`);
+  const { parseBlock } = require("./tools/apply-compcon.cjs");
+  const parsed = parseBlock(block, { ops: C.ops.map(o => String(o.id)), pilots: C.pilots.map(p => p.id), stats: STATS10, ledger: [] });
+  if (parsed.errors.length || parsed.rows.length !== 1 || parsed.rows[0].stats.taken !== 0)
+    problems.push(`the emitted block must round-trip through parseBlock: ${parsed.errors.join("; ")}`);
+  const zero = S.ledgerPanel([{ op: "001", date: "2026-10-19", pilot: "daemon", dealt: 0 }]);
+  if (!zero.html.includes("DAMAGE DEALT") || !/>0</.test(zero.html)) problems.push("a logged zero must keep its column and render as 0, not vanish");
+  const stepThrough = m => { for (let i = 0; i < C.pilots.length && m.nodes["sl-next"]; i++) m.nodes["sl-next"].fire("click"); };
+  const walk = mount("campaign.html"), n = walk.nodes, second = C.pilots[1].id;
+  if (!n["sl-deploy-daemon"] || !n["sl-step"]) problems.push("campaign.html: the session form must render the first pilot's card on mount");
+  else {
+  if (!/id="sl-daemon-dealt"[^>]*disabled/.test(n["sl-step"].innerHTML)) problems.push("an undeployed pilot's stat fields must start disabled");
+  n["sl-date"].value = "2026-10-19";
+  n["sl-deploy-daemon"].checked = true; n["sl-deploy-daemon"].fire("change");
+  if (/id="sl-daemon-dealt"[^>]*disabled/.test(n["sl-step"].innerHTML)) problems.push("deploying a pilot must enable their stat fields");
+  n["sl-daemon-dealt"].value = "14"; n["sl-daemon-taken"].value = "0";
+  n["sl-more-daemon"].checked = true; n["sl-more-daemon"].fire("change");
+  if (!n["sl-daemon-hacks"]) problems.push("the more toggle must reveal the six extra stats");
+  n["sl-daemon-hacks"].value = "2";
+  n["sl-next"].fire("click");
+  if (!n["sl-deploy-" + second]) problems.push("next must step to the second pilot");
+  n["sl-back"].fire("click");
+  if (!n["sl-daemon-dealt"] || n["sl-daemon-dealt"].value !== "14") problems.push("back must restore what was typed");
+  stepThrough(walk);
+  const pre = n["sl-block"];
+  if (!pre || !String(pre.textContent).includes("daemon dealt=14 taken=0 hacks=2"))
+    problems.push("the review step must show the emitted block, got: " + (pre ? pre.textContent : "no sl-block"));
+  if (!n["sl-copy"]) problems.push("the review step must offer copy when there is a block");
+  }
+  const bare = mount("campaign.html");
+  if (bare.nodes["sl-date"]) {
+  bare.nodes["sl-date"].value = "2026-10-19";
+  stepThrough(bare);
+  if (!bare.nodes["sl-review"] || !/NOBODY DEPLOYED/i.test(bare.nodes["sl-review"].innerHTML)) problems.push("with nobody deployed the review must say so");
+  if (bare.nodes["sl-block"] || bare.nodes["sl-copy"]) problems.push("with nobody deployed there is no block and nothing to copy");
+  }
+  const nodate = mount("campaign.html");
+  if (nodate.nodes["sl-deploy-daemon"]) {
+  nodate.nodes["sl-deploy-daemon"].checked = true; nodate.nodes["sl-deploy-daemon"].fire("change");
+  nodate.nodes["sl-daemon-dealt"].value = "3";
+  stepThrough(nodate);
+  if (!nodate.nodes["sl-review"] || !/SET A DATE/i.test(nodate.nodes["sl-review"].innerHTML)) problems.push("without a date the review must ask for one, not emit a block the CLI would refuse");
+  }
+}
 const cardsOf = h => h.split("</article>").filter(c => c.includes("<article"));
 const crewPage = mount("pilots.html"), crewCards = cardsOf(crewPage.html("crew-list"));
 if (crewCards.length !== C.pilots.length) problems.push(`pilots.html: crew-list rendered ${crewCards.length} cards, want ${C.pilots.length}`);

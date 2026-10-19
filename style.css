@@ -153,3 +153,14 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
 .lo-sys{display:flex;align-items:center;gap:6px;padding:2px 0;color:var(--text);font-size:.9rem}
 .lo-sys-sp{margin-left:auto;color:var(--lime);font-size:.72rem;letter-spacing:.1em}
 .lo-sys-sp.lo-free{color:var(--muted)}
+
+/* #28 session-log stepper: one pilot card at a time, four core stats up front. */
+.sl-shell{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.sl-shell label{display:grid;gap:4px;font:11px var(--mono);letter-spacing:.08em;color:var(--muted)}
+.sl-shell select,.sl-shell input,.sl-fields input{background:var(--panel);border:1px solid var(--line);color:var(--text);font:14px var(--mono);padding:6px 8px}
+.sl-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;font:12px var(--mono);letter-spacing:.08em}
+.sl-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.sl-fields label{display:grid;gap:4px;font:11px var(--mono);letter-spacing:.08em;color:var(--muted)}
+.sl-fields input:disabled{opacity:.4}
+.sl-nav{display:flex;justify-content:flex-end;gap:8px;margin:10px 0}
+.sl-block{background:var(--panel);border:1px solid var(--line);padding:10px;font:12px var(--mono);white-space:pre;overflow-x:auto}

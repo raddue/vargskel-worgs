@@ -254,12 +254,65 @@ const shortName=id=>{const p=P[id];if(!p)return String(id);const nw=p.name.repla
    assert exact records with fixture rows instead of whatever the real ledger holds. */
 const ledgerPanel=log=>{const byPilot=new Map();log.forEach(e=>{const r=byPilot.get(e.pilot)||{n:0};r.n++;LEDGER_STATS.forEach(([k])=>{const v=Number(e[k]);if(e[k]!=null&&Number.isFinite(v))r[k]=(r[k]||0)+v});byPilot.set(e.pilot,r)});
  const list=[...byPilot].map(([pilot,r])=>({pilot,...r})).sort((a,b)=>(b.dealt||0)-(a.dealt||0)||(b.taken||0)-(a.taken||0));
- const cols=LEDGER_STATS.filter(([k])=>list.some(r=>r[k]));
+ const cols=LEDGER_STATS.filter(([k])=>list.some(r=>r[k]!=null));
  return {count:`${log.length} ENTRIES · ${list.length} PILOTS`,html:list.length?table(cols.map(([k,l])=>{const top=list.slice().sort((a,b)=>(b[k]||0)-(a[k]||0))[0];return th("MOST "+esc(l),`${esc(shortName(top.pilot))} · ${top[k]}`)}).join("")||th("LEDGER","No stats logged yet"))+
   `<div style="overflow-x:auto"><table class="threads-table"><thead><tr><th>PILOT</th><th>SESSIONS</th>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join("")}</tr></thead><tbody>${list.map(r=>`<tr><td>${esc(shortName(r.pilot))}</td><td>${r.n}</td>${cols.map(([k])=>`<td>${r[k]??0}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`
  :`<p class="muted">No sessions logged yet.</p>`};
 };
 if(el("ledger-body")){const panel=ledgerPanel(C.ledger||[]);const lc=el("ledger-count");if(lc)lc.textContent=panel.count;el("ledger-body").innerHTML=panel.html;}
+/* #28 session-log stepper. Emission is pure: the page glue only reads and writes control
+   values, and the block grammar stays the single one tools/apply-compcon.cjs parses. A pilot
+   with nothing typed emits no line, so a deployed-but-quiet session stays out of the ledger
+   rather than landing a row the CLI would refuse. */
+const SL_KEYS=LEDGER_STATS.map(([k])=>k);
+const SL_CORE=["dealt","taken","structure","repairs"];
+const sessionBlock=(entries,op,date)=>{
+  const lines=(entries||[]).filter(e=>e&&e.deployed&&Object.keys(e.stats||{}).length)
+    .map(e=>`${e.pilot} ${SL_KEYS.filter(k=>e.stats[k]!=null).map(k=>`${k}=${e.stats[k]}`).join(" ")}`);
+  return lines.length?`session op=${op} date=${date}\n${lines.join("\n")}`:"";
+};
+const slField=(pilot,k,st)=>`<label>${esc(k.toUpperCase())}<input type="number" id="sl-${pilot.id}-${k}" value="${st.stats[k]!=null?esc(String(st.stats[k])):""}"${st.deployed?"":" disabled"}></label>`;
+const sessionStep=(pilot,st)=>`<div class="card sl-card"><div class="card-pad">
+<div class="sl-head"><label><input type="checkbox" id="sl-deploy-${pilot.id}"${st.deployed?" checked":""}> DEPLOYED · ${esc(pilot.name)} (${esc(pilot.background)})</label>
+<label><input type="checkbox" id="sl-more-${pilot.id}"${st.more?" checked":""}> MORE STATS</label></div>
+<div class="sl-fields">${SL_CORE.map(k=>slField(pilot,k,st)).join("")}${st.more?SL_KEYS.filter(k=>!SL_CORE.includes(k)).map(k=>slField(pilot,k,st)).join(""):""}</div>
+</div></div>`;
+const sessionReview=(entries,op,date)=>{
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date||""))return `<p class="muted">SET A DATE: the header needs YYYY-MM-DD or the CLI refuses it.</p>`;
+  if(!sessionBlock(entries,op,date))return `<p class="muted">NOBODY DEPLOYED: tick who flew and the block appears here.</p>`;
+  return `<pre id="sl-block" class="sl-block"></pre><button class="level" type="button" id="sl-copy">COPY BLOCK</button>
+<p class="muted">Paste it into <code>tools/apply-compcon.cjs --log-block</code>; that writes campaign.js and regenerates detail.js in one guarded step.</p>`;
+};
+/* The stepper glue, campaign.html only. Values live in one plain object so Back never loses a
+   number; fields are read at each step change, never per keystroke. The stub records listeners,
+   so checks drive this with fire() the way a GM clicks. */
+if (el("sl-step")) {
+  const pilots = C.pilots, st = { pos: 0, per: {} };
+  pilots.forEach(p => st.per[p.id] = { deployed: false, more: false, stats: {} });
+  const opSel = el("sl-op");
+  if (opSel) { opSel.innerHTML = C.ops.map(o => `<option value="${esc(String(o.id))}">${esc(String(o.id))} · ${esc(o.title)}</option>`).join(""); opSel.value = String((C.ops[C.ops.length - 1] || {}).id || ""); }
+  const save = p => { const s = st.per[p.id]; SL_KEYS.forEach(k => { const f = el(`sl-${p.id}-${k}`); if (!f) return; if (f.value === "") delete s.stats[k]; else s.stats[k] = Number(f.value); }); };
+  const renderStep = () => { const p = pilots[st.pos]; el("sl-step").innerHTML = sessionStep(p, st.per[p.id]); el("sl-review").innerHTML = "";
+    const d = el("sl-deploy-" + p.id), m = el("sl-more-" + p.id);
+    if (d) d.addEventListener("change", () => { save(p); st.per[p.id].deployed = d.checked; renderStep(); });
+    if (m) m.addEventListener("change", () => { save(p); st.per[p.id].more = m.checked;
+      if (!m.checked) SL_KEYS.filter(k => !SL_CORE.includes(k)).forEach(k => delete st.per[p.id].stats[k]);
+      renderStep(); });
+    const b = el("sl-back"), nx = el("sl-next"); if (b) b.hidden = st.pos === 0; if (nx) nx.hidden = false; };
+  const review = () => { el("sl-step").innerHTML = ""; const op = (el("sl-op") || {}).value, dt = (el("sl-date") || {}).value;
+    const entries = pilots.map(p => ({ pilot: p.id, deployed: st.per[p.id].deployed, stats: st.per[p.id].stats }));
+    el("sl-review").innerHTML = sessionReview(entries, op, dt);
+    const pre = el("sl-block"); if (pre) pre.textContent = sessionBlock(entries, op, dt);
+    const cp = el("sl-copy"); if (cp) cp.addEventListener("click", () => { const txt = pre.textContent;
+      if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt); return; }
+      if (typeof getSelection === "function" && document.createRange) { const r = document.createRange(); r.selectNodeContents(pre);
+        const sel = getSelection(); if (sel.removeAllRanges) sel.removeAllRanges(); if (sel.addRange) sel.addRange(r); } });
+    const nx = el("sl-next"); if (nx) nx.hidden = true; const b = el("sl-back"); if (b) b.hidden = false; };
+  const nx = el("sl-next"), bk = el("sl-back");
+  if (nx) nx.addEventListener("click", () => { if (st.pos >= pilots.length) return; save(pilots[st.pos]); st.pos++; st.pos < pilots.length ? renderStep() : review(); });
+  if (bk) bk.addEventListener("click", () => { if (st.pos >= pilots.length) { st.pos = pilots.length - 1; renderStep(); return; } if (st.pos === 0) return; save(pilots[st.pos]); st.pos--; renderStep(); });
+  renderStep();
+}
 /* Campaign page (#27): the op header. The session-log form that lived here was 60 spinners
    (10 stats x 6 pilots) with no way to skip a pilot who did not deploy, so it is removed
    pending #28; a session is logged by hand until that design lands. */
@@ -361,7 +414,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

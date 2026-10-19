@@ -34,7 +34,14 @@
     </section>
     <section id="operation"><div class="section-head"><h2>OPERATION</h2><span>OP 001</span></div><div id="campaign-head" data-op="001"></div><div id="conflict-history" data-op="001"></div></section>
     <section id="log">
-      <div class="section-head"><h2>SESSION LOG</h2><span id="ledger-count"></span></div><div id="ledger-body"></div>
+      <div class="section-head"><h2>SESSION LOG</h2><span id="ledger-count"></span></div>
+      <div class="card" id="session-form"><div class="card-pad">
+        <div class="sl-shell"><label>OP <select id="sl-op"></select></label><label>DATE <input type="date" id="sl-date"></label></div>
+        <div id="sl-step"></div>
+        <div class="sl-nav"><button class="level" type="button" id="sl-back" hidden>BACK</button><button class="level" type="button" id="sl-next">NEXT PILOT</button></div>
+        <div id="sl-review"></div>
+      </div></div>
+      <div id="ledger-body"></div>
       <div class="card"><div class="card-pad"><ol class="timeline" id="timeline"></ol></div></div>
     </section>
     <section id="order"><div class="section-head"><h2>OPERATION ORDER</h2><span>FROM UNS RIO GRANDE</span></div><div id="opord" data-op="001"></div></section>
