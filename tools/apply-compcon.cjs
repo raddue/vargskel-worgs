@@ -126,7 +126,12 @@ function applyToText(text, siteId, set) {
     const trailing = raw.match(/\s*$/)[0];
     const current = raw.trim();
     let same = false;
-    try { same = JSON.stringify(vm.runInNewContext("(" + current + ")")) === JSON.stringify(value); } catch (e) { same = false; }
+    let cur;
+    try { cur = vm.runInNewContext("(" + current + ")"); } catch (e) { cur = undefined; }
+    /* a list field reaches us as a comma-separated string in the real records and as an array in an
+       export, so read the names out of both before comparing */
+    if (typeof cur === "string" && Array.isArray(value)) cur = cur.split(",").map(x => x.trim()).filter(Boolean);
+    same = cur !== undefined && JSON.stringify(cur) === JSON.stringify(value);
     if (same) continue;
     region = region.slice(0, span.at) + lit(value) + trailing + region.slice(span.end);
     notes.push(`${field} ${current} -> ${lit(value)}`);
@@ -275,6 +280,11 @@ function selftest() {
   const spaced = '    { id: "tombstone",\n      mounts: [\n        { slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] },\n      ],\n      systems: ["Personalizations"],\n    },';
   const same = applyToText(spaced, "tombstone", { mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }], systems: ["Personalizations"] });
   if (!same || same.notes.length !== 0 || same.text !== spaced) errs.push("an identical multi-line value must be a no-op, not a reformat");
+  /* the real records carry `systems` as a comma-separated string, so the compare has to read the
+     names out of it rather than compare the text */
+  const strSys = '    { id: "tombstone",\n      mounts: [{"slot":"Main/Aux","weapons":["Nexus (Hunter-Killer)"]}],\n      systems: "Personalizations, Custom Paint Job" },';
+  const strSame = applyToText(strSys, "tombstone", { mounts: [{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }], systems: ["Personalizations", "Custom Paint Job"] });
+  if (!strSame || strSame.notes.length !== 0 || strSame.text !== strSys) errs.push("a record whose systems is a string must be a no-op against the same names");
   const multi = applyToText(spaced, "tombstone", { systems: ["Personalizations", "Custom Paint Job", "A, B"] });
   if (!multi || !/systems: \["Personalizations", "Custom Paint Job", "A, B"\]/.test(multi.text)) errs.push("a multi-item list must replace the whole span");
   if (!multi || !multi.text.includes('{ slot: "Main/Aux", weapons: ["Nexus (Hunter-Killer)"] }')) errs.push("replacing one list must not disturb another field's span");
@@ -455,6 +465,65 @@ function finish(text, args) {
   process.exit(1);
 }
 
+/* The catalogue is a browser script, so it is loaded into a vm box the way the pages load it. */
+function loadCatalogue() {
+  const file = path.join(ROOT, "catalogue.js");
+  if (!fs.existsSync(file)) { console.error("catalogue.js is missing (run: node tools/build-catalogue.cjs)"); process.exit(2); }
+  const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), box, { filename: "catalogue.js" });
+  return box.window.CATALOGUE;
+}
+
+/* --loadout <mech> <file|->: the only path that writes a build. The order is fixed, because an
+   illegal or typo'd block must never reach campaign.js and a half-run must leave all three files as
+   they were: data dir guarded, block validated, three files backed up, campaign.js written,
+   detail.js regenerated from the new record, check-all with --update-snapshot, and a restore on any
+   failure that is not snapshot drift (drift is expected: the derived strings move with the build). */
+function runLoadout(args) {
+  const at = args.indexOf("--loadout");
+  const mech = args[at + 1] || "";
+  const src = args[at + 2] && !args[at + 2].startsWith("--") ? args[at + 2] : "-";
+  const write = args.includes("--write");
+  if (!mech) { console.error("usage: node tools/apply-compcon.cjs --loadout <mech> <file|-> [--write]"); process.exit(2); }
+  const block = src === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(src, "utf8");
+  const parsed = parseLoadoutBlock(block);
+  if (parsed.error) { console.error("loadout: " + parsed.error); process.exit(2); }
+  if (parsed.mech !== mech) { console.error(`loadout: the block is for ${parsed.mech}, not ${mech}`); process.exit(2); }
+  const LO = require("../loadout.js"), cat = loadCatalogue(), C = loadCampaign();
+  const v = validateLoadout(parsed, C, cat, LO);
+  for (const w of v.warnings) console.log("warning: " + w);
+  if (!v.ok) { console.error("loadout refused:\n - " + v.problems.join("\n - ")); process.exit(2); }
+  const res = applyToText(fs.readFileSync(CAMP, "utf8"), parsed.mech, { mounts: parsed.mounts, systems: parsed.systems });
+  if (!res) { console.error(`loadout: no record for ${parsed.mech} in campaign.js`); process.exit(2); }
+  if (!res.notes.length) { console.log("loadout: no change, nothing to write"); process.exit(0); }
+  console.log(res.notes.join("\n"));
+  if (!write) { console.log("(dry run; add --write to write campaign.js)"); process.exit(0); }
+  const lib = process.env.LANCER_DATA || "/tmp/ld/lancer-data-3.1.7/lib";
+  if (!fs.existsSync(lib)) {
+    console.error(`loadout: lancer-data is absent at ${lib}, so detail.js cannot be regenerated.\n` +
+      `  fetch it, or point LANCER_DATA at the lib directory, then retry. Nothing was written.`);
+    process.exit(2);
+  }
+  const files = [CAMP, path.join(ROOT, "detail.js"), path.join(ROOT, "tools", "roster-snapshot.json")];
+  const backup = files.map(f => [f, fs.readFileSync(f, "utf8")]);
+  const restore = (why) => {
+    for (const [f, text] of backup) fs.writeFileSync(f, text);
+    console.error(`loadout: ${why}\n  campaign.js, detail.js and roster-snapshot.json were put back.`);
+    process.exit(1);
+  };
+  fs.writeFileSync(CAMP, res.text);
+  console.log("campaign.js written");
+  const gen = spawnSync(process.execPath, [path.join(ROOT, "tools", "build-detail.cjs")], { encoding: "utf8" });
+  if (gen.status !== 0) return restore("detail.js could not be regenerated from the new record");
+  console.log("detail.js regenerated");
+  const chk = spawnSync(process.execPath, [path.join(ROOT, "check-all.cjs"), "--update-snapshot"], { encoding: "utf8" });
+  const problems = (chk.stdout || "").split("\n").filter(l => l.includes("problem") || l.includes("!!"));
+  const other = problems.filter(l => !l.includes("!= snapshot"));
+  if (chk.status !== 0 && (other.length || !problems.length)) return restore("check-all failed on the written record");
+  console.log("check-all ok (snapshot refreshed)");
+  console.log("review: git diff campaign.js tools/roster-snapshot.json");
+}
+
 /* --log path: append session rows to the ledger in campaign.js. */
 function runLogs(logs, args, write, meta = {}) {
   const C = loadCampaign();
@@ -516,6 +585,9 @@ function main() {
     const text = blockPath === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(blockPath, "utf8");
     return runLogBlock(text, args, write);
   }
+  /* above the argv read, because --loadout's mech id is not a path and a multi-line block cannot
+     arrive through argv (design defect 8) */
+  if (args.includes("--loadout")) return runLoadout(args);
   const input = args.find(a => !a.startsWith("--"));
   if (!input) {
     console.error("usage: node tools/apply-compcon.cjs <export.json|dir> [--write] [--snapshot] | --log \"<pilot> stat=n ...\" [--op <id>] [--date YYYY-MM-DD] [--write] | --selftest");
