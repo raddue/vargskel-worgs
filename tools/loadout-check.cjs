@@ -38,9 +38,10 @@ else if (spawnSync(process.execPath, [gen, "--check"], { encoding: "utf8" }).sta
 /* --- gating (design test 4) ----------------------------------------------------------------
    On a fixture so the cap is pinned by arithmetic instead of by today's data: a frame with
    sys 3, a mech with sys 3 and an LL6 pilot give 3 + floor(3/2) + ceil(6/2) = 7. */
+let core, cat;
 if (!fs.existsSync(path.join(ROOT, "loadout.js"))) errs.push("loadout.js is missing");
 else {
-  const core = require(path.join(ROOT, "loadout.js"));
+  core = require(path.join(ROOT, "loadout.js"));
   const CAT = (() => {
     const box = { window: {}, console, matchMedia: () => ({ matches: true }) };
     vm.runInNewContext(fs.readFileSync(catPath, "utf8"), box, { filename: "catalogue.js" });
@@ -49,7 +50,7 @@ else {
   if (!CAT.fittings) errs.push("catalogue must carry the mount fitting table from rules.json");
   else {
     const FIX_FRAME = { name: "FIXTURE EVEREST", mounts: ["Main", "Flex", "Heavy"], sys: 3 };
-    const cat = { weapons: CAT.weapons, systems: CAT.systems, frames: Object.assign({}, CAT.frames, { "FIXTURE EVEREST": FIX_FRAME }), fittings: CAT.fittings };
+    cat = { weapons: CAT.weapons, systems: CAT.systems, frames: Object.assign({}, CAT.frames, { "FIXTURE EVEREST": FIX_FRAME }), fittings: CAT.fittings };
     const heavy = Object.keys(cat.weapons).find(n => cat.weapons[n].mount === "Heavy");
     const gms = "Nexus (Hunter-Killer)";
     const fixturePilot = { id: "fix", ll: 6, licences: [{ name: "GMS", rank: 1 }] };
@@ -90,6 +91,47 @@ else {
       say("an over-cap build", core.canMount(zeroPilot, over, 1, 0, gms, tight), "OVER SP CAP");
     }
   }
+}
+
+/* --- the range finder (design test 5) -------------------------------------------------------
+   Real data where the subset carries the weapon; synthetic entries where it does not, because the
+   subset is the set the site can field and no fielded weapon has a Cone, a Line or an N/A band.
+   Daisy Cutter (Cone 7) and Apocalypse Rail's `Charge Rail: 4` profile are both out of it. */
+if (!core || !cat) { /* loadout.js or the catalogue is missing, and that is already reported */ }
+else if (typeof core.rangeReadout !== "function") errs.push("rangeReadout is missing");
+else {
+  const cat2 = { weapons: Object.assign({
+      "SYNTH THREAT": { mount: "Main", bands: [{ kind: "Threat", value: 3 }], tags: [], profiles: [] },
+      "SYNTH CONE": { mount: "Main", bands: [{ kind: "Cone", value: 7 }], tags: [], profiles: [] },
+      "SYNTH RAIL": { mount: "Heavy", bands: [], tags: [], profiles: [{ name: "Charge Rail: 4", bands: [{ kind: "Range", value: "N/A" }], tags: [], damage: [{ val: "N/A" }] }] }
+    }, cat.weapons), systems: cat.systems, frames: cat.frames, fittings: cat.fittings };
+  const withWeapon = name => ({ mech: "x", frame: "FIXTURE EVEREST", pilot: "p", sys: 0, attackBonus: 2,
+    mounts: [{ slot: "Main", weapons: [name] }, { slot: "Flex", weapons: [] }, { slot: "Heavy", weapons: [] }], systems: [] });
+  const fired = (name, distance) => {
+    const rows = core.rangeReadout(withWeapon(name), distance, cat2);
+    return rows && rows[0] && rows[0].profiles && rows[0].profiles[0];
+  };
+  const expect = (label, got, want) => {
+    if (!got) { errs.push(`rangeReadout: ${label} produced no profile`); return; }
+    for (const k of Object.keys(want)) if (got[k] !== want[k])
+      errs.push(`rangeReadout: ${label} ${k} must be ${JSON.stringify(want[k])}, got ${JSON.stringify(got[k])}`);
+  };
+  expect("a Threat 3 band at distance 5", fired("SYNTH THREAT", 5), { canFire: false, state: "out of range" });
+  expect("a Threat 3 band at distance 3", fired("SYNTH THREAT", 3), { canFire: true, state: "in band" });
+  expect("Pistol Range 5 at distance 5", fired("Pistol", 5), { canFire: true, state: "in band" });
+  expect("Pistol Range 5 at distance 9", fired("Pistol", 9), { canFire: false, state: "out of range" });
+  expect("Cone 7 at distance 5", fired("SYNTH CONE", 5), { canFire: true, state: "in band", pattern: true });
+  expect("Thrown 3 at distance 3", fired("Tactical Knife", 3), { canFire: true, state: "in band" });
+  expect("Thrown 3 at distance 4", fired("Tactical Knife", 4), { canFire: false, state: "out of range" });
+  expect("Missile Rack Range 10 Blast 1 at 10", fired("Missile Rack", 10), { canFire: true, state: "in band" });
+  expect("Missile Rack Range 10 Blast 1 at 11", fired("Missile Rack", 11), { canFire: true, state: "out of band, in blast" });
+  expect("Missile Rack Range 10 Blast 1 at 12", fired("Missile Rack", 12), { canFire: false, state: "out of range" });
+  expect("an N/A band at distance 1", fired("SYNTH RAIL", 1), { canFire: false, state: "out of range", note: "band shown as-is: Range N/A" });
+  /* accuracy is two fields, never one summed number */
+  const amr = core.rangeReadout(withWeapon("Anti-Materiel Rifle"), 5, cat2)[0].accuracy;
+  const hmg = core.rangeReadout(withWeapon("Heavy Machine Gun"), 5, cat2)[0].accuracy;
+  if (!amr || amr.attackBonus !== 2 || amr.dice !== 1) errs.push(`rangeReadout: the Accurate tag must give dice +1 beside attackBonus 2, got ${JSON.stringify(amr)}`);
+  if (!hmg || hmg.dice !== -1) errs.push(`rangeReadout: the Inaccurate tag must give dice -1, got ${JSON.stringify(hmg)}`);
 }
 
 if (errs.length) { console.error("loadout: " + errs.length + " problem(s)\n - " + errs.join("\n - ")); process.exit(1); }

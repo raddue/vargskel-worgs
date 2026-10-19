@@ -134,7 +134,51 @@
     return { ok: true, reason: null, build: next };
   }
 
-  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, seats, licenceOk };
+
+  /* Accuracy stays two fields: the flat number the record carries, and the weapon's own d6 from its
+     tags. LANCER adds or removes a d6, so summing them would report a roll that cannot happen. */
+  function accuracyOf(build, w) {
+    const ids = (w.tags || []).map(t => t.id);
+    const dice = ids.includes("tg_accurate") ? 1 : ids.includes("tg_inaccurate") ? -1 : 0;
+    return { attackBonus: (build && build.attackBonus) || 0, dice,
+      tags: ids.filter(id => id === "tg_accurate" || id === "tg_inaccurate") };
+  }
+
+  /* One profile, read at one distance. A gate is any numeric band that is not Blast, because Blast
+     reaches past its band instead of being a band of its own: the centre must sit inside the band,
+     and the blast covers up to N further, which is the third state. A band value that is not a
+     number (`Charge Rail: 4` carries "N/A") is shown as it stands and never gates. */
+  function readProfile(p, distance) {
+    const bands = p.bands || [];
+    const odd = bands.filter(b => typeof b.value !== "number");
+    const numeric = bands.filter(b => typeof b.value === "number");
+    const gate = numeric.filter(b => b.kind !== "Blast");
+    const blast = numeric.filter(b => b.kind === "Blast");
+    const reaches = gate.filter(b => b.value >= distance);
+    const widest = blast.length ? Math.max.apply(null, blast.map(b => b.value)) : 0;
+    const inBlast = !reaches.length && !!blast.length && gate.some(b => b.value + widest >= distance);
+    const pattern = gate.some(b => b.kind === "Cone" || b.kind === "Line");
+    return { name: p.name || null, bands,
+      canFire: !!reaches.length || inBlast,
+      state: reaches.length ? "in band" : inBlast ? "out of band, in blast" : "out of range",
+      pattern,
+      note: odd.length ? "band shown as-is: " + odd.map(b => b.kind + " " + b.value).join(", ") : null };
+  }
+
+  /* Per mounted weapon, per profile, so alternate fire modes are not blended into one band list. */
+  function rangeReadout(build, distance, catalogue) {
+    const out = [];
+    for (const m of build.mounts || []) for (const n of m.weapons || []) {
+      if (!n) continue;
+      const w = catalogue.weapons[n];
+      if (!w) { out.push({ weapon: n, slot: m.slot, accuracy: null, profiles: [], unknown: true }); continue; }
+      const own = (w.profiles && w.profiles.length) ? w.profiles : [{ name: null, bands: w.bands || [], tags: w.tags || [] }];
+      out.push({ weapon: n, slot: m.slot, accuracy: accuracyOf(build, w), profiles: own.map(p => readProfile(p, distance)) });
+    }
+    return out;
+  }
+
+  const api = { spCheck, canMount, place, unplace, setFrame, setSystems, rangeReadout, seats, licenceOk };
   global.LOADOUT = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

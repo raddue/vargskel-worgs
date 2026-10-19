@@ -402,11 +402,15 @@ commands above), so a round trip tested anywhere else would never execute in CI.
    with `{ lockSlot }`, and that call leaves exactly the lock the record assertions in test 2 expect,
    while `UI.unplace` clears it. `locked: true` on a record with no Superheavy mounted is a
    record rule, asserted in test 2 rather than here.
-5. `UI.rangeReadout` at fixed distances: a Threat-only weapon out of range at 5, a Range weapon in
-   range at 5, a **Cone-only weapon (Daisy Cutter) in range at 5**, `Thrown 3` in range at 3, a
-   `Blast` band reading "out of band, in blast" just past its band, a non-numeric band (Apocalypse
-   Rail) that never gates, and accuracy reported as `attackBonus` and the dice separately rather
-   than one summed number.
+5. `UI.rangeReadout` at fixed distances, on the catalogue's own records wherever they cover the
+   case: a Threat-only weapon out of range at 5, Pistol's `Range 5` in band at 5, Tactical Knife's
+   `Thrown 3` in band at 3 and out at 4, Missile Rack's `Range 10` with `Blast 1` reading "in band"
+   at 10, "out of band, in blast" at 11 and "out of range" at 12, Anti-Materiel Rifle's
+   `tg_accurate` as dice +1 and Heavy Machine Gun's `tg_inaccurate` as dice -1, each beside
+   `attackBonus` rather than summed into one number. Two cases need **synthetic entries**, because
+   no record the site can field carries a Cone, a Line or a band that is not a number: a Cone-only
+   weapon (Daisy Cutter's `Cone 7`) in band at 5 and flagged `pattern`, and `Charge Rail: 4`'s
+   `"N/A"` band shown as it stands and never gating.
 6. `apply-compcon --loadout` round trip through the exported `parseLoadoutBlock`, in that tool's
    `--selftest`: parse the export, apply it to `campaign.js` text, re-load the result, including a
    multi-item systems list, a value containing a comma, an **empty** systems list, and a **no-op
