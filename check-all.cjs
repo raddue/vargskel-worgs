@@ -129,21 +129,36 @@ const pick = (rec, keys) => Object.fromEntries(keys.map(k => [k, rec ? rec[k] : 
 /* Derived pin fields: campaign.js holds the data, the snapshot holds the printed strings the
    dossier and mechbay show. One definition, used by both the comparison and --update-snapshot. */
 const mountStr = mounts => !(mounts && mounts.length) ? "" : mounts.map(m => `${m.slot}: ${m.weapons.join(" / ")}`).join(" · ");
-const view = (key, rec) => rec && key === "mechs" ? { ...rec, loadoutString: mountStr(rec.mounts) } : rec;
+const sysStr = names => !(names && names.length) ? "" : names.join(", ");
+const view = (key, rec) => rec && key === "mechs"
+  ? { ...rec, loadoutString: mountStr(rec.mounts), systemString: sysStr(rec.systems) } : rec;
 /* The snapshot's own key list drives --update-snapshot, so a derived key would be dropped the
    moment the record stops carrying it. Name the derived keys here as well. */
-const derivedKeys = { mechs: ["loadoutString"] };
+const derivedKeys = { mechs: ["loadoutString", "systemString"] };
 let snap = JSON.parse(fs.readFileSync(snapPath, "utf8"));
 if (process.argv.includes("--update-snapshot")) {
   snap = Object.fromEntries(Object.entries(snap).map(([key, recs]) => [key, Object.fromEntries(Object.entries(recs).map(([id, r]) => [id, pick(view(key, C[key].find(x => x.id === id)), [...Object.keys(r), ...(derivedKeys[key] || [])])]))]));
+  /* pick() copies undefined for a key the record no longer carries and JSON.stringify drops it,
+     which is how a superseded key used to vanish from the golden file without a word. Name it
+     instead: the drop still happens, but the run fails once so it cannot pass unnoticed. */
+  const obsolete = [];
+  Object.entries(snap).forEach(([key, recs]) => Object.entries(recs).forEach(([id, r]) => {
+    const rec = C[key].find(x => x.id === id);
+    Object.keys(r).forEach(k => {
+      if (rec && !(k in rec) && !(derivedKeys[key] || []).includes(k)) obsolete.push(`${key} ${id}.${k}`);
+    });
+  }));
+  if (obsolete.length) problems.push(`--update-snapshot dropped keys the records no longer carry, review then re-run without the flag: ${obsolete.join(", ")}`);
   fs.writeFileSync(snapPath, JSON.stringify(snap, null, 1) + "\n");
 }
 
-/* The loadout pin is a DERIVED string now: campaign.js holds mounts, the snapshot holds
-   loadoutString. pick() only copies keys the snapshot already has, so a derived key that stops
-   being emitted would drop the pin silently; this makes that a named failure instead. */
+/* The loadout and systems pins are DERIVED strings now: campaign.js holds mounts and a list of
+   system names, the snapshot holds the printed text. pick() only copies keys the snapshot
+   already has, so a derived key that stops being emitted drops the pin silently; naming the
+   keys in derivedKeys and asserting each one here turns that into a failure that names the mech. */
 Object.entries(snap.mechs || {}).forEach(([id, r]) => {
-  if (!("loadoutString" in r)) problems.push(`mechs ${id}: snapshot must pin loadoutString (derived from mounts)`);
+  for (const k of derivedKeys.mechs)
+    if (!(k in r)) problems.push(`mechs ${id}: snapshot must pin ${k} (derived; see derivedKeys)`);
 });
 Object.entries(snap).forEach(([key, recs]) => Object.entries(recs).forEach(([id, want]) => {
   const got = view(key, C[key].find(x => x.id === id));
@@ -229,6 +244,8 @@ if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/too
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/md2html.cjs", "--check"], {stdio: "inherit"}).status !== 0) problems.push("guide page stale vs markdown; regen: node tools/md2html.cjs");
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/chrome.cjs", "--selftest"], {stdio: "inherit"}).status !== 0) problems.push("tools/chrome.cjs selftest failed");
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/loadout-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("loadout checks failed; run: node tools/loadout-check.cjs");
+/* Design tests 6 and 7 live in this selftest and nothing else calls it, so CI never ran them. */
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/apply-compcon.cjs", "--selftest"], {stdio: "inherit"}).status !== 0) problems.push("apply-compcon selftest failed; run: node tools/apply-compcon.cjs --selftest");
 for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */

@@ -47,7 +47,8 @@ const bonuses = g => fmtList(g.bonuses, b => `${b.val > 0 && !b.replace ? "+" : 
 
 const DETAIL = { weapons: {}, systems: {}, talents: {}, gear: {}, frames: {}, skills: {} };
 const missing = [], frameless = [], talentless = [];
-const list = s => String(s || "").split(",").map(x => x.trim()).filter(Boolean);
+const list = s => Array.isArray(s) ? s.map(x => String(x).trim()).filter(Boolean)
+  : String(s || "").split(",").map(x => x.trim()).filter(Boolean);
 const loadoutItems = s => {
   const out = [];
   for (const seg of String(s || "").split("·").map(x => x.trim()).filter(Boolean)) {

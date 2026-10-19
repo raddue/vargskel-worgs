@@ -64,8 +64,8 @@
    "attackBonus": 0,
    "tech": "+0",
    "limitedBonus": 0,
-   "systems": "Pattern-A Jericho Deployable Cover, COMP/CON-Class Assistant Unit, EVA Module, Expanded Compartment",
-   "loadoutString": "Main: Pistol · Flex: Charged Blade · Heavy: Thermal Lance"
+   "loadoutString": "Main: Pistol · Flex: Charged Blade · Heavy: Thermal Lance",
+   "systemString": "Pattern-A Jericho Deployable Cover, COMP/CON-Class Assistant Unit, EVA Module, Expanded Compartment"
   },
   "averna": {
    "name": "AVERNA",
@@ -90,7 +90,8 @@
    "save": 11,
    "attackBonus": 0,
    "limitedBonus": 0,
-   "loadoutString": "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack"
+   "loadoutString": "Main/Aux: Nexus (Hunter-Killer) / Nexus (Light) · Flex: Missile Rack / Missile Rack",
+   "systemString": "Personalizations, Turret Drones, Rapid Burst Jump Jet System, Type-3 Projected Shield, Custom Paint Job"
   },
   "alba": {
    "name": "ALBA",
@@ -115,8 +116,8 @@
    "edef": 8,
    "sens": 10,
    "save": 10,
-   "systems": "Personalizations, Rapid Burst Jump Jet System, EVA Module, Pattern-A Jericho Deployable Cover",
-   "loadoutString": "Main: Missile Rack · Flex: Pistol / Tactical Knife · Heavy: Anti-Materiel Rifle"
+   "loadoutString": "Main: Missile Rack · Flex: Pistol / Tactical Knife · Heavy: Anti-Materiel Rifle",
+   "systemString": "Personalizations, Rapid Burst Jump Jet System, EVA Module, Pattern-A Jericho Deployable Cover"
   },
   "skaldr": {
    "name": "SKALDR",
@@ -142,8 +143,8 @@
    "edef": 8,
    "sens": 10,
    "save": 10,
-   "systems": "Type-3 Projected Shield, Personalizations, Rapid Burst Jump Jet System, Custom Paint Job",
-   "loadoutString": "Main: Charged Blade · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade"
+   "loadoutString": "Main: Charged Blade · Flex: Nexus (Hunter-Killer) · Heavy: Heavy Charged Blade",
+   "systemString": "Type-3 Projected Shield, Personalizations, Rapid Burst Jump Jet System, Custom Paint Job"
   },
   "xxxg-01h": {
    "name": "WAYWARD",
@@ -168,8 +169,8 @@
    "edef": 8,
    "sens": 10,
    "save": 10,
-   "systems": "Spaceborn EVA, Custom Paint Job, Pattern-A Smoke Charges, Stable Structure, Personalizations",
-   "loadoutString": "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun"
+   "loadoutString": "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun",
+   "systemString": "Spaceborn EVA, Custom Paint Job, Pattern-A Smoke Charges, Stable Structure, Personalizations"
   },
   "scooteroo": {
    "name": "SCOOTEROO",
@@ -195,8 +196,8 @@
    "edef": 8,
    "sens": 10,
    "save": 10,
-   "systems": "Ammo Case I, Type-3 Projected Shield, Manipulators, Stable Structure, EVA Module",
-   "loadoutString": "Main: Shotgun · Flex: Rocket-Propelled Grenade · Heavy: Howitzer"
+   "loadoutString": "Main: Shotgun · Flex: Rocket-Propelled Grenade · Heavy: Howitzer",
+   "systemString": "Ammo Case I, Type-3 Projected Shield, Manipulators, Stable Structure, EVA Module"
   }
  }
 }
