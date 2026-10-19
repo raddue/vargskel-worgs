@@ -7,7 +7,14 @@ function stub(id, attrs = "") {
   const dataset = {}, cls = new Set();
   for (const [, k, v] of attrs.matchAll(/data-([\w-]+)="([^"]*)"/g)) dataset[k.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = v;
   const classList = { add: (...c) => c.forEach(x => cls.add(x)), remove: (...c) => c.forEach(x => cls.delete(x)), contains: c => cls.has(c), toggle: (c, on = !cls.has(c)) => (on ? cls.add(c) : cls.delete(c), on) };
-  return { id, innerHTML: "", textContent: "", dataset, classList, addEventListener() {}, append() {}, focus() {}, querySelector: () => null, querySelectorAll: () => [] };
+  /* listeners records what a page wired; fire lets a check drive it the way a visitor would */
+  return {
+    id, innerHTML: "", textContent: "", value: "", checked: false, hidden: false, dataset, classList,
+    listeners: {},
+    addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); },
+    fire(type, ev = {}) { for (const fn of this.listeners[type] || []) fn({ type, target: this, preventDefault() {}, ...ev }); },
+    append() {}, focus() {}, querySelector: () => null, querySelectorAll: () => []
+  };
 }
 
 function mount(page, hash = "", globals = {}) {
@@ -36,6 +43,13 @@ if (process.argv.includes("--selftest")) {
   cards.forEach((c, i) => assert.ok(c.includes(">TRIGGERS<"), `crew card ${i} missing TRIGGERS row`));
   assert.ok(mount("pilot.html", "#sten").html("dossier").includes("STEN"), "pilot dossier glue should render from location.hash");
   /* the page tests feed a fixture build through a global, so the third argument has to arrive */
+  /* a page wires its controls with addEventListener; a test has to be able to fire one */
+  const wired = mount("loadout.html").nodes["lo-range"];
+  if (!wired) { console.error("FAIL: no frame-pick stub"); process.exit(1); }
+  let fired = 0;
+  wired.addEventListener("change", () => { fired++; });
+  wired.fire("change");
+  assert(fired === 1, "mount must let a test fire the handler a page registered");
 if (mount("index.html", "", { __PROBE: 7 }).window.__PROBE !== 7) throw new Error("mount must pass globals into the sandbox");
 console.log("render selftest ok: 6 crew articles with TRIGGERS");
 }
