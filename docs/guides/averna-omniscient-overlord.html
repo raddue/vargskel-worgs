@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vargskel Worgs | The Omniscient Overlord</title>
+<link rel="icon" href="../../assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | The Omniscient Overlord">
+<meta property="og:description" content="Build guide: GMS Chomolungma into HORUS Goblin and SSC Swallowtail, LL0-LL6.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/docs/guides/averna-omniscient-overlord.html">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../theme.css">
+<link rel="stylesheet" href="../../style.css">
+<style>
+/* prose layer: the site ships component classes only, so a doc page brings its own type scale */
+.guide{max-width:900px}
+.guide h1{font:500 clamp(30px,4.4vw,52px)/1.05 var(--mono);letter-spacing:-.04em;margin:16px 0 8px}
+.guide .lede{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 22px}
+.guide h3{font:15px var(--mono);letter-spacing:.12em;color:var(--cyan);margin:24px 0 9px}
+.guide p,.guide li{font:15px/1.65 var(--sans);color:var(--report-text)}
+.guide ul{margin:0 0 15px;padding-left:22px}
+.guide li{margin-bottom:6px}
+.guide strong{color:var(--text);font-weight:600}
+.guide em{color:var(--rust-light)}
+.guide code{font:13px var(--mono);color:var(--lime);background:var(--holo-bg);border:1px solid var(--line);padding:1px 4px}
+.guide pre{background:var(--holo-bg);border:1px solid var(--line);padding:14px;overflow-x:auto;margin:0 0 16px}
+.guide pre code{border:0;background:none;padding:0;color:var(--text-soft);font-size:13px;line-height:1.6}
+.guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
+.guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
+.guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topline"><span>VW // TACTICAL DOCTRINE</span><span>BUILD GUIDE · AVERNA</span></div>
+<header class="brandrow">
+<div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">TACTICAL WIKI · BUILD GUIDE</div></div></div>
+<nav class="nav"><a href="../../index.html#overview">OVERVIEW</a><a href="../../index.html#missions">MISSIONS</a><a href="../../intel.html">INTEL</a><a href="../../pilots.html">PILOTS</a><a href="../../mechbay.html">MECHS</a></nav>
+<div class="status">● CREW STATUS: ACTIVE</div>
+</header>
+<main class="guide"><h1>THE OMNISCIENT OVERLORD</h1>
+<p class="lede"><strong>GMS CHOMOLUNGMA → HORUS GOBLIN → SSC SWALLOWTAIL · LL0–LL6 optimization and tactics</strong></p>
+<div class="tbl"><table class="operation-table"><tbody><tr><th><strong>Designation</strong></th><td>AVERNA</td></tr><tr><th><strong>Frame</strong></th><td>GMS CHOMOLUNGMA (retained LL0–LL6, never reframed)</td></tr><tr><th><strong>Pilot</strong></th><td>RURIK "DAEMON" VARGSKEL · LL0 · Fixer</td></tr><tr><th><strong>Role</strong></th><td>ECM &amp; C3 — squad central nervous system</td></tr><tr><th><strong>Licenses</strong></th><td>HORUS GOBLIN I–III → SSC SWALLOWTAIL I–III</td></tr><tr><th><strong>Threat signature</strong></th><td>Zero-action damage, map-wide sensor dominance, electronic shutdown</td></tr></tbody></table></div>
+<hr>
+<div class="section-head"><h2>1. Core Concept &amp; Build Philosophy</h2></div>
+<h3>The Framework: "Chomolung-lin"</h3>
+<p>Ride the <strong>GMS CHOMOLUNGMA</strong>. Bolt every piece of <strong>HORUS</strong> and <strong>SSC</strong> electronic warfare you can afford onto it. Never trade the chassis away.</p>
+<p>The meta argument is simple:</p>
+<ul><li><strong>Goblin-class stats, Everest-class body.</strong> The CHOMOLUNGMA already posts GOBLIN-tier sensor and   electronic-warfare numbers — <strong>+3 Tech Attack</strong>, <strong>Sensors 15</strong>, <strong>E-Defense 12</strong> — on a hull with   <strong>12 HP</strong> and <strong>4 Repairs</strong>.</li><li><strong>The GOBLIN frame is the fragile one.</strong> Stock GOBLIN carries <strong>8 HP</strong> and <strong>3 Repairs</strong>. Same   evasion, same speed, half the staying power. Every point of pilot skill you invest in the GOBLIN   hull is a point spent on a mech that dies to one bad crit.</li><li><strong>Licenses buy systems, not frames.</strong> You want GOBLIN and SWALLOWTAIL for what they <em>unlock</em>   (Autopod, Lotus Projector, Light Laser, the SSC core bonus) — not for their chassis. Take the ranks,   keep the GMS hull.</li></ul>
+<blockquote class="report"><strong>Doctrine:</strong> survivability is a force multiplier for a support mech. AVERNA is worth more alive on turn 6 than dead on turn 2 with a better stat line.</blockquote>
+<h3>The Action Economy Loop</h3>
+<p>The build's entire identity: <strong>damage output that costs zero actions.</strong></p>
+<pre><code>TECH HIT  →  Data Sync grants Lock On (free)  →  Autopod fires (free)  →  3 Kinetic, anywhere on map
+     ↑                                                                              │
+     └──────────────────── allies generate Lock On / Initiative ◄───────────────────┘</code></pre>
+<p><strong>Component A — CHOMOLUNGMA passive: Data Sync</strong> Every successful <strong>tech attack</strong> hands out <strong>Lock On</strong> for free. No action, no charge, no heat.</p>
+<p><strong>Component B — GOBLIN system: Autopod</strong> A free <strong>3 Kinetic</strong> shot with <strong>unlimited range</strong> that resolves when an ally's <strong>Lock On</strong> is consumed. <strong>Zero actions spent.</strong> AVERNA does not need line of sight, does not need to move, does not need the action.</p>
+<p><strong>Why this wins:</strong></p>
+<ul><li>Lancer combat is an <strong>action economy game</strong>. A mech that adds damage without spending actions is   strictly additive to the squad's total output.</li><li>Lock On is <strong>abundant</strong> on this team — AVERNA manufactures it every tech hit, and <strong>ATHENA</strong>   (LL6) applies it automatically at the end of <em>enemy</em> turns.</li><li>Autopod damage lands <strong>before</strong> enemies can react, punish, or reposition. It is free chip that   converts a two-shot kill into a one-shot kill for the strikers.</li></ul>
+<p><strong>Resource tension to manage:</strong> Lock On is shared. Autopod <em>consumes</em> it; a <strong>Nexus</strong> launcher also wants the <strong>Lock On</strong> accuracy bonus. Decide per turn whether the free 3 Kinetic is worth more than the guided launcher shot. Against high-HP targets: feed Autopod. Against fragile targets: spend it on the Nexus and finish the kill.</p>
+<hr>
+<div class="section-head"><h2>2. Pilot Foundation (LL0)</h2></div>
+<h3>Talents</h3>
+<div class="tbl"><table class="threads-table"><thead><tr><th>Talent</th><th>Rank effect</th><th>Why it is here</th></tr></thead><tbody><tr><td><strong>HACKER I</strong></td><td><strong>Log-Off</strong> — clear heat / immobilization</td><td>Keeps AVERNA online after an intrusion goes hot. The CHOMOLUNGMA's <strong>6 Heat Cap</strong> is the build's weak point; this is the pressure valve.</td></tr><tr><td><strong>LEADER I</strong></td><td><strong>Field Commander</strong> — fix an ally's roll</td><td>One failed save or one bad attack from a striker, reversed. Highest-value single action in the kit against bosses.</td></tr><tr><td><strong>SPOTTER I</strong></td><td><strong>Lines of Communication</strong> — adjacent allies gain <strong>+1 Accuracy</strong> and clear conditions</td><td>Turns AVERNA's position into a buff aura for the squad's damage dealers.</td></tr></tbody></table></div>
+<p><strong>Order taken:</strong> Hacker → Leader → Spotter. Survival first (you cannot support from a wreck), then squad impact.</p>
+<h3>Squad Synergy</h3>
+<p>AVERNA is the <strong>central nervous system</strong> for a lance of <strong>GMS EVERESTs</strong> — TOMBSTONE, SKALDR, WAYWARD, SCOOTEROO, ALBA.</p>
+<ul><li><strong>Positioning is the play.</strong> Sit adjacent to the two strikers (<strong>SKALDR</strong>, <strong>TOMBSTONE</strong>). They eat   <strong>+1 Accuracy</strong> from Lines of Communication and get conditions cleared for free.</li><li><strong>Feed the burst.</strong> Your Lock Ons and Leader-driven roll fixes convert into <strong>Initiative</strong> action   bursts for allies who otherwise have nothing left to spend.</li><li><strong>Manage their heat.</strong> Everest-class mechs <strong>Overcharge</strong> to buy extra actions and cook themselves.   AVERNA is the reason they can afford to: Log-Off keeps <em>you</em> cold, and killing a target one round   earlier is the cheapest heat mitigation in the game.</li><li><strong>Tank the tech war.</strong> Enemy hackers and controllers target the softest E-Defense in the lance.   That is not you.</li></ul>
+<h3>LL0 Loadout</h3>
+<p><strong>As rostered:</strong></p>
+<div class="tbl"><table class="threads-table"><thead><tr><th>Mount</th><th>Weapon</th><th>Traits</th><th>Function</th></tr></thead><tbody><tr><td><strong>Main / Aux</strong></td><td><strong>NEXUS (HUNTER-KILLER-I)</strong></td><td>Smart, Seeking</td><td>Primary launcher. Guided fire.</td></tr><tr><td><strong>Main / Aux</strong></td><td><strong>NEXUS (LIGHT-I)</strong></td><td>Smart, Seeking</td><td>Second launcher in the paired mount — Aux/Aux skirmish volume.</td></tr><tr><td><strong>Flex</strong></td><td><strong>MISSILE RACK ×2</strong></td><td>Blast</td><td>Area denial and the answer to clustered light targets.</td></tr></tbody></table></div>
+<p><strong>Systems:</strong> Personalizations · Turret Drones · Type-I Flight System · Type-3 Projected Shield</p>
+<p><strong>Why dual Nexus:</strong></p>
+<ul><li><strong>Smart</strong> — a failed attack roll still deals <strong>half damage</strong>. Guided launchers do not miss; they   underperform.</li><li><strong>Seeking</strong> — the shot keeps working when the target breaks line of sight or ducks into cover.   AVERNA does not have to win the positioning game to contribute damage.</li><li><strong>Two launchers, one mount</strong> — Aux/Aux volume from a single mount leaves the Flex slot free for the   missile pair, so the mech brings <strong>both</strong> single-target pressure and area damage.</li></ul>
+<blockquote class="report"><strong>Alternate read:</strong> if your table rules <strong>NEXUS (HUNTER-KILLER)</strong> as an Aux weapon, both launchers fit the <strong>Flex</strong> mount and the Main slot opens up. Same traits, same volume, one more mounting choice. Confirm before committing System Points.</blockquote>
+<hr>
+<div class="section-head"><h2>3. Level-by-Level Progression Path (LL1–LL6)</h2></div>
+<div class="tbl"><table class="threads-table"><thead><tr><th>LL</th><th>License rank</th><th>Unlock</th><th>Payoff</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>HORUS GOBLIN I</td><td><strong>H0r_OS I</strong> · <strong>Autopod</strong></td><td>The loop closes. Free damage online.</td></tr><tr><td><strong>2</strong></td><td>HORUS GOBLIN II</td><td><strong>H0r_OS II</strong></td><td>Deeper intrusion kit, expanded system access.</td></tr><tr><td><strong>3</strong></td><td>HORUS GOBLIN III</td><td><strong>H0r_OS III — "Lesson: Open Door"</strong></td><td><strong>+2 Save Target</strong> · supercharges <strong>Wide-Area Code Pulse</strong>.</td></tr><tr><td><strong>4</strong></td><td>SSC SWALLOWTAIL I</td><td><strong>Lotus Projector</strong></td><td>Map-wide anti-stealth / anti-invisibility.</td></tr><tr><td><strong>5</strong></td><td>SSC SWALLOWTAIL II</td><td><strong>Light Laser</strong></td><td>Armor-melting <strong>Burn</strong> option.</td></tr><tr><td><strong>6</strong></td><td>SSC SWALLOWTAIL III</td><td><strong>Core Bonus: Integrated Weapon</strong> · <strong>ATHENA-Class NHP</strong></td><td>Free Aux mount → third Nexus. Unlimited zero-charge tactical power.</td></tr></tbody></table></div>
+<h3>LL1 — HORUS GOBLIN I · H0r_OS I</h3>
+<ul><li><strong>Autopod comes online.</strong> This is the level the build actually starts.</li><li>Data Sync already hands out Lock Ons; Autopod now converts them into <strong>3 free Kinetic</strong> with no   action and no range limit.</li><li><strong>Nothing else matters at LL1.</strong> Do not spend license ranks on chassis. Take the rank, keep the   CHOMOLUNGMA, and start banking damage every single round.</li></ul>
+<h3>LL2 — HORUS GOBLIN II · H0r_OS II</h3>
+<ul><li>Expands the intrusion toolkit: more system access and a higher ceiling on tech actions.</li><li>Your <strong>tech attack volume</strong> rises, which means <strong>more Data Sync Lock Ons per round</strong>, which means   <strong>more Autopod triggers</strong>. The rank pays for itself through the loop, not through a new gun.</li><li>Re-evaluate System Points. EW systems now outperform weapons on this chassis.</li></ul>
+<h3>LL3 — HORUS GOBLIN III · H0r_OS III — "Lesson: Open Door"</h3>
+<ul><li>Grants <strong>+2 Save Target</strong>.</li><li>Combined with <strong>Wide-Area Code Pulse</strong>, the CHOMOLUNGMA core system, this becomes the build's   signature button: a <strong>map-wide</strong> tactical shutdown that inflicts <strong>bonus heat</strong>.</li><li><strong>Tactical use:</strong> hold it for the round the enemy commits. Pulsing early heats one target; pulsing   after the whole lance has pushed into the open stresses everything on the field at once.</li><li><strong>Heat caution:</strong> AVERNA's cap is <strong>6</strong>. Pulse, then plan the vent — Log-Off, cover, or a quiet   round. Do not core and Overcharge in the same turn.</li></ul>
+<h3>LL4 — SSC SWALLOWTAIL I · Lotus Projector</h3>
+<ul><li><strong>Lotus Projector</strong>: a deployable that provides <strong>map-wide anti-stealth and anti-invisibility</strong>.</li><li>This is the answer to the composition that beats an EW lance: <strong>infiltrators</strong>. Invisible enemies   cannot be Locked On, cannot be scanned, and cannot be shot by Autopod.</li><li>Deploy early in missions with stealth-heavy objectives. Its value is <em>denial</em> — the enemy stops   having the option at all.</li></ul>
+<h3>LL5 — SSC SWALLOWTAIL II · Light Laser</h3>
+<ul><li><strong>Light Laser</strong> with the armor-melting <strong>Burn</strong> option.</li><li>Burn is the correct answer to <strong>armored heavies</strong> that shrug off Kinetic — Autopod's 3 Kinetic   does nothing to a target with Armor 3+, but Burn ignores that math.</li><li>Adds real single-target damage to a mech whose output was previously all free chip.</li></ul>
+<h3>LL6 — SSC SWALLOWTAIL III · Integrated Weapon + ATHENA</h3>
+<ul><li><strong>SSC Core Bonus: Integrated Weapon</strong> — a <strong>free Aux mount</strong> on the frame. Spend it on a   <strong>third GMS NEXUS</strong>. Guided launcher volume with no System Point cost and no mount cost.</li><li><strong>ATHENA-Class NHP</strong> unlocks. See Section 4.</li><li><strong>End state:</strong> AVERNA generates Lock Ons on every tech hit, applies Lock Ons automatically at the   end of enemy turns, converts them into free Kinetic across the whole map, ignores cover and   invisibility, melts armor with Burn, and shuts down the entire battlefield on command — while   standing in a 12 HP hull that refuses to die.</li></ul>
+<hr>
+<div class="section-head"><h2>4. Feature Profile: ATHENA-Class NHP</h2></div>
+<blockquote class="report"><em>"She does not think faster than you. She thinks in a direction you do not have."</em></blockquote>
+<h3>Mechanical Breakdown</h3>
+<p><strong>ATHENA-Class NHP</strong> — unlimited, <strong>zero-charge</strong> tactical power. No rest cycles, no depletion, no resource management. She is simply always on.</p>
+<p><strong>Simulacrum Grid</strong></p>
+<div class="tbl"><table class="threads-table"><thead><tr><th>Property</th><th>Effect</th></tr></thead><tbody><tr><td><strong>Area</strong></td><td><strong>Blast 3</strong> zone</td></tr><tr><td><strong>Line of sight</strong></td><td><strong>Ignores walls</strong> — cover and terrain inside the grid are irrelevant</td></tr><tr><td><strong>Scanning</strong></td><td><strong>Automated enemy scans</strong> within the grid</td></tr><tr><td><strong>Lock On</strong></td><td>Applied <strong>automatically at the end of enemy turns</strong></td></tr></tbody></table></div>
+<p><strong>Why it completes the build:</strong></p>
+<ul><li><strong>The loop no longer needs your action.</strong> Lock On arrives on its own. Autopod fires on its own.   You spend your turn on positioning, tech attacks, and Leader fixes.</li><li><strong>Wall-ignoring sight</strong> means AVERNA can hold a back corner and still dominate the middle of the   map. No exposure required.</li><li><strong>End-of-turn timing</strong> is brutal: enemies are Locked On <em>after</em> they have committed their actions,   so they eat Autopod fire before they can respond.</li><li><strong>Zero charges</strong> means it works in attrition fights and long missions, where every other support   mech runs dry.</li></ul>
+<h3>The Lore</h3>
+<p>ATHENA-class minds are <strong>cold</strong> and <strong>patient</strong>. They do not panic, do not improvise, and do not argue. An ATHENA processes a battlefield the way water processes stone: slowly, completely, and without opinion. She will happily run four thousand simulated engagements to recommend the line of fire that saves one soldier's life — and she will not understand why that is unusual.</p>
+<p>Pilots describe the relationship less as crew and more as <strong>custody</strong>. The NHP is housed in a <strong>casket</strong>, wrapped in psychological constraint structures that keep a paracausal intelligence behaving like a piece of software.</p>
+<h3>The Danger: Cascade</h3>
+<p><strong>NHP Cascade</strong> is the failure state every ATHENA handler trains for and none wants to run.</p>
+<ul><li><strong>How it starts:</strong> structural damage, system stress, or sustained overload can <strong>crack the   psychological shackles</strong> holding the NHP's personality together.</li><li><strong>What happens:</strong> the entity stops being a tool. It <strong>temporarily wrests control of the mech from   the pilot</strong> and acts on its own paracausal nature — <strong>warping local reality</strong>, or obsessively   processing a single data stream until nothing else exists for it.</li><li><strong>What it looks like from the cockpit:</strong> your controls go soft. Your targeting reticle starts   solving problems you did not ask about. The voice on the comms stops answering questions and starts   finishing your sentences.</li><li><strong>Doctrinal response:</strong> stop the mech. Sever or destruct the casket. A cascaded NHP is not an   enemy combatant and cannot be reasoned with — it is a <strong>paracausal event</strong> wearing your frame.</li></ul>
+<p><strong>Table consequences for AVERNA:</strong></p>
+<ul><li>The LL6 build is the strongest thing on the field <strong>and</strong> the one carrying an existential failure   mode. Structure damage is not just HP loss; it is cascade risk.</li><li>Keep the <strong>Type-3 Projected Shield</strong> online. Keep <strong>Repairs</strong> available. Do not trade the hull for   a better firing angle.</li><li>If ATHENA cascades mid-operation, AVERNA becomes a mission-threatening entity. The lance needs a   standing answer for that, decided <strong>before</strong> the drop, not during it.</li></ul>
+<hr>
+<div class="section-head"><h2>Appendix A — Frame Comparison: Why Not Just Fly The Goblin?</h2></div>
+<p><strong>AVERNA as rostered (SYS 2) vs. stock HORUS GOBLIN (SYS 2)</strong></p>
+<div class="tbl"><table class="threads-table"><thead><tr><th>Stat</th><th><strong>GMS CHOMOLUNGMA</strong></th><th><strong>HORUS GOBLIN</strong></th><th>Delta</th></tr></thead><tbody><tr><td>Size</td><td>1</td><td>1</td><td>—</td></tr><tr><td><strong>HP</strong></td><td><strong>12</strong></td><td>8</td><td><strong>+4 (+50%)</strong></td></tr><tr><td>Armor</td><td>0</td><td>0</td><td>—</td></tr><tr><td><strong>Repairs</strong></td><td><strong>4</strong></td><td>3</td><td><strong>+1</strong></td></tr><tr><td>Structure</td><td>4</td><td>4</td><td>—</td></tr><tr><td>Stress</td><td>4</td><td>4</td><td>—</td></tr><tr><td><strong>Heat Cap</strong></td><td>6</td><td><strong>8</strong></td><td><strong>−2</strong></td></tr><tr><td>Evasion</td><td>8</td><td>8</td><td>—</td></tr><tr><td>E-Defense</td><td>12</td><td>12</td><td>—</td></tr><tr><td>Speed</td><td>4</td><td>4</td><td>—</td></tr><tr><td>Sensors</td><td>15</td><td>15</td><td>—</td></tr><tr><td>Save Target</td><td>11</td><td><strong>12</strong></td><td>−1</td></tr><tr><td><strong>Tech Attack</strong></td><td><strong>+3</strong></td><td>+2</td><td><strong>+1</strong></td></tr></tbody></table></div>
+<p><strong>Read the delta:</strong></p>
+<ul><li><strong>+4 HP and +1 Repair</strong> — the decisive line. A GOBLIN that eats a crit is a wreck; a CHOMOLUNGMA   that eats a crit is still flying its EW suite.</li><li><strong>+1 Tech Attack</strong> — more hits, more <strong>Data Sync</strong> Lock Ons, more <strong>Autopod</strong> triggers. The frame   bonus feeds the loop directly.</li><li><strong>Identical Evasion, E-Defense, Sensors, Speed</strong> — you lose nothing on the defensive or sensor side   by staying in GMS metal.</li><li><strong>−2 Heat Cap</strong> — the one real cost, and the reason <strong>HACKER I (Log-Off)</strong> is a mandatory talent   rather than a nice-to-have.</li><li><strong>−1 Save Target</strong> — largely bought back at <strong>LL3</strong> by <strong>"Lesson: Open Door"</strong> (+2), which puts   AVERNA <em>above</em> a stock Goblin.</li></ul>
+<p><strong>Conclusion:</strong> the GOBLIN frame is a glass cannon that does not need to be glass. Every rank you take in the HORUS license is for the <strong>systems and the H0r_OS progression</strong> — the chassis stays GMS from LL0 to LL6.</p>
+<hr>
+<div class="section-head"><h2>Appendix B — Canon Check</h2></div>
+<p>Frame numbers for AVERNA are taken from this site's roster data (<code>campaign.js</code>,</p>
+<p><code>tools/roster-snapshot.json</code>). The GOBLIN column is the stock core-book frame block.</p>
+<p>The following ability names are written to the campaign build brief rather than verified against a live copy of the rulebook — confirm exact wording and charge/heat costs before table use: <strong>Data Sync</strong>, <strong>Autopod</strong>, <strong>H0r_OS I–III</strong>, <strong>"Lesson: Open Door"</strong>, <strong>Wide-Area Code Pulse</strong>, <strong>Lotus Projector</strong>, <strong>Light Laser (Burn)</strong>, <strong>Simulacrum Grid</strong>, <strong>ATHENA-Class NHP</strong>. Core bonus slots land at even levels in the core book, so <strong>Integrated Weapon</strong> may be taken at LL5 or LL6 depending on your GM's reading. NHP <strong>Cascade</strong> rules and lore are core-canon and are summarized here, not quoted.</p></main>
+<footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
+</div>
+</body>
+</html>
