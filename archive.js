@@ -39,7 +39,7 @@ const D=()=>window.DETAIL||{};
 const thumb=s=>String(s).replace(/\.png$/,"-thumb.webp");
 const pic=(s,alt)=>`<div class="plate"><picture><source srcset="${esc(thumb(s))}" type="image/webp"><img src="${esc(s)}" alt="${esc(alt)}"></picture></div>`;
 function lightbox(){document.addEventListener("click",e=>{const img=e.target.closest(".hero-art img");if(!img)return;const o=document.createElement("div");o.className="lightbox";o.setAttribute("role","dialog");o.setAttribute("aria-label","Portrait full size, tap to close");o.innerHTML=`<img src="${esc(img.getAttribute("src"))}" alt="${esc(img.alt)}">`;o.addEventListener("click",()=>o.remove());document.body.append(o);});}
-const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t)}</div>`:"";
+const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t).replace(/&lt;br\s*\/?&gt;/gi,"<br>")}</div>`:"";
 const dhead=n=>`<div class="tag" style="margin-top:10px">${esc(n)}</div>`;
 const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
 const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
@@ -50,11 +50,19 @@ function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
  const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n)+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
  return dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:11px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}
 function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
- const wep=ditems(m.loadout).map(n=>{const w=(d.weapons||{})[n];if(!w)return "";return dhead(n)+dnote([w.mount,w.type,w.damage,w.range,w.tags,w.license].filter(Boolean).join(" · "))+dnote(w.effect);}).join("");
+ const items=ditems(m.loadout).map(n=>[n,(d.weapons||{})[n]]).filter(x=>x[1]);
+ const seen={};items.forEach(x=>{if(x[1].desc)seen[x[1].desc]=(seen[x[1].desc]||0)+1});
+ const kw=(k,v)=>th(k,esc(v||"—"));
+ const stat=w=>table(kw("MOUNT",w.mount)+kw("TYPE",w.type)+kw("DAMAGE",w.damage)+kw("RANGE",w.range)+kw("TAGS",w.tags)+kw("LICENSE",w.license));
+ /* One blurb covers every weapon of a manufacturer, so it prints once above the list rather than per weapon. */
+ const blurb=[...new Set(items.map(x=>x[1].desc).filter(t=>t&&seen[t]>1))].map(t=>dnote(t)).join("");
+ const wep=items.map(([n,w])=>dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
+  +(w.profiles||[]).map(p=>dhead(p.name)+table(kw("DAMAGE",p.damage)+kw("RANGE",p.range)+kw("TAGS",p.tags))+dnote(p.effect)
+    +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join("")).join("");
  const sys=dnames(m.systems).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n)+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
  const f=(d.frames||{})[m.frame];
  const fr=f?dhead(m.frame)+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";
- return dsect("MOUNTED WEAPONS",wep)+dsect("SYSTEMS",sys)+dsect("FRAME",fr);}
+ return dsect("MOUNTED WEAPONS",blurb+wep)+dsect("SYSTEMS",sys)+dsect("FRAME",fr);}
 const opPill=o=>pill(o.status,/COMPLETED/.test(o.status)?"lime":"rust");
 const threadPill=t=>pill(t.status,t.status==="ESCALATING"?"rust":"lime");
 const mark=(k,v)=>document.querySelectorAll(".holo-svg .node").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));
@@ -258,24 +266,23 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div></div>`+
   (p.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div></div>`:"")+`</section>`+
-  `<div class="columns"><div class="primary"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
+  `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
   th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
-  `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
+  `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No chassis assigned.</div>`)+
-  `</div></div></section></aside></div>`+detailPilot(p);
+  `</div></div></section>`+(m?chassisFile(m,true):"")+`</aside></div>`+detailPilot(p);
 }
 /* The mech dossier's aside runs short against the chassis file; the pilot's own rows fill it. */
 const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
  th("STATUS",pill(p.status,"lime"))+th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
  th("DEPLOYED",pilotOps(p.id).reverse().map(opLink).join("<br>")||"Never"))+`</div></div></section>`:"";
-function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
- const p=m.pilot?P[m.pilot]:null,mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id);
- return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div></div>`+
-  (m.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(m.img)}" alt="${esc(m.name)}"></div></div>`:(m.glyph?`<div class="hero-art"><div class="plate"><span class="mech-silhouette">${esc(m.glyph)}</span></div></div>`:""))+`</section>`+
-  `<div class="columns"><div class="primary"><section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(
+/* Mirror of pilotFile: the mech dossier's own rows, reused as the pilot dossier's aside so both
+   columns end level. A pilot's page carries the summary; the mech's own page carries the full file. */
+const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id);
+ return summary?th("LOADOUT",esc(m.loadout||"—"))+th("SYSTEMS",esc(m.systems||"—"))+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"):(
   th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+(m.conditions?.length?th("CONDITIONS",m.conditions.map(c=>pill(c,"rust")).join("")):"")+
   th("STATIONED",at&&L[at]?esc(L[at].name):C.meta.station?esc(C.meta.station):"—")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
@@ -285,8 +292,14 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
   th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva??"—")} · ${esc(m.spd??"—")} · ${esc(m.edef??"—")} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+
   th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech??"—")} · ${esc(m.limitedBonus??"—")}`)+
   th("LOADOUT",esc(m.loadout||"—"))+th("SYSTEMS",esc(m.systems||"—"))+
-  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"))+
-  `</div></div></section></div><aside class="aside"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
+  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
+};
+const chassisFile=(m,summary)=>`<section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
+function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
+ const p=m.pilot?P[m.pilot]:null;
+ return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div></div>`+
+  (m.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(m.img)}" alt="${esc(m.name)}"></div></div>`:(m.glyph?`<div class="hero-art"><div class="plate"><span class="mech-silhouette">${esc(m.glyph)}</span></div></div>`:""))+`</section>`+
+  `<div class="columns"><div class="primary fill">`+chassisFile(m)+`</div><aside class="aside fill"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
   (p?`<div class="crew">${p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
 }

@@ -29,9 +29,17 @@ const iW = index(W), iS = index(S), iT = index(T), iG = index(G), iSK = index(SK
 const iF = index(F, f => [`${f.source} ${f.name}`]);
 
 const fmtList = (a, f) => (a || []).map(f).filter(Boolean).join(", ");
+/* lancer-data splits prose across `description` (flavour) and `effect` (mechanics); reading only one
+   leaves items such as Type-3 Projected Shield with no text at all. */
+const text = (...parts) => parts.filter(Boolean).join(" ");
 const dmg = w => fmtList(w.damage, d => `${d.val} ${d.type}`);
 const rng = w => fmtList(w.range, r => `${r.type} ${r.val}`);
-const tags = x => fmtList(x.tags, t => tagName(t.id) + (t.val ? ` ${t.val}` : ""));
+/* A tag entry's name carries a {VAL} placeholder its value fills: Limited {VAL} 3 -> Limited 3. */
+const tags = x => fmtList(x.tags, t => {
+  const name = tagName(t.id);
+  if (t.val == null) return name;
+  return /\{VAL\}/i.test(name) ? name.replace(/\{VAL\}/gi, t.val) : `${name} ${t.val}`;
+});
 const lic = x => `${x.license || x.source || ""}${x.license_level != null ? " LL" + x.license_level : ""}`.trim();
 const weaponEffect = w => [w.effect, w.on_attack && `On attack: ${w.on_attack}`, w.on_hit && `On hit: ${w.on_hit}`,
   w.on_crit && `On crit: ${w.on_crit}`].filter(Boolean).join(" ");
@@ -53,13 +61,16 @@ for (const m of C.mechs) {
   for (const name of loadoutItems(m.loadout)) {
     const w = iW.get(norm(name));
     if (!w) { missing.push(`weapon: ${name}`); continue; }
-    DETAIL.weapons[name] = { mount: w.mount, type: w.type, damage: dmg(w), range: rng(w),
-      tags: tags(w), license: lic(w), effect: weaponEffect(w) };
+    DETAIL.weapons[name] = { mount: w.mount, type: w.type, damage: dmg(w), range: rng(w), tags: tags(w), license: lic(w),
+      desc: w.description || "", effect: weaponEffect(w),
+      /* Alternate fire modes (Assault Cannon, Leviathan) carry their own stats, effect, and actions. */
+      profiles: (w.profiles || []).map(p => ({ name: p.name, damage: dmg(p), range: rng(p), tags: tags(p), effect: text(p.effect),
+        actions: (p.actions || []).map(a => ({ name: a.name, activation: a.activation, detail: a.detail })) })) };
   }
   for (const name of list(m.systems)) {
     const s = iS.get(norm(name));
     if (!s) { missing.push(`system: ${name}`); continue; }
-    DETAIL.systems[name] = { sp: s.sp, tags: tags(s), license: lic(s), effect: s.effect || "" };
+    DETAIL.systems[name] = { sp: s.sp, tags: tags(s), license: lic(s), effect: text(s.description, s.effect) };
   }
   const f = iF.get(norm(m.frame));
   if (!f) frameless.push(m.frame);
@@ -78,7 +89,7 @@ for (const p of C.pilots) {
   for (const g of list(p.gear)) {
     const e = iG.get(norm(g));
     if (!e) { missing.push(`gear: ${g}`); continue; }
-    DETAIL.gear[g] = { type: e.type, bonuses: bonuses(e), tags: tags(e), effect: e.description || "" };
+    DETAIL.gear[g] = { type: e.type, bonuses: bonuses(e), tags: tags(e), effect: text(e.description, e.effect) };
   }
   for (const s of list(p.triggers)) {
     const name = s.replace(/\s*\(\+\d+\)$/, "").trim();

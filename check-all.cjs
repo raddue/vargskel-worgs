@@ -496,6 +496,74 @@ else {
   (html.match(/<img\b[^>]*>/g) || []).forEach(img => { if (!/\salt="[^"]+"/.test(img)) problems.push(`${pg}#${r.id}: rendered img lacks alt: ${img}`); });
 }));
 
+/* Weapon cards and detail prose: the shapes a player reads at the table, asserted from rendered
+   markup and the built rules table. Fixtures cover shapes this campaign has not unlocked yet. */
+const detailBox = { window: {} };
+vm.createContext(detailBox);
+vm.runInContext(fs.readFileSync(__dirname + "/detail.js", "utf8"), detailBox, { filename: "detail.js" });
+const RD = detailBox.window.DETAIL || {};
+["weapons", "systems", "gear"].forEach(k => { if (!RD[k]) problems.push(`detail.js: ${k} table missing`); });
+Object.entries(RD.weapons || {}).forEach(([n, w]) => {
+  if (!("desc" in w)) problems.push(`weapons.${n}: built detail drops the source description, so a shared manufacturer blurb cannot print once`);
+  if (!("profiles" in w)) problems.push(`weapons.${n}: built detail drops profiles, so alternate fire modes are lost`);
+});
+[...Object.entries(RD.weapons || {}), ...Object.entries(RD.systems || {}), ...Object.entries(RD.gear || {})].forEach(([n, x]) => {
+  if (`${x.tags || ""} ${x.range || ""}`.includes("{VAL}")) problems.push(`${n}: unresolved {VAL} placeholder in "${x.tags || x.range}" - the tag's own value must be substituted`);
+});
+/* lancer-data ships no text at all for Pattern-A Smoke Charges; any other blank entry lost a field. */
+const KNOWN_BLANK = ["Pattern-A Smoke Charges"];
+const blankEntries = k => Object.entries(RD[k] || {}).filter(([, x]) => !String(x.effect || "").trim()).map(([n]) => n);
+if (blankEntries("gear").length) problems.push(`gear with no rules text: ${blankEntries("gear").join(", ")}`);
+const blankSys = blankEntries("systems").filter(n => !KNOWN_BLANK.includes(n));
+if (blankSys.length) problems.push(`systems with no rules text: ${blankSys.join(", ")}`);
+
+/* A mounted weapon is a name plus labelled stat rows, not one joined line. */
+const tw = C.mechs.find(m => m.loadout && m.pilot) || C.mechs[0];
+const twPage = mount("mech.html", "#" + tw.id);
+const twHtml = twPage.html("dossier");
+const wSect = twHtml.slice(twHtml.indexOf("MOUNTED WEAPONS"), twHtml.indexOf("SYSTEMS", twHtml.indexOf("MOUNTED WEAPONS")));
+["MOUNT", "TYPE", "DAMAGE", "RANGE", "TAGS", "LICENSE"].forEach(k => { if (!wSect.includes(`<th scope="row">${k}</th>`)) problems.push(`mech.html#${tw.id}: weapon card is missing its ${k} row`); });
+const mounted = Object.keys(RD.weapons || {}).filter(n => tw.loadout.includes(n));
+if (mounted.length < 2) problems.push(`mech.html#${tw.id}: expected at least two built weapons in the loadout, found ${mounted.length}`);
+else {
+  /* One blurb covers every weapon of a manufacturer: it prints once above the list, not per weapon. */
+  const shared = String((RD.weapons[mounted[0]] || {}).desc || "shared manufacturer blurb");
+  twPage.window.DETAIL.weapons[mounted[1]] = { ...twPage.window.DETAIL.weapons[mounted[1]], desc: shared };
+  const once = twPage.window.UI.detailMech(tw).split(shared).length - 1;
+  if (once !== 1) problems.push(`mech.html#${tw.id}: a description shared by two mounted weapons printed ${once} time(s), not once`);
+  /* Profiles: alternate fire modes carry their own stats, effect, and actions. */
+  const fixture = { name: "PROFILE FIXTURE", damage: "1d6 Kinetic", range: "Range 10", tags: "Smart", effect: "Profile effect text.", actions: [{ name: "Fixture Action", activation: "Quick", detail: "Fixture action detail." }] };
+  twPage.window.DETAIL.weapons[mounted[0]] = { ...twPage.window.DETAIL.weapons[mounted[0]], profiles: [fixture] };
+  const withProfile = twPage.window.UI.detailMech(tw);
+  ["PROFILE FIXTURE", "Profile effect text.", "Fixture Action (Quick): Fixture action detail."].forEach(t => { if (!withProfile.includes(t)) problems.push(`mech.html#${tw.id}: profile render dropped "${t}"`); });
+}
+/* Gear prose: lancer-data marks paragraph breaks with <br>, which must render as a break, not as text. */
+const pk = C.pilots.find(p => p.gear && p.mech) || C.pilots[0];
+const pkPage = mount("pilot.html", "#" + pk.id);
+const gearName = Object.keys(RD.gear || {}).find(n => pk.gear.includes(n));
+if (!gearName) problems.push(`pilot.html#${pk.id}: no built gear detail matches the pilot's gear list`);
+else {
+  pkPage.window.DETAIL.gear[gearName] = { ...pkPage.window.DETAIL.gear[gearName], effect: "first paragraph<br>second paragraph" };
+  const gearHtml = pkPage.window.UI.detailPilot(pk);
+  if (gearHtml.includes("&lt;br&gt;")) problems.push(`pilot.html#${pk.id}: ${gearName}'s <br> paragraph marker renders as text`);
+  if (!gearHtml.includes("first paragraph<br>second paragraph")) problems.push(`pilot.html#${pk.id}: ${gearName}'s <br> paragraph marker renders no break`);
+  /* The chassis card already links out, so the file beside a pilot lists only what a pilot needs. */
+  const pkHtml = pkPage.html("dossier");
+  const pkAside = pkHtml.slice(pkHtml.indexOf("<aside"), pkHtml.indexOf("</aside>"));
+  const asideRows = [...pkAside.matchAll(/<th scope="row">([^<]+)<\/th>/g)].map(m => m[1]).join(",");
+  if (asideRows !== "LOADOUT,SYSTEMS,DEPLOYED") problems.push(`pilot.html#${pk.id}: the chassis file beside a pilot should list LOADOUT,SYSTEMS,DEPLOYED, got "${asideRows}"`);
+}
+/* Both dossier columns carry fill, so the shorter panel stretches to the same bottom edge. A mech's
+   own page keeps the full chassis file: provenance for the summary a pilot's page carries. */[["pilot.html", pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
+  const html = mount(page, "#" + id).html("dossier");
+  if (!/<div class="primary fill">/.test(html) || !/<aside class="aside fill">/.test(html)) problems.push(`${page}#${id}: both dossier columns must carry fill so the shorter panel stretches to the same bottom edge`);
+  if (page === "mech.html") ["STATE", "LAST OUTCOME"].forEach(k => { if (!html.slice(html.indexOf("<h2>CHASSIS FILE</h2>"), html.indexOf("<aside")).includes(`<th scope="row">${k}</th>`)) problems.push(`mech.html#${id}: the chassis file lost its ${k} row`); });
+});
+/* The brand block takes the header's leftover width, so a long page subtitle cannot slide the nav
+   tabs sideways between pages - index.html's subtitle is twice the length of a dossier's. */
+const brandRule = (fs.readFileSync(__dirname + "/style.css", "utf8").match(/\.brand\{[^}]*\}/) || [""])[0];
+if (!/flex:\s*1/.test(brandRule)) problems.push(`style.css: .brand must absorb the header's leftover width (flex:1) or the nav shifts when a page's subtitle is long - got "${brandRule}"`);
+
 /* Crew-facing OPORD: every op with a mission page carries the five-paragraph order, and the
    page mounts the shared renderer. archive.js runs against a stub DOM here so the check reads
    rendered markup rather than trusting the data shape alone. */
