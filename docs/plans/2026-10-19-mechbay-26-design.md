@@ -441,3 +441,11 @@ commands above), so a round trip tested anywhere else would never execute in CI.
   the fix touches the live `conditions` path.
 - **Local-only gates.** CI cannot catch staleness in `detail.js` or `catalogue.js` until it fetches
   lancer-data. Recorded here as a known gap, not fixed in this ticket.
+
+- **Supplement frames.** `GMS CHOMOLUNGMA` and `GMS SAGARMATHA` are Solstice Rain supplement frames,
+  absent from lancer-data 3.1.7 (`frames.json` carries Everest and a `missing_frame` placeholder), so
+  no gate has their stats and the SP cap check skips them as unknown. That is a data-dir gap, not a
+  missing-rules problem: the real block lives in the supplement on the owner's machine
+  (`~/Downloads/osr-data.lcp`), where CHOMOLUNGMA is `sp 7` with mounts `Main/Aux` and `Flex`. With
+  it, AVERNA's cap at LL 0 is 7 + floor(2/2) + 0 = 8 against her 8 SP, so her loadout is legal and
+  this question is closed rather than deferred.
