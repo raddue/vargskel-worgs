@@ -126,13 +126,27 @@ if (/id="holomap"|id="faction-list"/.test(indexPath)) problems.push("index.html 
    node check-all.cjs --update-snapshot and review the JSON diff. Every field present in the snapshot must match. */
 const snapPath = __dirname + "/tools/roster-snapshot.json";
 const pick = (rec, keys) => Object.fromEntries(keys.map(k => [k, rec ? rec[k] : undefined]));
+/* Derived pin fields: campaign.js holds the data, the snapshot holds the printed strings the
+   dossier and mechbay show. One definition, used by both the comparison and --update-snapshot. */
+const mountStr = mounts => !(mounts && mounts.length) ? "" : mounts.map(m => `${m.slot}: ${m.weapons.join(" / ")}`).join(" · ");
+const view = (key, rec) => rec && key === "mechs" ? { ...rec, loadoutString: mountStr(rec.mounts) } : rec;
+/* The snapshot's own key list drives --update-snapshot, so a derived key would be dropped the
+   moment the record stops carrying it. Name the derived keys here as well. */
+const derivedKeys = { mechs: ["loadoutString"] };
 let snap = JSON.parse(fs.readFileSync(snapPath, "utf8"));
 if (process.argv.includes("--update-snapshot")) {
-  snap = Object.fromEntries(Object.entries(snap).map(([key, recs]) => [key, Object.fromEntries(Object.entries(recs).map(([id, r]) => [id, pick(C[key].find(x => x.id === id), Object.keys(r))]))]));
+  snap = Object.fromEntries(Object.entries(snap).map(([key, recs]) => [key, Object.fromEntries(Object.entries(recs).map(([id, r]) => [id, pick(view(key, C[key].find(x => x.id === id)), [...Object.keys(r), ...(derivedKeys[key] || [])])]))]));
   fs.writeFileSync(snapPath, JSON.stringify(snap, null, 1) + "\n");
 }
+
+/* The loadout pin is a DERIVED string now: campaign.js holds mounts, the snapshot holds
+   loadoutString. pick() only copies keys the snapshot already has, so a derived key that stops
+   being emitted would drop the pin silently; this makes that a named failure instead. */
+Object.entries(snap.mechs || {}).forEach(([id, r]) => {
+  if (!("loadoutString" in r)) problems.push(`mechs ${id}: snapshot must pin loadoutString (derived from mounts)`);
+});
 Object.entries(snap).forEach(([key, recs]) => Object.entries(recs).forEach(([id, want]) => {
-  const got = C[key].find(x => x.id === id);
+  const got = view(key, C[key].find(x => x.id === id));
   if (!got) return problems.push(`${key} ${id}: snapshot record missing from campaign.js`);
   Object.entries(want).forEach(([k, v]) => { if (got[k] !== v) problems.push(`${key} ${id}.${k}: ${JSON.stringify(got[k])} != snapshot ${JSON.stringify(v)}`); });
 }));
@@ -600,12 +614,12 @@ const blankSys = blankEntries("systems").filter(n => !KNOWN_BLANK.includes(n));
 if (blankSys.length) problems.push(`systems with no rules text: ${blankSys.join(", ")}`);
 
 /* A mounted weapon is a name plus labelled stat rows, not one joined line. */
-const tw = C.mechs.find(m => m.loadout && m.pilot) || C.mechs[0];
+const tw = C.mechs.find(m => m.mounts && m.mounts.length && m.pilot) || C.mechs[0];
 const twPage = mount("mech.html", "#" + tw.id);
 const twHtml = twPage.html("dossier");
 const wSect = twHtml.slice(twHtml.indexOf("MOUNTED WEAPONS"), twHtml.indexOf("SYSTEMS", twHtml.indexOf("MOUNTED WEAPONS")));
 ["MOUNT", "TYPE", "DAMAGE", "RANGE", "TAGS", "LICENSE"].forEach(k => { if (!wSect.includes(`<th scope="row">${k}</th>`)) problems.push(`mech.html#${tw.id}: weapon card is missing its ${k} row`); });
-const mounted = Object.keys(RD.weapons || {}).filter(n => tw.loadout.includes(n));
+const mounted = Object.keys(RD.weapons || {}).filter(n => tw.mounts.flatMap(x => x.weapons || []).includes(n));
 if (mounted.length < 2) problems.push(`mech.html#${tw.id}: expected at least two built weapons in the loadout, found ${mounted.length}`);
 else {
   /* One blurb covers every weapon of a manufacturer: it prints once above the list, not per weapon. */

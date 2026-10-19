@@ -58,7 +58,7 @@ const loadoutItems = s => {
 };
 
 for (const m of C.mechs) {
-  for (const name of loadoutItems(m.loadout)) {
+  for (const name of (m.mounts||[]).flatMap(x=>x.weapons||[])) {
     const w = iW.get(norm(name));
     if (!w) { missing.push(`weapon: ${name}`); continue; }
     DETAIL.weapons[name] = { mount: w.mount, type: w.type, damage: dmg(w), range: rng(w), tags: tags(w), license: lic(w),
