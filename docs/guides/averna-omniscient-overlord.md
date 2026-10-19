@@ -308,21 +308,6 @@ SP."*
 | Nexus (Hunter-Killer) · Nexus (Light) · Missile Rack ×2 | 0 | Weapons |
 | **Total** | **8** | no slack at LL0 |
 
-**Why Jump Jets replaced the Type-I Flight System.** Flight cost **3 SP** and **Size+1 Heat at the end of
-every turn you flew** (~2 Heat against a 6 Heat Cap) for sustained straight-line flight and Immunity to
-Prone while airborne. Jump Jets cost **2 SP and no Heat** and fly only during a **Boost** — the
-gap-crossing job for a point less. The freed point buys **Custom Paint Job**, a structure-damage negate
-on a 10 HP frame.
-
-**What you gave up, and what covers it:**
-
-- **Jumping:** half SPEED in a straight line, ignoring a gap at ground level — **2 spaces** at SPEED 4.
-  Vertically, up to your SIZE (**1 space**) and **1 space over**. End a jump mid-air and you fall.
-- **Climbing** is half speed, with a Hull or Agility check on hard surfaces. **Falling** is 3 AP Kinetic
-  per 3 spaces fallen, to a maximum of 9, and counts as involuntary movement.
-- **Water and void:** underwater or in zero gravity, mechs are **Slowed** without a propulsion or flight
-  system — **EVA Module (1 SP)** is the fix if the campaign ever goes there.
-
 **Fitting Goblin I (Autopod 1 + H0R_OS I 2 = 3 SP):**
 
 - **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact.
