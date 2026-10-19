@@ -487,6 +487,29 @@ const { mount } = require("./tools/render.cjs");
   const idx = mount("index.html");
   if (!idx.nodes["session-cards"] || !/No sessions logged yet/.test(idx.nodes["session-cards"].innerHTML)) problems.push("index DEEDS must say so while the ledger is empty");
 }
+
+/* #16 attendance strip: six cells derived from the ledger alone, plus the last-session line,
+   degrading to the no-sessions state. Fixture rows again, live ledger empty by design. */
+{
+  const S3 = mount("index.html").window.UI;
+  const fx = [
+    { op: "001", date: "2026-10-19", pilot: "daemon", dealt: 14 },
+    { op: "001", date: "2026-10-19", pilot: "dusty", hacks: 2 },
+    { op: "001", date: "2026-10-12", pilot: "daemon", dealt: 9 },
+  ];
+  const strip = S3.attendanceStrip(fx);
+  const cells = [...strip.html.matchAll(/data-pilot="([^"]+)"[^>]*>([\s\S]*?)<\/span>/g)].map(m => [m[1], m[2]]);
+  if (cells.length !== C.pilots.length) problems.push(`the attendance row must carry all ${C.pilots.length} pilots, got ${cells.length}`);
+  const countOf = id => { const c = cells.find(x => x[0] === id); return c ? (c[1].match(/<b>(\d+)<\/b>/) || [])[1] : undefined; };
+  if (countOf("daemon") !== "2" || countOf("dusty") !== "1" || countOf("spook") !== "0")
+    problems.push(`attendance counts wrong: daemon ${countOf("daemon")}, dusty ${countOf("dusty")}, spook ${countOf("spook")}`);
+  if (!strip.html.includes("2026-10-19") || !/SOLSTICE RAIN/.test(strip.html)) problems.push("the last-session line must name the newest date and its op");
+  if (/2026-10-12/.test(strip.html.replace(/data-pilot[\s\S]*$/, ""))) problems.push("the last-session line must not name an older session");
+  const none = S3.attendanceStrip([]);
+  if (!/No sessions logged yet/.test(none.html)) problems.push("an empty ledger must degrade the strip to the no-sessions state");
+  const idx = mount("index.html");
+  if (!idx.nodes["attendance-strip"] || !/No sessions logged yet/.test(idx.nodes["attendance-strip"].innerHTML)) problems.push("index must render the degraded strip while the ledger is empty");
+}
 const cardsOf = h => h.split("</article>").filter(c => c.includes("<article"));
 const crewPage = mount("pilots.html"), crewCards = cardsOf(crewPage.html("crew-list"));
 if (crewCards.length !== C.pilots.length) problems.push(`pilots.html: crew-list rendered ${crewCards.length} cards, want ${C.pilots.length}`);
