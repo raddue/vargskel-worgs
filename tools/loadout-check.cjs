@@ -327,6 +327,15 @@ else {
       errs.push("picking another pilot must reach the export block");
   }
 
+  /* a record whose frame is not in the catalogue still has a frame: the pick must show it rather
+     than sit blank, and say that no data resolved it (Averna's GMS CHOMOLUNGMA is a supplement) */
+  {
+    const sup = mount("loadout.html", "#averna");
+    const frameHtml = sup.html("lo-frame");
+    if (!/CHOMOLUNGMA/.test(frameHtml)) errs.push("the frame pick must show the record's own frame even when the catalogue lacks it");
+    if (!/NOT IN CATALOGUE/i.test(frameHtml)) errs.push("a frame with no catalogue data must say so in the pick");
+  }
+
   /* the counter follows the pick rather than the mount: cap = frame.sys + floor(sys/2) + ceil(ll/2) */
   {
     const before = mount("loadout.html", "#alba").html("lo-sp");
@@ -412,7 +421,7 @@ else {
   if (!framePick) errs.push("loadout.html needs a frame pick (id lo-frame)");
   else {
     const listed = (fr.html("lo-frame").match(/<option/g) || []).length;
-    if (listed !== Object.keys(CAT2.frames).length)
+    if (listed < Object.keys(CAT2.frames).length)
       errs.push(`the frame pick must list every frame, got ${listed} of ${Object.keys(CAT2.frames).length}`);
     const before = fr.html("lo-export");
     framePick.value = candidate;
