@@ -276,9 +276,51 @@ Every level also hands you **+1 mech skill point** and **+1 GRIT**.
   the hardest mech in the lance to hack and the most accurate one in it.
 - **HULL only for HP** (+2 HP per point, **+1 Repair Cap per two points**). Worth considering on a 10 HP
   frame — but every point of HULL is a point not spent on the build's spine.
-- **GRIT is free Save Target.** GRIT is half your LL rounded up (first point at **LL1**) and adds to
-  **HP, SP, attack rolls, and Save Target**. AVERNA's **Save Target is 11 now and 13 at LL3** — her
-  shutdown tools sharpen themselves as the campaign goes on.
+- **GRIT is not a mech skill.** GRIT is **half your LL rounded up** (first point at **LL1**), and the
+  core book adds it to your mech's **HP, SP, attack rolls and Save Target** — it does *not* raise HULL,
+  AGILITY, SYSTEMS or ENGINEERING. Those come from the **+1 mech skill point** you spend at each level.
+  AVERNA's Save Target climbs **11 → 12 at LL1 → 13 at LL3**, and her SP climbs with it.
+
+### System Points: The Budget
+
+**The formula.** SP = **frame SP** + **1 per two points of SYSTEMS** + **GRIT**. The glossary is blunt
+about the ceiling: *"You cannot add systems to your mech that would cause you to exceed your available
+SP."*
+
+| Level | SYSTEMS | GRIT | SP | Note |
+|---|---|---|---|---|
+| **LL0** | 2 | 0 | **8** | 7 frame + 1 from SYSTEMS |
+| **LL1** | 3 | 1 | **9** | GRIT starts paying into the budget |
+| **LL2** | 4 | 1 | **10** | second SYSTEMS point lands |
+| **LL3** | 4 | 2 | **11** | Goblin I now fits with no cuts |
+
+**Current load — 8 SP, exactly the budget:**
+
+| Item | SP | What it actually does |
+|---|---|---|
+| **Personalizations** | 1 | +2 HP, plus a narrative mod (+1 Accuracy on a skill check if the GM agrees it helps) |
+| **Turret Drones** | 2 | Deployable turret drones with a **Turret Attack** reaction; expire at the end of the scene |
+| **Type-I Flight System** | 3 | Count all movement as flying; you take **Size+1 Heat** at the end of any turn you fly this way |
+| **Type-3 Projected Shield** | 2 | Protocol: **+2 Difficulty** on melee/ranged attacks between you and a nominated character until your next turn; using it costs **1 Heat** |
+| Nexus (Hunter-Killer) · Nexus (Light) · Missile Rack ×2 | 0 | Weapons |
+| **Total** | **8** | no slack at LL0 |
+
+**What the ranks want to add:** Autopod **1** (weapon, Goblin I) · H0R_OS I / II / III **2 each** ·
+Metahook **2** · OSIRIS-Class NHP **3** · Lotus Projector **2** · Markerlight **2**.
+
+**Fitting Goblin I (Autopod 1 + H0R_OS I 2 = 3 SP):**
+
+- **No cuts needed by LL3.** Put both HASE points into SYSTEMS and the 11 SP budget swallows it whole.
+- **Want it at LL1 (9 SP)? Cut 2.** Drop **Type-I Flight System** (3 SP — and it charges Size+1 Heat per
+  flying turn on a **6 Heat Cap** hull) or **Turret Drones** (2 SP, an exact fit).
+- **Keep the Type-3 Projected Shield.** It taxes only melee and ranged attacks, and tech attacks are
+  neither — so 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
+- **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options —
+  II adds Quick Tech **Ideal Image** and **False Idol**, III adds Invade **Dimensional Emblems** and
+  **Celestial Shackles**. Nothing in the data requires H0R_OS I to be installed for them to work.
+- **Remember what is already free.** The Chomolungma core grants **Balance Control Lockout** (Push 2 +
+  Prone) and **System Crusher** (+2 Heat, 4 Burn on overheat). H0R_OS I buys you *Puppet System's*
+  longer, reaction-provoking walk and *Eject Power Cores*' Jam — worth it, but only if you will use them.
 
 ---
 
