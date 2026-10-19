@@ -74,6 +74,24 @@ else {
       errs.push("canMount: a weapon at or under the held licence rank must be allowed");
     const two = copy(); two.mounts[0].weapons = [gms];
     say("a second weapon in one seat", core.canMount(fixturePilot, two, 0, 0, gms, cat), "SLOT FULL");
+
+    /* unplace answers like place, because a decision that cannot report why it refused cannot be
+       asked without being obeyed. A seat with nothing at it and a locked mount are both refusals. */
+    const put = core.place(fixturePilot, copy(), 0, 0, gms, cat);
+    const off = core.unplace(put.build, 0, 0, cat);
+    if (!off || off.ok !== true || off.reason !== null)
+      errs.push(`unplace: taking a weapon out must answer {ok, reason, build}, got ${JSON.stringify(off)}`);
+    else if ((off.build.mounts[0].weapons || []).length)
+      errs.push("unplace: the removed weapon must be gone from the seat");
+    say("a seat with nothing in it", core.unplace(copy(), 0, 0, cat), "EMPTY SEAT");
+    say("a mount that does not exist", core.unplace(copy(), 9, 0, cat), "EMPTY SEAT");
+    const locked = copy(); locked.mounts[1].locked = true;
+    say("a locked mount", core.unplace(locked, 1, 0, cat), "SLOT LOCKED");
+    const plastic = copy(); plastic.mounts[1].weapons = [gms];
+    const freed = core.unplace(core.place(fixturePilot, copy(), 2, 0, "Cyclone Pulse Rifle", cat, { lockSlot: 1 }).build, 2, 0, cat);
+    if (!freed || freed.ok !== true) errs.push(`unplace: taking the Superheavy out must succeed, got ${JSON.stringify(freed)}`);
+    else if (freed.build.mounts.some(m => m.locked)) errs.push("unplace: taking the Superheavy out must clear the lock it took");
+    if (!plastic.mounts[1].weapons.length) errs.push("loadout-check: the lock fixture must keep its own weapon");
     say("an unknown weapon", core.canMount(fixturePilot, copy(), 0, 0, "Nonexistent Rifle", cat), "UNKNOWN WEAPON");
     /* over cap, on a second fixture with a cap of exactly 0 (frame sys 0, mech sys 0, LL0), so one
        SP-costing system is already over it. The subset holds no seven-SP build to spend against 7. */

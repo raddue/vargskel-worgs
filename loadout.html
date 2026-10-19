@@ -89,11 +89,10 @@
   };
   const wireSlots = () => {
     build.mounts.forEach((m, i) => {
-      /* place answers {ok, reason, build}; unplace answers the build itself */
+      /* every builder answers {ok, reason, build}, so a refusal lands beside the control that caused it */
       const set = (r) => {
         if (r && r.ok === false) refused[i] = r.reason || "REFUSED";
         else if (r && r.build) { build = r.build; delete refused[i]; }
-        else if (r) { build = r; delete refused[i]; }
         else refused[i] = "REFUSED";
         render();
       };

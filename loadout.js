@@ -99,14 +99,21 @@
     return { ok: true, reason: null, build: next };
   }
 
-  /* Removing the Superheavy clears the lock it took, since the lock means nothing without it. */
+  /* Removing the Superheavy clears the lock it took, since the lock means nothing without it.
+     It answers like place, because a decision that cannot say why it refused cannot be asked
+     without being obeyed: a mount that does not exist, a seat with nothing at it and a locked
+     mount are refusals, not throws and not a silent no-op. */
   function unplace(build, slotIndex, seat, catalogue) {
+    const mount = (build.mounts || [])[slotIndex];
+    if (!mount) return { ok: false, reason: "EMPTY SEAT" };
+    if (mount.locked) return { ok: false, reason: "SLOT LOCKED" };
+    const removed = (mount.weapons || [])[seat];
+    if (!removed) return { ok: false, reason: "EMPTY SEAT" };
     const next = clone(build);
-    const removed = (next.mounts[slotIndex].weapons || [])[seat];
-    next.mounts[slotIndex].weapons = (next.mounts[slotIndex].weapons || []).filter((_, i) => i !== seat);
-    const w = removed && catalogue && catalogue.weapons[removed];
+    next.mounts[slotIndex].weapons = (mount.weapons || []).filter((_, i) => i !== seat);
+    const w = catalogue && catalogue.weapons[removed];
     if (w && w.mount === "Superheavy") for (const m of next.mounts) if (m.locked) { m.locked = false; break; }
-    return next;
+    return { ok: true, reason: null, build: next };
   }
 
   /* mounts come from the frame, so a frame change resets them rather than keeping another frame's. */
