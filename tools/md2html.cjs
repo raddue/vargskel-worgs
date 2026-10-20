@@ -207,6 +207,7 @@ function render() {
 <title>Vargskel Worgs | The Omniscient Overlord</title>
 <link rel="icon" href="${p("assets/favicon.png")}" type="image/png">
 <link rel="apple-touch-icon" href="${p("assets/apple-touch-icon.png")}">
+<link rel="manifest" href="${p("manifest.webmanifest")}">
 <meta name="theme-color" content="#020d18">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Vargskel Worgs | The Omniscient Overlord">
@@ -253,6 +254,7 @@ function render() {
 .guide details.gsec[open] .gcaret::before{content:"\\25BE"}
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
+<script src="${p("offline.js")}"></script>
 <script src="${p("compact.js")}"></script>
 </head>
 <body>

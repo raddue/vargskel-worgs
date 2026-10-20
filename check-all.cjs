@@ -129,6 +129,132 @@ navPages.forEach(p => {
   if (!chrome.statusRe.test(statusVal || ""))
     problems.push(`${p}: status chip must be chrome.status("<UPPERCASE STATE>"), label included`);
 });
+/* OFFLINE (#21): a web app manifest plus a service worker that precaches the shell, so a dossier and
+   mechbay.html open with no signal at the table. The harness has no service worker and no network,
+   so these clauses pin the shape and not the behaviour: every page carries the manifest link and the
+   registration, the manifest's icons exist at the sizes it claims, the precache list covers every
+   page, script, stylesheet, font and portrait thumbnail with no dead entry and stays inside the
+   install budget, and the fetch handler answers a same-origin GET during dispatch while leaving
+   POSTs and other origins to the network. The cold offline load itself is a chromium probe,
+   reported as a probe and never as a passing test. */
+navPages.forEach(p => {
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
+  const prefix = p.includes("/") ? "../../" : "";
+  if (!src.includes(`<link rel="manifest" href="${prefix}manifest.webmanifest">`))
+    problems.push(`${p}: must link manifest.webmanifest, or the site cannot be added to a home screen`);
+  if (!src.includes(`<script src="${prefix}offline.js"></script>`))
+    problems.push(`${p}: must load offline.js, the service-worker registration`);
+});
+/* A launcher drops an icon whose declared size is not the file's real size, so read the IHDR. */
+const pngSize = file => {
+  const b = fs.readFileSync(file);
+  return b.slice(1, 4).toString() === "PNG" ? [b.readUInt32BE(16), b.readUInt32BE(20)] : null;
+};
+const manPath = __dirname + "/manifest.webmanifest";
+if (!fs.existsSync(manPath)) problems.push("manifest.webmanifest is missing (#21): without it there is nothing to add to a home screen");
+else {
+  let man = null;
+  try { man = JSON.parse(fs.readFileSync(manPath, "utf8")); } catch (e) { problems.push("manifest.webmanifest must be valid JSON: " + e.message); }
+  if (man) {
+    ["name", "short_name", "start_url", "display", "theme_color"].forEach(k => { if (!man[k]) problems.push(`manifest.webmanifest: "${k}" is required`); });
+    if (man.display !== "standalone") problems.push(`manifest.webmanifest: display must be "standalone" (an archive opens as an app), got ${JSON.stringify(man.display)}`);
+    /* The manifest colour and each page's <meta name="theme-color"> are the same value; a page that
+       changes one and not the other paints a different bar when it is opened from the home screen. */
+    navPages.forEach(p => {
+      const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+      if (man.theme_color && !src.includes(`<meta name="theme-color" content="${man.theme_color}">`))
+        problems.push(`${p}: theme-color must match manifest.webmanifest ("${man.theme_color}")`);
+    });
+    /* 192 is the size a launcher needs before it offers "Add to Home screen"; 512 is what a splash
+       screen scales up from. */
+    const icons = Array.isArray(man.icons) ? man.icons : [];
+    ["192x192", "512x512"].forEach(size => {
+      const icon = icons.find(i => i.sizes === size);
+      if (!icon) return problems.push(`manifest.webmanifest: no ${size} icon, so a launcher has nothing to install`);
+      const file = __dirname + "/" + icon.src;
+      if (!fs.existsSync(file)) return problems.push(`manifest.webmanifest: ${size} icon ${icon.src} does not exist`);
+      const dim = pngSize(file);
+      if (!dim || dim.join("x") !== size) problems.push(`manifest.webmanifest: ${icon.src} is ${dim ? dim.join("x") : "not a PNG"}, but the manifest declares ${size}`);
+    });
+  }
+}
+const swFile = __dirname + "/sw.js";
+if (!fs.existsSync(swFile)) problems.push("sw.js is missing (#21): a manifest alone installs nothing offline");
+else {
+  /* The worker runs in a context the harness does not have, so it runs here against a stub `self`.
+     Every promise in the paths under test is a thenable that runs its callback synchronously, which
+     makes the install precache readable as data and makes the clause that matters most observable at
+     all: respondWith has to be called during dispatch, and the browser will not accept it after an
+     await. */
+  const tick = v => ({ then: fn => tick(fn(v)), catch: () => tick(v) });
+  const listeners = {};
+  let precached = null;
+  const box = {
+    location: { origin: "https://raddue.github.io" },
+    URL, console,
+    caches: {
+      open: () => tick({
+        addAll: list => { precached = list; return tick(undefined); },
+        put: () => tick(undefined),
+        match: () => tick(undefined),
+      }),
+      keys: () => tick([]),
+      delete: () => tick(true),
+    },
+    fetch: () => tick({ ok: true, type: "basic", clone: () => ({}) }),
+    /* The worker global's own API: install and activate call these two. */
+    skipWaiting: () => tick(undefined),
+    clients: { claim: () => tick(undefined) },
+    addEventListener: (type, fn) => { listeners[type] = fn; },
+  };
+  box.self = box;
+  try {
+    vm.createContext(box);
+    vm.runInContext(fs.readFileSync(swFile, "utf8"), box, { filename: "sw.js" });
+    ["install", "activate", "fetch"].forEach(t => {
+      if (typeof listeners[t] !== "function") problems.push(`sw.js: no "${t}" listener, so the worker cannot ${t === "fetch" ? "answer a request" : t}`);
+    });
+    if (listeners.install) listeners.install({ waitUntil: () => {} });
+    if (!Array.isArray(precached)) problems.push("sw.js: install must precache a list of files (caches.open(CACHE).then(c => c.addAll(FILES)))");
+    else {
+      const dupes = [...new Set(precached.filter((f, i) => precached.indexOf(f) !== i))];
+      if (dupes.length) problems.push("sw.js: precache list repeats " + dupes.join(", "));
+      /* addAll is all-or-nothing: one entry that 404s installs no offline shell at all. */
+      const dead = precached.filter(f => !fs.existsSync(__dirname + "/" + f));
+      if (dead.length) problems.push(`sw.js: precache lists missing file(s) ${dead.join(", ")}; addAll is all-or-nothing, so one dead entry installs no offline shell at all`);
+      const escaped = precached.filter(f => !/^[\w][\w./-]*$/.test(f));
+      if (escaped.length) problems.push(`sw.js: precache entries must be relative paths inside the site, got ${escaped.join(", ")}`);
+      const required = new Set(navPages.concat(["manifest.webmanifest", "offline.js", "assets/favicon.png", "assets/apple-touch-icon.png", "assets/icon-192.png", "assets/icon-512.png"]));
+      navPages.forEach(p => {
+        const html = fs.readFileSync(__dirname + "/" + p, "utf8");
+        for (const [, u] of html.matchAll(/(?:src|href)="((?:\.\.\/)*[\w.-]+\.(?:js|css))"/g)) required.add(u.replace(/^(\.\.\/)+/, ""));
+      });
+      [...fs.readFileSync(__dirname + "/theme.css", "utf8").matchAll(/url\((?:\.\/)?([^)]+\.woff2)\)/g)].forEach(m => required.add(m[1]));
+      /* Images are runtime-cached by design: the source plates are megabytes each and a page takes
+         its webp thumbnail first. The thumbnails are the portraits a dossier shows, so they are the
+         ones the shell has to carry. */
+      fs.readdirSync(__dirname + "/assets").filter(f => /-thumb\.webp$/.test(f)).forEach(f => required.add("assets/" + f));
+      const wanted = [...required].filter(f => !precached.includes(f));
+      if (wanted.length) problems.push(`sw.js: precache is missing ${wanted.length} file(s) the offline shell needs: ${wanted.join(", ")}`);
+      /* A phone installs this over cell data and the list only grows, so it has a ceiling. */
+      const bytes = precached.reduce((n, f) => n + (fs.existsSync(__dirname + "/" + f) ? fs.statSync(__dirname + "/" + f).size : 0), 0);
+      if (bytes > 4 * 1024 * 1024) problems.push(`sw.js: the precache is ${(bytes / 1048576).toFixed(1)}MB, over the 4MB budget a phone install has to carry`);
+    }
+    if (listeners.fetch) {
+      let crossAnswered = false;
+      listeners.fetch({ request: { method: "GET", url: "https://fonts.example/x.woff2" }, respondWith: () => { crossAnswered = true; } });
+      if (crossAnswered) problems.push("sw.js: another origin's request is not the worker's to answer");
+      let postAnswered = false;
+      listeners.fetch({ request: { method: "POST", url: "https://raddue.github.io/vargskel-worgs/export" }, respondWith: () => { postAnswered = true; } });
+      if (postAnswered) problems.push("sw.js: a POST must go to the network, not through a cache of GETs");
+      let answered = null;
+      listeners.fetch({ request: { method: "GET", url: "https://raddue.github.io/vargskel-worgs/mechbay.html" }, respondWith: r => { answered = r; } });
+      if (!answered) problems.push("sw.js: a same-origin GET must be answered with respondWith during dispatch, not after an await");
+    }
+  } catch (e) {
+    problems.push("sw.js: failed to evaluate against the stub worker scope: " + e.message);
+  }
+}
 /* The guide is Rurik's build sheet, so its shape is pinned: the quick guide is the first section
    and the only one open, it carries every level from LL0 to LL6, and every term the page hovers
    is also defined in the visible glossary. GLOSSARY is generated from the TERMS map in
