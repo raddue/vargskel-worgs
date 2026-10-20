@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 10
+revision: 11
 source: "design"
 ---
 
@@ -190,7 +190,8 @@ Placement is one rule, not four:
   `min(viewW, viewH) / (2 × viewR)` where `viewR = greatest + 24`. That is the whole formula: the
   24 px margin lives inside `viewR`, neither subtracted after the divide nor added to the divisor,
   because the three readings give 1.24×, 1.12× and 1.11× on `cressidium` and only this one is
-  written down. A member's own
+  written down. **The root is exempt**: its nodes are already absolute px in this same 1000×480
+  space, so the root draws at scale 1 and this rule never applies to it. A member's own
   radius is in there because a mostly-vertical body would otherwise overhang the edge while its
   centre passed the test. On `cressidium` the radius is 193 px, set by `kessen` at 167 plus its
   26 px hex; on `elysia` it is 269.7 px, set by `vsaf` at 260.7 plus its 9 px glyph, not by `rio`
@@ -275,8 +276,8 @@ from a level band (`archive.js:108` today), and from one table rather than two: 
 `MOON`, `STATION`, `WRECK FIELD` or `ORBITAL` frame reads `ORBIT GRID`; a `DISTRICT`, `FOB` or
 `ZONE` frame reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID`; the root reads `SECTOR HOLOMAP` over
 `SECTOR GRID · 50 U`. **Only the root's label carries units**, because the grid pattern is a
-fixed 50 px texture (`intel.html:54`) defined in the root's own coordinate units and scaled with
-them, so `50 U` is a
+fixed 50 px texture (`intel.html:54`) drawn in the root's own coordinate units, where the root
+draws at scale 1, so `50 U` is a
 measurement on the root and false anywhere else (`cressidium` draws at about 1.11× with the
 reason the legend says `NOT DISTANCE`. `ponytail:` the pattern is not scaled to the fit;
 upgrade if a frame ever needs measurable ground.
@@ -305,11 +306,11 @@ that no record supports, so it is declared rather than smuggled in.
 
 - It is **drawn procedurally in SVG**, not from art, because no asset exists and none is
   wanted yet. Its position is declared as a bearing from the viewBox centre (`starBearing: 270`,
-  due west) at `starRadius = viewR`, the frame's own view radius, so the star rides the fitted rim
-  and clears the bodies by the margin. It is drawn inside the same scaled group as the bodies, so
-  it scales with them, and the root is no exception: the greatest body distance from `500, 240` on
-  the root is 868 px (`tarn`), so `viewR` is 892 and the root is fitted at about 0.27 like every
-  other frame. `ponytail:` a `starBearing` constant in the builder names it as an invented value,
+  due west) at `starRadius`, the greatest body-centre distance from that centre, which on the root
+  is **381 px** (`tarn`, placed at `860, 115`; 868 px was that same distance read from the left
+  edge rather than from the centre). The root draws at scale 1, so the star rides no fitted rim and
+  needs no margin: at bearing 270 it lands at about `119, 240`, clear of `cressidium` at 181 px with
+  its 72 px disc, and inside the viewBox. `ponytail:` a `starBearing` constant in the builder names it as an invented value,
   upgradeable to a record if the star ever needs a file. A test asserts that the star's `data-x`
   and `data-y` land inside the 1000×480 viewBox with a margin, its own radius too, the same shape
   of check the member positions get at `:428`.
