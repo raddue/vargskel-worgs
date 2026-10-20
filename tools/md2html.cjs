@@ -253,6 +253,7 @@ function render() {
 .guide details.gsec[open] .gcaret::before{content:"\\25BE"}
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
+<script src="${p("compact.js")}"></script>
 </head>
 <body>
 <div class="shell">
@@ -261,6 +262,7 @@ ${chrome.topline("VW // TACTICAL DOCTRINE", "BUILD GUIDE · AVERNA")}
 ${chrome.brand("TACTICAL WIKI · BUILD GUIDE")}
 ${chrome.nav("../../")}
 ${chrome.status("ACTIVE")}
+${chrome.compactToggle()}
 </header>
 <main class="guide"><div class="columns"><div class="primary fill">${tooltips(H.join("\n"))}\n${glossary(toc)}</div>
 <aside class="aside fill">${tocNav(toc)}</aside></div></main>

@@ -205,3 +205,19 @@
 .att-cell b{color:var(--cyan)}
 .att-last{margin-left:auto;color:var(--muted)}
 #lo-export pre{white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* #20 phone density: compact.js puts data-compact on <html> from the visitor's stored choice and
+   the control is chrome.compactToggle(). Type and table padding tighten only, so the same page
+   carries the same records either way and a reader can flip back without losing content. */
+.compact-toggle{border:1px solid var(--line);background:transparent;color:var(--muted);font:13px var(--mono);letter-spacing:.1em;padding:9px 12px;cursor:pointer;flex-shrink:0}
+.compact-toggle:hover,.compact-toggle:focus-visible{border-color:var(--cyan);color:var(--cyan)}
+html[data-compact="1"] .compact-toggle{border-color:var(--cyan);color:var(--cyan)}
+html[data-compact="1"] body{font:14px/1.42 var(--sans)}
+html[data-compact="1"] .brandrow{padding:16px 0 12px}
+html[data-compact="1"] .card-pad{padding:12px}
+html[data-compact="1"] .section-head{margin:18px 0 9px;padding-bottom:7px}
+html[data-compact="1"] .hero-copy{padding:22px}
+html[data-compact="1"] .mission-title{font-size:19px}
+html[data-compact="1"] .operation-table th{padding:5px 12px 5px 0}
+html[data-compact="1"] .operation-table td{font-size:14px;padding:5px 0}
+html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}

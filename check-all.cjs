@@ -761,6 +761,54 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
    template-text matches report false positives. */
 const { mount } = require("./tools/render.cjs");
 
+/* #20 phone density. The control is chrome.compactToggle(), so it rides every page the way the nav
+   does, and compact.js applies the stored choice from <head>, before the body paints. The rules
+   tighten type and table padding only: no record, rule, or line of prose is hidden, so a page
+   carries the same content either way. */
+navPages.forEach(p => {
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
+  const prefix = p.includes("/") ? "../../" : "";
+  const got = (src.match(/<button class="compact-toggle"[\s\S]*?<\/button>/) || [])[0];
+  if (got !== chrome.compactToggle())
+    problems.push(`${p}: compact toggle differs from tools/chrome.cjs; copy chrome.compactToggle() into the page`);
+  /* Last thing in <head>: in the body it would land after the first paint and flash the roomier layout. */
+  if (!src.includes(`<script src="${prefix}compact.js"></script>\n</head>`))
+    problems.push(`${p}: compact.js must load last in <head>, so the stored layout applies before the body paints`);
+});
+const compactCss = fs.readFileSync(__dirname + "/style.css", "utf8");
+[`html[data-compact="1"] body{font:14px/1.42 var(--sans)}`,
+ `html[data-compact="1"] .card-pad{padding:12px}`,
+ `html[data-compact="1"] .operation-table td{font-size:14px;padding:5px 0}`,
+ `html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}`].forEach(rule => {
+  if (!compactCss.includes(rule)) problems.push(`style.css: compact density rule missing or edited: ${rule}`);
+});
+/* Driven through the control, and through a second page load: the choice has to survive the reload
+   the ticket names, which means the markup alone must re-apply it. */
+{
+  const memStore = () => { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: k => { m.delete(k); } }; };
+  const store = memStore();
+  const first = mount("pilots.html", "", { localStorage: store });
+  const btn = first.nodes["compact-toggle"];
+  if (!btn) problems.push("pilots.html: the compact toggle must reach the page markup");
+  else {
+    btn.fire("click");
+    if (first.doc.documentElement.dataset.compact !== "1") problems.push("the compact toggle must set data-compact on the page root");
+    if (btn.getAttribute("aria-pressed") !== "true") problems.push("turning compact on must tell a screen reader it is pressed");
+    if (store.getItem("vw.compact") !== "1") problems.push("the compact choice must be written to the visitor's own storage");
+    const reload = mount("pilots.html", "", { localStorage: store });
+    if (reload.doc.documentElement.dataset.compact !== "1") problems.push("a reload must re-apply the stored compact layout");
+    /* The stub registers every id in the markup up front, so it cannot see the head script running
+       before the control exists. This clause guards the requirement; the chromium probe is what
+       proves the ordering, and it caught the version that read "not pressed" on a compact reload. */
+    if (reload.nodes["compact-toggle"].getAttribute("aria-pressed") !== "true")
+      problems.push("a reload must tell a screen reader the stored layout is on, not just the stylesheet");
+    reload.nodes["compact-toggle"].fire("click");
+    if (reload.nodes["compact-toggle"].getAttribute("aria-pressed") !== "false") problems.push("turning compact off must unpress the control");
+    if (reload.doc.documentElement.dataset.compact !== "") problems.push("turning compact off must clear the attribute");
+    if (store.getItem("vw.compact") !== null) problems.push("turning compact off must drop the stored choice");
+  }
+}
+
 /* #28 session-log stepper: the emission is pure, the round trip goes through the CLI's own
    parser, and the stepper is driven under the stub the way a GM clicks it. */
 {
