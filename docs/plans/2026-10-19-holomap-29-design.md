@@ -15,7 +15,7 @@ The map cannot be looked *into*, and its bodies are interchangeable symbols.
 Every location is drawn by a glyph from `archive.js`'s `KINDS` table: a planet, a moon, a
 station and a wreck field are all polygons and circles on the same flat grid. Nothing about
 the drawing says which is a world and which is hardware, and "see the planets in the system"
-is not something the frame supports — there is one frame per band, and a body has no inside
+is not something the frame supports. There is one frame per band, and a body has no inside
 to open.
 
 Two specific asks from the operator, verbatim:
@@ -33,7 +33,7 @@ The structural work #25 asked for has landed. This is a real starting point, not
 - `archive.js:112` `holomap(level)` is already pure, already returns `{world, key, grid, aria}`,
   already throws on an unknown level, and already has `fitLevel`, `unitFile` and `showUnit`
   split out (`archive.js:156`, `:175`, `:184`) and exported (`archive.js:451`). Under frames it
-  returns `{world, key, grid, aria, crumbs, locator}` — that shape is stated once, here, and the
+  returns `{world, key, grid, aria, crumbs, locator}` : that shape is stated once, here, and the
   sections below refer to it rather than repeating it.
 - `LEVELS` (`archive.js:107`) holds exactly two frames, `SYSTEM` and `THEATER`.
 - Orbit rings already exist and are already honest: only `MOON`, `STATION` and `ORBITAL` with
@@ -62,19 +62,19 @@ Current data, verbatim, because the migration below is defined against it:
 
 | id | kind | level | frame | parent | x | y |
 |---|---|---|---|---|---|---|
-| cressidium | PLANET | SYSTEM | — | — | 30 | 52 |
-| pell | MOON | SYSTEM | — | cressidium | 39 | 39 |
-| kessen | STATION | SYSTEM | — | cressidium | 46 | 62 |
-| cairn | WRECK FIELD | SYSTEM | — | — | 66 | 76 |
-| tarn | PLANET | SYSTEM | — | — | 86 | 24 |
-| harrow | STATION | SYSTEM | — | tarn | 78 | 38 |
-| elysia | CITY | THEATER | cressidium | — | 38 | 44 |
-| district | DISTRICT | THEATER | — | elysia | 45 | 33 |
-| industry | DISTRICT | THEATER | — | elysia | 26 | 36 |
-| dock | FOB | THEATER | — | industry | 20 | 49 |
-| dropzone | ZONE | THEATER | — | — | 25 | 63 |
-| rio | ORBITAL | THEATER | cressidium | — | 50 | 8 |
-| vsaf | ZONE | THEATER | cressidium | — | 64 | 40 |
+| cressidium | PLANET | SYSTEM | none | none | 30 | 52 |
+| pell | MOON | SYSTEM | none | cressidium | 39 | 39 |
+| kessen | STATION | SYSTEM | none | cressidium | 46 | 62 |
+| cairn | WRECK FIELD | SYSTEM | none | none | 66 | 76 |
+| tarn | PLANET | SYSTEM | none | none | 86 | 24 |
+| harrow | STATION | SYSTEM | none | tarn | 78 | 38 |
+| elysia | CITY | THEATER | cressidium | none | 38 | 44 |
+| district | DISTRICT | THEATER | none | elysia | 45 | 33 |
+| industry | DISTRICT | THEATER | none | elysia | 26 | 36 |
+| dock | FOB | THEATER | none | industry | 20 | 49 |
+| dropzone | ZONE | THEATER | none | none | 25 | 63 |
+| rio | ORBITAL | THEATER | cressidium | none | 50 | 8 |
+| vsaf | ZONE | THEATER | cressidium | none | 64 | 40 |
 
 ## Decision
 
@@ -117,7 +117,7 @@ set read as the root's children. So `cressidium`, `tarn` and `cairn` sit as prin
 frame metadata because no record supplies one, and its scale is `SYSTEM`, the `level` every
 frameless record already carries.
 
-A record's `x,y` is expressed in the scale of the frame it is **drawn on** — except a record
+A record's `x,y` is expressed in the scale of the frame it is **drawn on**, except a record
 that is itself a frame's subject, whose `x,y` is in **its own frame's** scale, because its
 members are laid out around it in those units. `campaign.js:23` says so outright: "Coordinates are per level, so the two frames are
 not drawn to one scale", and the grids are labelled `SECTOR GRID · 50 U` and
@@ -153,7 +153,7 @@ Placement is one rule, not four:
   anti-star axis is 90°, and **the pin must fall within 90° of that axis, asserted**, which is what
   keeps it off the day side rather than a remark in prose. The bearing is not aimed at `pell`
   (`pell` is at 55.3°): at 100° the pin lands 77.3 px from `pell`, clear of their radii. **The pin
-  has a radius of its own, 12 px** — the city glyph plus its halo — and the assertion is that it
+  has a radius of its own, 12 px** (the city glyph plus its halo), and the assertion is that it
   clears every same-frame member by the sum of their two radii. Today
   exactly one member is in this case: `elysia` on `cressidium`. A cross-scale member
   with no `pinBearing` of its own throws rather than inventing an angle, so a second one cannot
@@ -161,7 +161,7 @@ Placement is one rule, not four:
   bearing is what a one-scale page can honestly draw; upgrade to a real projection when a second
   scale must be *measured* across, not merely positioned.
 - A ring is drawn around the parent at the radius of the child riding it, for a `MOON`, `STATION`
-  or `ORBITAL` child only (the gate at `archive.js:128-129`) — `dock`, `district` and `industry`
+  or `ORBITAL` child only (the gate at `archive.js:128-129`): `dock`, `district` and `industry`
   are ground members and get no ring, which `check-all.cjs:322` already asserts. The parent may
   be the frame's subject (`rio` over `elysia`) or a principal on the root (`pell` over
   `cressidium`).
@@ -174,19 +174,19 @@ Placement is one rule, not four:
   a viewBox unit. One radius per kind, at 1×: a planet member 54, a moon 30, a station hex 26, a
   wreck field 9, an orbital hull 46 (the `KINDS` hull widened to hold an art plate; 11 today),
   and a ground kind keeps its own glyph extent (`CITY` 9, `DISTRICT` 8, `FOB` 9, `ZONE` 9),
-  because those glyphs stay unchanged. The **subject's** radius — `discRim` on an art-disc kind —
+  because those glyphs stay unchanged. The **subject's** radius (`discRim` on an art-disc kind)
   is 72, and for a ground subject it is the glyph's own extent. `ponytail:` upgrade to per-body
   radii if the art needs them. Scaling positions but not radii is what let a planet's disc swallow
   its own moon's ring on the mockup, so the two are one rule. 72 and not 88 because `pell` rides
   `cressidium` at 109.5 px, and 72 + 30 clears it while 88 + 30 would not: **no same-scale member
   may sit inside the subject's disc or glyph**, asserted as `offset ≥ subjectRadius +
-  memberRadius` — 109.5 ≥ 72 + 30 on `cressidium`, and 87.7 ≥ 9 + 8 on `elysia`.
+  memberRadius` : 109.5 ≥ 72 + 30 on `cressidium`, and 87.7 ≥ 9 + 8 on `elysia`.
 - **`rio` must not set `elysia`'s fit.** Its hull at 46 px and 210.4 px out gives 256.4, under
   `vsaf` at 260.7 plus its 9 px glyph, which is what the test below asserts.
 - The frame's **view radius** is `max(discRim, max(offset + memberRadius))` over the members that
-  share the frame's scale — floored at the 72 px disc so a frame holding only its subject (`pell`,
+  share the frame's scale, floored at the 72 px disc so a frame holding only its subject (`pell`,
   `kessen`, `harrow`, `cairn`, `dock`, `district`, `dropzone`, `rio`, `vsaf`) is not drawn at
-  about 40× — computed from the records and never hard-coded. The camera scale is
+  about 40×, computed from the records and never hard-coded. The camera scale is
   `min(viewW, viewH) / (2 × viewR)` where `viewR = greatest + 24`. That is the whole formula: the
   24 px margin lives inside `viewR`, neither subtracted after the divide nor added to the divisor,
   because the three readings give 1.24×, 1.12× and 1.11× on `cressidium` and only this one is
@@ -204,7 +204,7 @@ Placement is one rule, not four:
   overlapped `FOB SABER`. `ponytail:` acceptable for now; upgrade to a collision pass when a
   frame carries more than six labelled members.
 
-So the rule is: **every record has one home frame — its `frame` if set, `SYSTEM` otherwise —
+So the rule is: **every record has one home frame**: its `frame` if set, `SYSTEM` otherwise,
 and a satellite is also drawn on its parent's frame.** That gives the no-leak test a real
 membership to test: `members(F)` is the only set of ids a frame may draw.
 
@@ -240,7 +240,7 @@ None is retired, and no id changes.
   - `cressidium`, `tarn`, `cairn`, `pell`, `kessen`, `harrow` keep no `frame` (root frame)
 - **`rio.parent` → `"elysia"`** so the orbit ring draws. Today `rio.parent` is absent, so the
   `ORBITAL` never gets the ring `archive.js:129` would give it; the hull is drawn floating.
-- **`elysia.pinBearing: 100` is added** — the compass bearing of the city on `cressidium`'s disc, 10° off the anti-star axis so the pin sits on the night face and clear of `pell`.
+- **`elysia.pinBearing: 100` is added**: the compass bearing of the city on `cressidium`'s disc, 10° off the anti-star axis so the pin sits on the night face and clear of `pell`.
   It rides the pinned record, not the frame's metadata, so a second cross-scale member cannot
   reuse one value silently, and a record carrying a bearing without being a pin is an error.
 - **`factions[].zone` gains `frame: "elysia"`** (`campaign.js:59-62`), so a zone is drawn where
@@ -288,10 +288,10 @@ frame reads `ORBIT HOLOMAP`, a ground frame `GROUND HOLOMAP`, a city `THEATER HO
 root `SECTOR HOLOMAP`; the sub-head is the subject's name (the root's is `CRESSIDIUM SYSTEM`).
 The root's four strings are fixed verbatim: head `SECTOR HOLOMAP`, sub `CRESSIDIUM SYSTEM`, grid
 `SECTOR GRID · 50 U`, aria `Sector holomap: the star's bodies and their orbits. Select a body to
-read its file.` The three non-root arias follow their own head word — `Orbit holomap of <name>:
+read its file.` The three non-root arias follow their own head word: `Orbit holomap of <name>:
 the body, what orbits it, and what stands on it. Select a site to read its file.` for orbit,
 `Ground holomap of <name>: the ground, its sites and approaches. ...` for ground, and the same
-sentence with `Theater` for a city — and a frame that draws a pin appends ` POSITION ON DISC
+sentence with `Theater` for a city, and a frame that draws a pin appends ` POSITION ON DISC
 DECLARED.` to whichever one it uses, so a reader is told the one invented claim on the frame.
 Head and sub mount into `#holo-head` and `#holo-sub`; the aria goes on the `<svg>`'s
 `aria-label`; the star's `<g>` carries `role="img"`, because an `aria-label` on a bare `<g>` is
@@ -357,7 +357,7 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 
 - **Frames swap.** Descending renders the target frame in place of the current one, the same
   way `SYSTEM`/`THEATER` swap today: `fitLevel(frameId)` stays the single switch point
-  (`archive.js:156`), and #25's rule stands — the camera transition is disabled, the transform
+  (`archive.js:156`), and #25's rule stands: the camera transition is disabled, the transform
   reset, the body swapped, the transition restored on the next frame.
 - **The frame stack is derived, not stored.** The descent path is the `frame` chain from the
   current frame, `[..., "cressidium", "elysia"]`, so climbing is exact and a link to a deeper
@@ -384,7 +384,7 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
   ancestor of the frame you are standing on marked active. Descent otherwise removes the system
   from view, and a breadcrumb names a path without showing where Cressidium sits among Tarn and
   Cairn Drift. It is one HTML strip of real `<button>`s outside `#holo-world`, which is what
-  makes a button legal — an SVG `<g role="button">` is not a button — and keeps the camera from
+  makes a button legal (an SVG `<g role="button">` is not a button) and keeps the camera from
   dragging it. Locator nodes carry `data-frame`, never `data-loc` and never `class="node"`:
   `data-loc` would count them against the frame's membership in `check-all.cjs:282`, open a pane
   through the document delegate (`archive.js:205-213`), pan the camera to SYSTEM coordinates on
@@ -413,8 +413,8 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
   satellite is additionally drawn on its parent's frame, so `members(F)` as defined above is the
   whole set a frame may draw. "One drawing frame" is a rule with a stated exception, not an
   approximation.
-- Every frame id names a location that exists — except the root, `SYSTEM`, which no record names
-  and which supplies its own `kind` and scale — and `members(F)` contains its subject for every
+- Every frame id names a location that exists, except the root, `SYSTEM`, which no record names
+  and which supplies its own `kind` and scale, and `members(F)` contains its subject for every
   descended frame, so a frame always has something to draw. A frame whose membership is only its
   subject renders that body alone, and only then has no `ENTER` chip.
 - `frame` never names the location itself, and the frame graph is acyclic: the frame stack is
@@ -432,7 +432,7 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 - No `CURRENT OP` marker anywhere while `ops[0]` is `PLANNED`/`UNBRIEFED`, ancestors included.
 - `holomap(frameId)` stays pure: given `C`, returns the shape stated above and touches no DOM.
 - Every non-`SYSTEM` frame carries the locator, and its body set is exactly the `SYSTEM`
-  frame's principal bodies plus the star — principal only, so a moon that stops being a
+  frame's principal bodies plus the star, principal only, so a moon that stops being a
   principal stops appearing there while keeping its place in `members` on its planet's frame.
 - The locator marks the ancestor of the current frame active, found by walking the `frame` chain:
   exactly one when that chain contains a principal body, and none when it does not, because
@@ -446,14 +446,14 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 
 Requires tests, all through the pure builder:
 
-- Membership is the contract: for `SYSTEM` and every location id — 14 frames today, not the five
-  the old map drew — the frame's `data-loc` set equals `members(F)` exactly, and the locator's
+- Membership is the contract: for `SYSTEM` and every location id: 14 frames today, not the five
+  the old map drew: the frame's `data-loc` set equals `members(F)` exactly, and the locator's
   set is separate. This generalises the `check-all.cjs:283-287` no-leak pair from two frames to
   every frame, and it finally has a membership to test against.
 - `holomap("cressidium")` draws `cressidium` at centre, `pell` and `kessen` as full bodies and
   `elysia` as a pin; `holomap("SYSTEM")` draws `pell` and `kessen` each on its own ring about
-  `cressidium` (radii 109.5 px and 167 px). The `r` attribute is written unrounded — the
-  `Math.round` at `archive.js:130` goes — and the test still compares within 1 px so the choice
+  `cressidium` (radii 109.5 px and 167 px). The `r` attribute is written unrounded: the
+  `Math.round` at `archive.js:130` goes, and the test still compares within 1 px so the choice
   cannot rot.
 - `holomap("elysia")` draws `elysia` at centre with `rio` on a ring centred on `elysia`;
   `holomap("tarn")` draws `harrow`.
@@ -466,8 +466,8 @@ Requires tests, all through the pure builder:
 - Every member id appears exactly once on its frame. A second node carrying the same `data-loc`
   is a leak rather than a satellite, which is what pins `rio` to one draw on `elysia` now that
   it carries both `frame: "elysia"` and `parent: "elysia"`.
-- Every member's **placed** position — the `data-x`/`data-y` the builder emits, not its raw
-  offset, which for a pin is the meaningless cross-frame subtraction above — lands inside the
+- Every member's **placed** position: the `data-x`/`data-y` the builder emits, not its raw
+  offset, which for a pin is the meaningless cross-frame subtraction above, lands inside the
   1000×480 viewBox with a margin, **centre and drawn radius both**, so a mostly-vertical body
   cannot overhang the edge while its centre passes the check. The radius is derived from the
   records rather than typed in, which a test can show by moving one record's coordinate and
@@ -563,11 +563,11 @@ Requires tests, all through the pure builder:
 - The UI frame stack has no state of its own: it is the `frame` chain from the current frame, so
   `frame` (`archive.js:110`) stays the single source and a second stack would only drift.
 
-- `check-all.cjs:53` requires `level`, which **stays**, and `:65` reports any `null` key as missing — which is why `frame` and `pinBearing` cannot join that list, and why both get their own optional-type check instead.
+- `check-all.cjs:53` requires `level`, which **stays**, and `:65` reports any `null` key as missing, which is why `frame` and `pinBearing` cannot join that list, and why both get their own optional-type check instead.
 - The map block runs `:266-404`, not `:266-288`, and all of it is affected: `:283-287` the
   no-leak pair, `:288` `SYSTEM VIEW`, `:303-306` the kind/label pair, `:318-320` the
   `Theater`/`Sector holomap` aria and grid names, `:330-337` the site chips, which re-key from
-  `level==="SYSTEM"` to the root frame's members — so `NOV ELYSIA SITE` **leaves** `SYSTEM`,
+  `level==="SYSTEM"` to the root frame's members, so `NOV ELYSIA SITE` **leaves** `SYSTEM`,
   because `elysia` is a member of `cressidium` and is drawn there as a pin. `:339-340` `ENTER THEATER` (renamed `ENTER <NAME>`), `:342-345` the same-level
   `level`/`parent`/`frame` checks, `:387-393` `PLANNED LEG` and `TRAVELLED` through
   `holomap("THEATER")`.
@@ -579,7 +579,7 @@ Requires tests, all through the pure builder:
   on `zone.frame === F`. After the migration `dock` is on `industry` and `elysia` is on
   `cressidium`, so no frame holds both ends and op 001's leg disappears. Zones move to `elysia`,
   where their theatre coordinates belong, and a leg is drawn per frame between the frame-local
-  ancestor of each endpoint — the hard-coded origin `"dock"` at `archive.js:120` becomes the
+  ancestor of each endpoint: the hard-coded origin `"dock"` at `archive.js:120` becomes the
   endpoint's frame-local ancestor, and a leg whose ends collapse to the same ancestor is skipped
   rather than drawn at zero length, which is what happens on `SYSTEM` and `cressidium`.
 - `archive.js:155` `startLevel()` reads `level`.
