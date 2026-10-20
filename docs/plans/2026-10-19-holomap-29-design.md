@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 11
+revision: 12
 source: "design"
 ---
 
@@ -266,6 +266,14 @@ markers.
 | `ORBITAL` | art plate in a hull silhouette, on its orbit ring | the Rio Grande reads as a hull, not a world |
 | `CITY`, `DISTRICT`, `FOB`, `ZONE` | the existing `KINDS` glyphs, unchanged | these are ground symbols on a plan view; the glyph is right for them |
 
+Every subject whose kind is an art kind (`PLANET`, `MOON`, `STATION`, `WRECK FIELD`,
+`ORBITAL`) draws at the 72 px subject disc whatever that kind's member radius is, so a station
+frame's subject is a disc-sized plate and its 26 px member radius applies only where it is a
+member of someone else's frame. A subject that is a ground kind keeps its `KINDS` glyph size,
+because a glyph has no disc to fill. The fit radius takes the subject's drawn radius (the disc,
+plus `PIN_R` when the frame draws a pin) and each same-scale member's own kind radius, so a moon
+can never sit inside the planet's rim or on its glyph.
+
 The builder must throw on a kind with no renderer, exactly as it throws on a kind with no
 marker today (`archive.js:118`). Silence is the failure mode being removed.
 
@@ -275,7 +283,19 @@ The frame's head, sub-head, grid label and `aria` derive from the subject's kind
 from a level band (`archive.js:108` today), and from one table rather than two: a `PLANET`,
 `MOON`, `STATION`, `WRECK FIELD` or `ORBITAL` frame reads `ORBIT GRID`; a `DISTRICT`, `FOB` or
 `ZONE` frame reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID`; the root reads `SECTOR HOLOMAP` over
-`SECTOR GRID · 50 U`. **Only the root's label carries units**, because the grid pattern is a
+`SECTOR GRID · 50 U`. The head word tracks the same kind the way the grid label does, so an orbit
+frame reads `ORBIT HOLOMAP`, a ground frame `GROUND HOLOMAP`, a city `THEATER HOLOMAP`, and the
+root `SECTOR HOLOMAP`; the sub-head is the subject's name (the root's is `CRESSIDIUM SYSTEM`).
+The root's four strings are fixed verbatim: head `SECTOR HOLOMAP`, sub `CRESSIDIUM SYSTEM`, grid
+`SECTOR GRID · 50 U`, aria `Sector holomap: the star's bodies and their orbits. Select a body to
+read its file.` The three non-root arias follow their own head word — `Orbit holomap of <name>:
+the body, what orbits it, and what stands on it. Select a site to read its file.` for orbit,
+`Ground holomap of <name>: the ground, its sites and approaches. ...` for ground, and the same
+sentence with `Theater` for a city — and a frame that draws a pin appends ` POSITION ON DISC
+DECLARED.` to whichever one it uses, so a reader is told the one invented claim on the frame.
+Head and sub mount into `#holo-head` and `#holo-sub`; the aria goes on the `<svg>`'s
+`aria-label`; the star's `<g>` carries `role="img"`, because an `aria-label` on a bare `<g>` is
+ignored by several screen readers. **Only the root's label carries units**, because the grid pattern is a
 fixed 50 px texture (`intel.html:54`) drawn in the root's own coordinate units, where the root
 draws at scale 1, so `50 U` is a
 measurement on the root and false anywhere else (`cressidium` draws at about 1.11× with the
@@ -346,11 +366,19 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 - **The breadcrumb is the way out**, replacing the two `SYSTEM|THEATER` buttons in
   `intel.html:40` and their delegate at `intel.html:103`: `CRESSIDIUM SYSTEM › CRESSIDIUM ›
   NOV ELYSIA`, one real `<button>` per ancestor, keyboard-reachable. The `SYSTEM VIEW` key
-  chip in the theater frame (`archive.js:148`, asserted at `check-all.cjs:288`) becomes
-  `UP ONE LEVEL` and lives in the breadcrumb instead of the key. The breadcrumb and the locator
-  are HTML strips outside `#holo-world`, so the camera and the pinch never reach them, and the
-  builder returns both as `crumbs` and `locator` alongside `world`, `key`, `grid` and `aria`,
-  so tests assert on data instead of on page markup.
+  chip in the theater frame (`archive.js:148`) is **removed**, not renamed: no frame's key emits
+  it again, and its one job, climbing out, moves to a `UP ONE LEVEL` button in the breadcrumb,
+  which is where `check-all` now asserts it (`:288` inverts from "must offer" to "must not").
+  The breadcrumb and the locator are HTML strips outside `#holo-world`, so the camera and the
+  pinch never reach them, and the builder returns both as `crumbs` and `locator` alongside
+  `world`, `key`, `grid` and `aria`, so tests assert on data instead of on page markup. Their
+  hosts are `#holo-crumbs` and `#holo-locator` in the map head. The crumb markup is one
+  `.crumb-up` button carrying `data-frame`, then one `.crumb` button per ancestor (`SYSTEM`
+  labelled `CRESSIDIUM SYSTEM`) separated by `.crumb-sep`, ending in a `.crumb-now` span carrying
+  `aria-current="page"`; on the root it is that span alone, with no buttons. The locator is a
+  `.sys-locator` group, `role="group"`, labelled `System locator: open a principal body's
+  frame`, whose buttons carry `data-frame` and whose body nearest the current frame is marked
+  active.
 - **The system stays visible.** Every non-`SYSTEM` frame carries a small **system locator**: the
   system's principal bodies (`cressidium`, `tarn`, `cairn`) plus the declared star, with the
   ancestor of the frame you are standing on marked active. Descent otherwise removes the system
@@ -397,6 +425,10 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
   contradiction, so it throws: today `pell`, `kessen` and `harrow` all share their parent's
   scale, as do `dock`, `district` and `industry`.
 - A kind with no renderer throws, and a kind with no key chip throws.
+- No frame's `key` offers `SYSTEM VIEW`: the way out is the breadcrumb's `UP ONE LEVEL`.
+- A frame's aria says `POSITION ON DISC DECLARED` exactly when that frame draws a pin, and no
+  frame's aria claims a measured spot when it draws none.
+- The breadcrumb and the locator carry `data-frame` and never `data-loc` or `class="node"`.
 - No `CURRENT OP` marker anywhere while `ops[0]` is `PLANNED`/`UNBRIEFED`, ancestors included.
 - `holomap(frameId)` stays pure: given `C`, returns the shape stated above and touches no DOM.
 - Every non-`SYSTEM` frame carries the locator, and its body set is exactly the `SYSTEM`
