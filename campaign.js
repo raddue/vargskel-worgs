@@ -111,7 +111,7 @@ window.CAMPAIGN = {
     { id: "xxxg-01h", name: "WAYWARD", frame: "GMS SAGARMATHA", pilot: "guillaume", role: "TANK", glyph: "▰", img: "assets/xxxg-01h.png", state: "OPERATIONAL", size: 2,
       hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 1, stress: 4, heat: 6, repair: 5,
       attackBonus: 0, tech: "+0", limitedBonus: 0, spd: 4, eva: 8, edef: 8, sens: 10, save: 10,
-      mounts: [{"slot":"Main","weapons":["Charged Blade"]},{"slot":"Flex","weapons":["Missile Rack","Missile Rack"]},{"slot":"Heavy","weapons":["Heavy Machine Gun"]}],
+      mounts: [{ slot: "Main", weapons: ["Shotgun"] }, { slot: "Flex", weapons: ["Nexus (Hunter-Killer)"] }, { slot: "Heavy", weapons: ["Heavy Melee Weapon"] }],
       systems: ["Spaceborn EVA", "Expanded Compartment", "Pattern-A Smoke Charges", "Stable Structure", "Personalizations"] },
     { id: "scooteroo", name: "SCOOTEROO", frame: "GMS EVEREST", pilot: "danila", role: "FIRE SUPPORT", glyph: "▰", img: "assets/scooteroo.png", state: "OPERATIONAL", size: 1,
       hull: 2, agi: 0, sys: 0, eng: 0, structure: 4, hp: 14, armor: 0, stress: 4, heat: 6, repair: 6,

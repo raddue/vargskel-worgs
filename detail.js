@@ -71,22 +71,22 @@ window.DETAIL = {
    "effect": "",
    "profiles": []
   },
-  "Heavy Machine Gun": {
-   "mount": "Heavy",
-   "type": "Cannon",
-   "damage": "2d6+4 Kinetic",
-   "range": "Range 8",
-   "tags": "Inaccurate",
-   "license": "GMS LL0",
-   "desc": "Much like GMS mechs, GMS weapons are reliable galactic standards, made using interchangeable parts and built to withstand almost any conditions. There are three lines currently in production.<br>The Type-I (T-1) line is defined by powerful, reliable, and conventional-kinetic ranged and melee weapons, including the GMS assault rifle, heavy machine gun, shotgun, pistol, and various light and heavy blades. Reliable galactic standards, the GMS T-1 line is the most widely used mech-scale line of weaponry across the galaxy. Echoing the Everest’s design notes, T-1 weapons are simply designed, with few (if any) moving parts, intended to be used in or adaptable to any environment.",
-   "effect": "",
-   "profiles": []
-  },
   "Shotgun": {
    "mount": "Main",
    "type": "CQB",
    "damage": "1d6 Kinetic",
    "range": "Range 5, Threat 3",
+   "tags": "",
+   "license": "GMS LL0",
+   "desc": "Much like GMS mechs, GMS weapons are reliable galactic standards, made using interchangeable parts and built to withstand almost any conditions. There are three lines currently in production.<br>The Type-I (T-1) line is defined by powerful, reliable, and conventional-kinetic ranged and melee weapons, including the GMS assault rifle, heavy machine gun, shotgun, pistol, and various light and heavy blades. Reliable galactic standards, the GMS T-1 line is the most widely used mech-scale line of weaponry across the galaxy. Echoing the Everest’s design notes, T-1 weapons are simply designed, with few (if any) moving parts, intended to be used in or adaptable to any environment.",
+   "effect": "",
+   "profiles": []
+  },
+  "Heavy Melee Weapon": {
+   "mount": "Heavy",
+   "type": "Melee",
+   "damage": "2d6+1 Kinetic",
+   "range": "Threat 1",
    "tags": "",
    "license": "GMS LL0",
    "desc": "Much like GMS mechs, GMS weapons are reliable galactic standards, made using interchangeable parts and built to withstand almost any conditions. There are three lines currently in production.<br>The Type-I (T-1) line is defined by powerful, reliable, and conventional-kinetic ranged and melee weapons, including the GMS assault rifle, heavy machine gun, shotgun, pistol, and various light and heavy blades. Reliable galactic standards, the GMS T-1 line is the most widely used mech-scale line of weaponry across the galaxy. Echoing the Everest’s design notes, T-1 weapons are simply designed, with few (if any) moving parts, intended to be used in or adaptable to any environment.",
