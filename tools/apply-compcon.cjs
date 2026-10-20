@@ -217,6 +217,11 @@ function parseLoadoutBlock(text) {
 
 function selftest() {
   const errs = [];
+  /* a pilot's second build has no site record of its own, so it folds onto the pilot's mech and
+     the later build wins; the collapse has to be named */
+  const folded = foldedMechs({ callsign: "Dusty", mechs: [{ name: "Tombstone" }, { name: "Bullet hell" }] }, ["tombstone", "tombstone"]);
+  if (JSON.stringify(folded) !== JSON.stringify(["tombstone x2"])) errs.push(`a folded second build must be named, got ${JSON.stringify(folded)}`);
+  if (foldedMechs({ callsign: "A", mechs: [{}] }, ["alba"]).length !== 0) errs.push("one mech on one record is not a fold");
   /* A Pilot Group export keeps its payload as a JSON string under data, so every pilot-group file
      reported "no pilot records found" while archive-shaped exports worked. */
   const group = { EXPORT_TYPE: "Pilot Group", data: JSON.stringify({ pilotData: [{ callsign: "A", mechs: [{ id: "tombstone" }] }, { callsign: "B", mechs: [{ id: "skaldr" }] }] }) };
@@ -589,6 +594,15 @@ function runLogs(logs, args, write, meta = {}) {
   finish(text, args);
 }
 
+/* A pilot's second build has no site record of its own: the lookup falls back to the pilot's mech, so
+   two export mechs land on one record and the later build wins. Name the collapse rather than letting
+   it read as two ordinary lines. */
+function foldedMechs(pilot, resolvedIds) {
+  const counts = {};
+  for (const id of resolvedIds) if (id) counts[id] = (counts[id] || 0) + 1;
+  return Object.keys(counts).filter(id => counts[id] > 1).map(id => `${id} x${counts[id]}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
   if (args.includes("--selftest")) return selftest();
@@ -633,6 +647,7 @@ function main() {
       continue;
     }
     for (const pilot of pilots) {
+      const resolvedIds = [];
       const mine = C.pilots.find(p => (norm(pilot.callsign) && norm(p.name).includes(norm(pilot.callsign))) || (norm(pilot.name) && norm(p.name) === norm(pilot.name)));
       for (const cm of pilot.mechs || []) {
         const site = C.mechs.find(m => norm(m.name) === norm(cm.name)) || (mine ? C.mechs.find(m => m.pilot === mine.id) : null);
@@ -641,6 +656,7 @@ function main() {
           unmapped++;
           continue;
         }
+        resolvedIds.push(site.id);
         const { set, rejected, unknown } = mapMechState(cm);
         if (rejected.length) console.error(`${site.name}: refused condition label(s) ${JSON.stringify(rejected)}`);
         if (unknown.length) console.error(`${site.name}: condition label(s) outside the book list, kept as written: ${JSON.stringify(unknown)}`);
@@ -654,6 +670,8 @@ function main() {
         changed += res.notes.length ? 1 : 0;
         console.log(`${res.notes.length ? "UPDATE" : "same  "} ${site.name.padEnd(12)} ${res.notes.join(", ") || "no tracked change"}`);
       }
+      const folded = foldedMechs(pilot, resolvedIds);
+      if (folded.length) console.log(`note: ${pilot.callsign || pilot.name}: a second build folds onto ${folded.join(", ")}, so only the later one can be tracked`);
     }
   }
   console.log(`\n${files.length} export(s): ${changed} mech(s) changed, ${unmapped} unmapped`);
@@ -663,4 +681,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit, pilotsFrom, exportPayload };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit, pilotsFrom, exportPayload , foldedMechs };
