@@ -223,8 +223,8 @@
 /* #20 phone density: compact.js puts data-compact on <html> from the visitor's stored choice and
    the control is chrome.compactToggle(). Type and table padding tighten only, so the same page
    carries the same records either way and a reader can flip back without losing content. */
-.compact-toggle{border:1px solid var(--line);background:transparent;color:var(--muted);font:13px var(--mono);letter-spacing:.1em;padding:9px 12px;cursor:pointer;flex-shrink:0}
-.compact-toggle:hover,.compact-toggle:focus-visible{border-color:var(--cyan);color:var(--cyan)}
+.compact-toggle,.palette-toggle{border:1px solid var(--line);background:transparent;color:var(--muted);font:13px var(--mono);letter-spacing:.1em;padding:9px 12px;cursor:pointer;flex-shrink:0}
+.compact-toggle:hover,.compact-toggle:focus-visible,.palette-toggle:hover,.palette-toggle:focus-visible{border-color:var(--cyan);color:var(--cyan)}
 html[data-compact="1"] .compact-toggle{border-color:var(--cyan);color:var(--cyan)}
 html[data-compact="1"] body{font:14px/1.42 var(--sans)}
 html[data-compact="1"] .brandrow{padding:16px 0 12px}

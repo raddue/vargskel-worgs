@@ -949,6 +949,16 @@ PALETTE_PAGES.forEach(p => {
   const hosts = src.match(/<div id="palette"[^>]*>/g) || [];
   if (hosts.length !== 1) problems.push(`${p}: must carry one palette host, got ${hosts.length}`);
   else if (hosts[0] !== '<div id="palette" hidden>') problems.push(`${p}: the palette host must ship hidden, got ${hosts[0]}`);
+  /* Ctrl-K is invisible to anyone who has not been told, so the page carries the header control too. */
+  const controls = src.match(/<button class="palette-toggle"[\s\S]*?<\/button>/g) || [];
+  if (controls.length !== 1) problems.push(`${p}: must carry one palette control, got ${controls.length}`);
+  else if (controls[0] !== chrome.paletteToggle()) problems.push(`${p}: the palette control differs from tools/chrome.cjs; copy chrome.paletteToggle() into the page`);
+});
+/* The rule runs both ways: a control on a page that loads no palette.js is a button that opens nothing. */
+navPages.filter(p => !PALETTE_PAGES.includes(p)).forEach(p => {
+  const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
+  if (/palette-toggle/.test(src))
+    problems.push(`${p}: carries the palette control without loading palette.js, so the button opens nothing`);
 });
 const palettePath = __dirname + "/palette.js";
 const paletteSrc = fs.existsSync(palettePath) ? fs.readFileSync(palettePath, "utf8") : "";
@@ -958,6 +968,10 @@ else {
     problems.push("palette.js: the key binding belongs on the document, so it opens from wherever the page holds focus");
   if (!/ctrlKey/.test(paletteSrc) || !/metaKey/.test(paletteSrc))
     problems.push("palette.js: both Ctrl-K and Cmd-K must open the palette");
+  /* This file is in <head>, so the control is not parsed yet when it runs: the wiring has to hang off
+     the document. The click itself is probed in chromium, since the stub's document keeps no registry. */
+  if (!/document\.addEventListener\("click"/.test(paletteSrc) || !/palette-toggle/.test(paletteSrc))
+    problems.push("palette.js: the header control must be wired from the document, or the button does nothing");
   if (!/location\.href\s*=/.test(paletteSrc))
     problems.push("palette.js: Enter must open the selected record by assigning location.href");
 }

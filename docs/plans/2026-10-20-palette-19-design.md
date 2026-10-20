@@ -32,9 +32,13 @@ A new `palette.js`, loaded in `<head>` after `offline.js` on the eight campaign 
 way `compact.js` is loaded. Each of those pages carries an empty host, `<div id="palette" hidden>`,
 next to its other panel hosts. Markup, filtering and selection all live in `palette.js`.
 
-Nothing touches `tools/chrome.cjs`. That file is a shared surface with the mechbay session, and the
-ticket asks for a key binding rather than a control in the header. A chrome button is a one-line
-follow-up once the two sessions are editing that file together.
+`tools/chrome.cjs` was left alone in the first lot. That file is a shared surface with the mechbay
+session, and the ticket asks for a key binding rather than a control in the header. The control
+landed as a follow-up, after the handoff confirmed changes to a shared file go through this side:
+`chrome.paletteToggle()` is the chip that sits next to the density control, `palette.js` wires the
+click from the document (it is in `<head>`, so the button does not exist yet when it runs), and
+`check-all` pins the rule both ways, a page that loads `palette.js` carries one control and any
+other page carries none. `loadout.html` therefore stays without one.
 
 ## Destinations
 
@@ -101,8 +105,9 @@ were run against the new clauses, each one named by the check that caught it.
 
 ## Out of scope
 
-`loadout.html` and `catalogue.js` (the mechbay session's files), the guide page (it loads no campaign
-data, so a palette there would search nothing), and a header control.
+`loadout.html` and `catalogue.js` (the mechbay session's files), and the guide page (it loads no
+campaign data, so a palette there would search nothing). The sandbox has neither the palette nor the
+header control for it; the parity rule above is what keeps the two in step.
 
 ## Risks
 

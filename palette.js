@@ -114,6 +114,13 @@
 
   window.PALETTE = { open: open, close: close };
 
+  /* The header control is the way in for a visitor who has not been told about Ctrl-K. This file is
+     in <head>, so the button is not parsed yet when it runs: the click hangs off the document, which
+     also covers a page that assembles its header later. */
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "palette-toggle") open();
+  });
+
   document.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
       if (e.preventDefault) e.preventDefault();

@@ -27,6 +27,9 @@ const status = value => `<div class="status">${STATUS_LABEL}: ${value}</div>`;
 /* #20 phone density: the one control that turns the tighter layout on, next to the status chip,
    so every page reaches it. compact.js is its only writer. */
 const compactToggle = () => `<button class="compact-toggle" id="compact-toggle" type="button" aria-pressed="false" title="Denser type and tighter tables">COMPACT</button>`;
+/* #19 palette: a visitor who does not know Ctrl-K can still find the search, in the same row as the
+   density chip. palette.js is its only writer, and it ships only on the pages that load that file. */
+const paletteToggle = () => `<button class="palette-toggle" id="palette-toggle" type="button" title="Search every record (Ctrl-K)">SEARCH</button>`;
 const topline = (left, right) => `<div class="topline"><span>${left}</span><span>${right}</span></div>`;
 const brand = sub => `<div class="brand"><div class="mark"><span>W</span></div>` +
   `<div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">${sub}</div></div></div>`;
@@ -41,7 +44,7 @@ const hero = ({ eyebrow, title, deck, id, prefix = "", art, alt }) =>
   `<div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${deck ? `<p>${deck}</p>` : ""}</div>` +
   heroArt(prefix, art, alt) + `</section>`;
 
-module.exports = { STATUS_LABEL, statusRe, nav, status, compactToggle, topline, brand, hero, heroArt, PATCH };
+module.exports = { STATUS_LABEL, statusRe, nav, status, compactToggle, paletteToggle, topline, brand, hero, heroArt, PATCH };
 
 if (process.argv.includes("--selftest")) {
   const assert = require("assert");
@@ -55,6 +58,9 @@ if (process.argv.includes("--selftest")) {
   assert.ok(compactToggle().startsWith('<button class="compact-toggle"'), "the density control is a button");
   assert.ok(compactToggle().includes('aria-pressed="false"'), "the density control starts unpressed, so a screen reader reads the stored state compact.js sets");
   assert.ok(!nav().includes("compact-toggle"), "the density control is not a nav destination");
+  assert.ok(paletteToggle().startsWith('<button class="palette-toggle"'), "the palette control is a button");
+  assert.ok(paletteToggle().includes('id="palette-toggle"'), "palette.js finds the control by that id");
+  assert.ok(/Ctrl-K/.test(paletteToggle()), "the control names the shortcut, which is the only other way in");
   // a hero without a photo still fills its right side
   assert.ok(hero({ eyebrow: "E", title: "T", deck: "D" }).includes('src="assets/vargskel_worgs_patch_transparent.png"'), "hero should fall back to the unit patch");
   assert.ok(hero({ eyebrow: "E", title: "T", prefix: "../../", art: "assets/averna.png" }).includes('src="../../assets/averna.png"'), "hero should take a relative prefix and a page photo");
