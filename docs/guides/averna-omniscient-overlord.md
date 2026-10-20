@@ -15,6 +15,59 @@
 
 ---
 
+## Quick Guide
+
+Ride the **GMS CHOMOLUNGMA**. Take the **HORUS GOBLIN** and **SSC SWALLOWTAIL** ranks for their
+systems, never for their chassis. Mark what the squad is about to shoot, and the Autopod pays you
+back in free damage.
+
+### The levels, LL0 to LL6
+
+| LL | License rank | Talent rank | Core bonus |
+|---|---|---|---|
+| **LL0** | none yet | **Hacker I** · **Spotter I** · **Leader I** | not yet |
+| **LL1** | **GOBLIN I** | **Spotter II** | not yet |
+| **LL2** | **GOBLIN II** | **Spotter III** | not yet |
+| **LL3** | **GOBLIN III** | **Hacker II** | **Integrated Weapon** |
+| **LL4** | **SWALLOWTAIL I** | **Leader II** |  |
+| **LL5** | **SWALLOWTAIL II** | **Leader III** | |
+| **LL6** | **SWALLOWTAIL III** | **Hacker III** | a second core bonus |
+
+The two licenses are three ranks each and interleave freely from LL1 on. This order is the one the
+SP budget below can afford. **Plan B** spends LL4 to LL6 on **Technophile I-III** instead.
+
+**SP budget:** SP = frame SP **7** + **1 per two points of SYSTEMS** + **GRIT**. That is **8 at LL0**
+(7 + 1), **9 at LL1**, **10 at LL2**, **11 at LL3**. The fielded load is exactly **8**, with no slack.
+
+### The loop
+
+```
+LOCK ON a target within Sensors 15 (quick action, no attack roll, never fails)
+   an ally attacks it and consumes the mark for +1 Accuracy
+      AUTONOMOUS ASSAULT fires, 1/round, target within Range 15
+         automatic hit, 3 Kinetic, no action, no roll
+```
+
+**The systems that do the work:** **Autopod** (GOBLIN I, 1 SP) for the free 3 Kinetic · **H0R_OS
+System Upgrade I** (2 SP, at LL3) for Puppet System and Eject Power Cores · **Lotus Projector**
+(SWALLOWTAIL I) for sensor truth in a Burst 2 · **ATHENA-Class NHP** (SWALLOWTAIL III, 3 SP) for
+Simulacrum. The rest of the ranks are depth, and each has its own section below.
+
+**Why this hull:** the GOBLIN frame out-hacks a CHOMOLUNGMA and dies to one committed strike. Systems
+survive on a hull that is still standing at the end of the fight.
+
+### What to do on a turn
+
+- **LOCK ON** a character within **Sensors (15)** and line of sight. It is a **Quick Tech** with **no
+  attack roll**: E-Defense has nothing to do with marking.
+- **INVADE** the thing that matters: roll **1d20 + Tech Attack (+3)** against its **E-Defense**. On a
+  hit it takes **2 Heat** and you add one option (Fragment Signal, or Puppet System, or Eject Power
+  Cores).
+- **Let the Autopod fire.** A striker attacks the marked target and consumes the mark, so
+  **Autonomous Assault** hits that target for **3 Kinetic** automatically. No action, no roll.
+
+---
+
 ## 1. Core Concept & Build Philosophy
 
 ### The Framework: "Chomolung-lin"
@@ -70,14 +123,7 @@ makes **no attack roll**. It grants the **Autonomous Assault** reaction:
 | **Trigger** | Another character attacks a target within Range 15 of you and **consumes Lock On** |
 | **Effect** | You may **automatically hit** their target with the Autopod |
 
-**Why the loop works:**
-
-- **No action, no roll.** The Autopod auto-hits. Three Kinetic arrives for free on top of whatever the
-  squad was already doing.
-- **Seeking means cover is irrelevant**, it ignores cover and does not need line of sight, so AVERNA
-  contributes from behind a wall.
-- **It is an ally's trigger, not yours.** You are the one who marks targets; your strikers cash the
-  marks in. Their +1 Accuracy and your free 3 Kinetic land in the same attack.
+**Why the loop works:** the Autopod auto-hits, so its 3 Kinetic arrives with no action and no roll; **Seeking** makes cover and line of sight irrelevant; and the trigger belongs to an ally, so their +1 Accuracy and your free damage land in the same attack. The full comparison is in Appendix A.
 
 **Costs and tensions to manage:**
 

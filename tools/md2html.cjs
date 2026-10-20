@@ -146,7 +146,32 @@ const TERMS = {
   AI: "One AI system per mech. AIs cannot benefit from talents, and have a small chance of cascading when they take structure or stress damage.",
   GRIT: "Half your LL, rounded up. Added to your mech's HP, SP, attack rolls and Save Target.",
   "E-Defense": "How hard this mech is to hit with electronic and guided weapons and systems.",
-  Evasion: "How hard this mech is to hit with ranged and melee attacks."
+  Evasion: "How hard this mech is to hit with ranged and melee attacks.",
+  "Wide-Area Code Pulse": "The Chomolungma core's 1/mission Full action: an Invade tech attack against any number of hostiles within Sensors, ignoring Invisible and line of sight. A miss leaves them Impaired until the end of their next turn.",
+  "Balance Control Lockout": "Chomolungma core Invade option: push the target 2 spaces and knock them Prone. If they are already Prone, they are Immobilized until the end of their next turn. 1/scene per character.",
+  "System Crusher": "Chomolungma core Invade option: your target takes an additional 2 Heat, for 4 total, and if that exceeds their Heat Cap they take 4 Burn as well. 1/scene per character.",
+  "Data Siphon": "Chomolungma trait: a tech attack against a hostile character also Scans them, for free.",
+  Brilliance: "Chomolungma trait, 1/scene: take any Quick Tech action as a free action, then either Bolster or Lock On as a free action.",
+  "Replaceable Parts": "Chomolungma trait: while resting, repair at 1 Repair per point of structure damage instead of 2.",
+  Sensors: "Your mech's sensor range: the reach of tech actions, Lock On and most systems.",
+  Autopod: "GOBLIN I weapon (1 SP, Main Launcher, Seeking, Unique, Range 15, 3 Kinetic). It makes no attack roll; it grants the Autonomous Assault reaction.",
+  "Autonomous Assault": "The Autopod's reaction, 1/round: another character attacks a target within Range 15 of you and consumes Lock On, and you automatically hit that target.",
+  "Puppet System": "GOBLIN I Invade option: the target moves its maximum Speed in a direction of your choice. Involuntary, but it provokes reactions and Engagement.",
+  "Eject Power Cores": "GOBLIN I Invade option: the target is Jammed until the end of their next turn, and characters adjacent to them take 2 Energy. 1/scene per character.",
+  "H0R_OS System Upgrade I": "GOBLIN I system (2 SP, Unique) that adds the Invade options Puppet System and Eject Power Cores.",
+  "H0R_OS System Upgrade II": "GOBLIN II system (2 SP, Unique) that adds the Quick Tech options Construct Other: Ideal Image and False Idol.",
+  "H0R_OS System Upgrade III": "GOBLIN III system (2 SP, Unique) that adds the Invade options Dimensional Emblems and Celestial Shackles.",
+  "Construct Other": "H0R_OS II Quick Tech: manifest an Other. Ideal Image is a Size 2 data construct that provides hard cover and blocks line of sight; False Idol is a decoy that forces a Systems save on anyone attacking the real target.",
+  "Dimensional Emblems": "H0R_OS III Invade option: three Size 1 data constructs around the target. Passing through one deals 2 Heat and destroys it.",
+  "Celestial Shackles": "H0R_OS III Invade option: mark the target's space. If they leave it, you may teleport them back once during your turn as a free action; a Systems save as a quick action breaks the effect.",
+  Metahook: "GOBLIN II system (2 SP, Unique). The Goblin's recursive processing weave, sharpening weaponised code into an attack or softening it into shielding for allies.",
+  "OSIRIS-Class NHP": "GOBLIN III system (3 SP, AI, Unique) that adds the Hurl Into the Duat Quick Tech option.",
+  "ATHENA-Class NHP": "SWALLOWTAIL III system (3 SP, AI, Unique) that grants the AI tag and Simulacrum.",
+  Simulacrum: "ATHENA's Quick action: a Blast 3 area within Range 50 where you have full visibility, hostiles lose cover and cannot Hide or turn Invisible, and anyone ending their turn inside gains Lock On. Lasts the scene.",
+  "Lotus Projector": "SWALLOWTAIL I system (2 SP): a scout drone within Sensors and line of sight that emits a Burst 2 field telling you the location, HP, Evasion, E-Defense and Heat of everyone inside, and where hostiles cannot Hide or turn Invisible.",
+  Markerlight: "SWALLOWTAIL I system (2 SP): the marking tool that makes every subsequent shot against the target cheaper.",
+  "Retractable Profile": "SWALLOWTAIL II system (1 SP, Unique): strips extraneous profile, tunes broadcast software and masks heat signatures.",
+  "Integrated Weapon": "GMS core bonus: an integrated mount for one Auxiliary weapon, fired 1/round as a free action when you fire any other weapon. It cannot be modified."
 };
 const TERM_RX = new RegExp("\\b(" + Object.keys(TERMS).join("|") + ")\\b", "g");
 
@@ -159,7 +184,19 @@ function tooltips(html) {
       .join("")).join("");
 }
 
+/* The visible glossary is built from TERMS, so the hover text and the table cannot disagree.
+   Generated after tooltips() so a term never hovers its own definition. */
+function glossary(toc) {
+  const id = slug("Glossary");
+  toc.push([id, "Glossary", 0]);
+  return `<details class="gsec" id="${id}"><summary><h2>Glossary</h2><span class="gcaret"></span></summary>` +
+    `<div class="tbl"><table class="operation-table"><tbody>` +
+    Object.entries(TERMS).map(([t, d]) => `<tr><th>${esc(t)}</th><td>${esc(d)}</td></tr>`).join("") +
+    `</tbody></table></div></details>`;
+}
+
 function render() {
+  seenIds.clear(); /* ids are per-render, so the selftest can render twice and compare */
   const { H, toc } = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
   const p = x => "../../" + x;
   return `<!doctype html>
@@ -225,7 +262,7 @@ ${chrome.brand("TACTICAL WIKI · BUILD GUIDE")}
 ${chrome.nav("../../")}
 ${chrome.status("ACTIVE")}
 </header>
-<main class="guide"><div class="columns"><div class="primary fill">${tooltips(H.join("\n"))}</div>
+<main class="guide"><div class="columns"><div class="primary fill">${tooltips(H.join("\n"))}\n${glossary(toc)}</div>
 <aside class="aside fill">${tocNav(toc)}</aside></div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
@@ -249,8 +286,14 @@ if (process.argv.includes("--check")) {
   const two = blocks(["## One", "a", "## Two", "b"]).H.join("");
   assert.ok(two.includes('id="one" open>') && two.includes('id="two">') && !two.includes('id="two" open>'),
     "only the first section should default open, got: " + two.replace(/></g, ">\n<"));
-  assert.ok(/<script>[\s\S]*closest\("details"\)/.test(render()),
+  const page = render();
+  assert.ok(/<script>[\s\S]*closest\("details"\)/.test(page),
     "a rail link must open the collapsed section it points into");
+  assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
+  const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));
+  assert.ok(!unglossed.length, "every hovered term must appear in the glossary, missing: " + unglossed.join(", "));
+  const unhoverable = Object.keys(TERMS).filter(t => (t.match(TERM_RX) || [])[0] !== t);
+  assert.ok(!unhoverable.length, "every term must be matchable by TERM_RX as a whole word, these are not: " + unhoverable.join(", "));
   const have = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
   if (have !== render()) {
     console.error("guide page stale vs markdown; run: node tools/md2html.cjs");

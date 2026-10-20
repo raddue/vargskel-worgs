@@ -129,6 +129,38 @@ navPages.forEach(p => {
   if (!chrome.statusRe.test(statusVal || ""))
     problems.push(`${p}: status chip must be chrome.status("<UPPERCASE STATE>"), label included`);
 });
+/* The guide is Rurik's build sheet, so its shape is pinned: the quick guide is the first section
+   and the only one open, it carries every level from LL0 to LL6, and every term the page hovers
+   is also defined in the visible glossary. GLOSSARY is generated from the TERMS map in
+   md2html.cjs, so the hover text and the table cannot drift; this pins the shape around it. */
+const guideRel = "docs/guides/averna-omniscient-overlord.html";
+if (navPages.includes(guideRel)) {
+  const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");
+  const gsecs = guideSrc.split('<details class="gsec"').slice(1);
+  const firstSec = gsecs[0] || "";
+  if (!/^ id="[^"]*" open>/.test(firstSec) || !/quick guide/i.test(firstSec.split("</summary>")[0]))
+    problems.push("guide: the first section must be QUICK GUIDE and open on load");
+  if (gsecs.filter(s => /^ id="[^"]*" open>/.test(s)).length !== 1)
+    problems.push("guide: exactly one section may be open on load, the quick guide");
+  /* The level labels are bold cells, not the "LL0 to LL6" range in the heading. */
+  for (let ll = 0; ll <= 6; ll++)
+    if (!new RegExp("<strong>LL" + ll + "</strong>").test(firstSec))
+      problems.push(`guide: the quick guide must carry a level row for LL${ll}`);
+  /* The renderer has no ordered lists, so a numbered list silently becomes loose paragraphs. */
+  if ((firstSec.match(/<li>/g) || []).length < 3)
+    problems.push("guide: the quick guide's turn steps must render as a list");
+  const glossSrc = gsecs.find(s => /<summary><h2>Glossary/.test(s)) || "";
+  if (!glossSrc) problems.push("guide: the page must carry a visible GLOSSARY section");
+  /* Row terms only: a term named inside another row's definition is not a definition of its own. */
+  const glossTerms = [...glossSrc.matchAll(/<tr><th>([^<]+)<\/th>/g)].map(m => m[1]);
+  const hovered = [...guideSrc.matchAll(/<abbr title="[^"]*">([^<]+)<\/abbr>/g)].map(m => m[1]);
+  const undef = [...new Set(hovered)].filter(t => !glossTerms.includes(t));
+  if (undef.length) problems.push("guide: glossary is missing hovered terms: " + undef.join(", "));
+  const abilities = ["Autopod", "Metahook", "H0R_OS System Upgrade I", "OSIRIS-Class NHP",
+    "ATHENA-Class NHP", "Lotus Projector", "Wide-Area Code Pulse", "Integrated Weapon"];
+  const unlisted = abilities.filter(a => !glossTerms.includes(a));
+  if (unlisted.length) problems.push("guide: the glossary must define: " + unlisted.join(", "));
+}
 const intelPage = fs.readFileSync(__dirname + "/intel.html", "utf8");
 if (!/id="holomap"/.test(intelPage)) problems.push("intel.html must carry the holomap section the map builds into");
 if (!/id="faction-list"/.test(intelPage)) problems.push("intel.html must carry the faction ledger");
