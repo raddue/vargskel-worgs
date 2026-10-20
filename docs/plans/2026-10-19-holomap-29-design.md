@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 8
+revision: 9
 source: "design"
 ---
 
@@ -127,10 +127,11 @@ filter and the two `SYSTEM|THEATER` buttons. A frame's scale is its subject's `l
 is `SYSTEM`). The claim that makes an offset mean anything is written as a set equality rather
 than a sentence, because a sentence about equality that every record satisfies tests nothing:
 **for every frame `F` and every member `m` of `F` other than `F`'s subject, collect the `m`
-where `m.level !== scale(F)`. That set equals the declared pins exactly, `{(cressidium,
-elysia)}` today.** Every frameless record is `level: "SYSTEM"`. Two scales are equal for 12 of
-the 13 records, so the set equality is the only version that fails when a mistyped `level`
-moves a record, or when a `pinBearing` appears with no cross-scale member to carry it.
+where `m.level !== scale(F)`. That set equals the set of records carrying a `pinBearing`, pair
+by pair, and is never a hard-coded list.** Every frameless record is `level: "SYSTEM"`. Two
+scales are equal for 12 of the 13 records, so the set equality is the only version that fails
+when a mistyped `level` moves a record, or when a `pinBearing` appears with no cross-scale
+member to carry it.
 `elysia` is the one record whose two scales differ, and that is exactly why it is a pin.
 Placement is one rule, not four:
 
@@ -148,16 +149,20 @@ Placement is one rule, not four:
   pinBearing: 45`), the same honest move as the star below. Compass degrees, clockwise from
   north, drawn `x = cx + r·sin(b)`, `y = cy − r·cos(b)`, because SVG's y axis points down; 45
   is therefore up and to the right, and the frame's `aria` says `POSITION ON DISC DECLARED`
-  rather than implying a measured spot. The value is grounded, not invented: `campaign.js:30`
-  has `pell` tide-locked over the city's night side, `pell` sits up and right of `cressidium`,
-  and the star is on the other side, so the rim point faces the moon and the planet's dark
-  face. Today exactly one member is in this case: `elysia` on `cressidium`. A cross-scale member
+  rather than implying a measured spot. The value is grounded, not invented: `pell` sits at
+  compass bearing 55.3° from `cressidium` (dx 90, dy −62.4, recomputed from the records),
+  `campaign.js:30` has it tide-locked over the city's night side, and the star is on the other
+  side, so 45° is the night face and ≈ toward `pell`. The shadow terminator is derived from
+  `starBearing` rather than typed in, so the pin cannot end up declared on the day side. Today
+  exactly one member is in this case: `elysia` on `cressidium`. A cross-scale member
   with no `pinBearing` of its own throws rather than inventing an angle, so a second one cannot
   silently land on the same rim point. `ponytail:` the declared
   bearing is what a one-scale page can honestly draw; upgrade to a real projection when a second
   scale must be *measured* across, not merely positioned.
-- A ring is drawn around the parent at the radius of the child riding it, whether the parent is
-  the frame's subject (`rio` over `elysia`) or a principal on the root (`pell` over
+- A ring is drawn around the parent at the radius of the child riding it, for a `MOON`, `STATION`
+  or `ORBITAL` child only (the gate at `archive.js:128-129`) — `dock`, `district` and `industry`
+  are ground members and get no ring, which `check-all.cjs:322` already asserts. The parent may
+  be the frame's subject (`rio` over `elysia`) or a principal on the root (`pell` over
   `cressidium`).
 - A **pin** is a member whose `level` differs from the frame's scale, drawn on the subject's rim
   at its own declared bearing, for the reason in the `ponytail:` note above. The definition is
@@ -166,19 +171,25 @@ Placement is one rule, not four:
   at their own offsets and none of them is a pin. `elysia` is the only pin in the records.
 - **A drawn radius is a pixel constant multiplied by the fit scale**, like a position, and never
   a viewBox unit. `ponytail:` a planet disc is 54 px at 1×, a moon 30, a station hex 26, a
-  ground-marker dot 6, the city glyph 54 and the subject's disc 88; upgrade to per-body radii if
+  ground-marker dot 6, a city glyph 54 and the subject's disc 72; upgrade to per-body radii if
   the art needs them. Scaling positions but not radii is what let a planet's disc swallow its own
-  moon's ring on the mockup, so the two are one rule.
-- The frame's **view radius** is `max(subjectDisc, max same-scale offset)`, computed from the
-  records and never hard-coded, and the camera scale is `min(viewW, viewH) / (2 × radius)` with
-  **one** margin applied once. `max` and not `offset + margin` is what keeps a frame whose only
-  member is its own subject (`pell`, `kessen`, `harrow`, `cairn`, `dock`, `district`, `dropzone`,
-  `rio`, `vsaf`) from dividing by zero, since those frames have no same-scale offset at all. On
-  `cressidium` the radius is 167 px, set by `kessen`; on `elysia` it is 260.7 px, set by `vsaf`.
-  An orbit ring takes its own child's radius. A pin sits on the subject's rim, so the disc radius
-  already covers it and a pin is never the thing that sets the fit. The view is **fitted, not
-  clipped**, so a frame whose radius (261 px on `elysia`) exceeds the viewBox half-height of 240
-  is drawn smaller rather than cut off.
+  moon's ring on the mockup, so the two are one rule. The subject's disc is 72 and not 88 because
+  `pell` rides `cressidium` at 109.5 px, and 72 + 30 clears it while 88 + 30 would not: **no
+  same-scale member may sit inside the subject's disc**, asserted as
+  `offset ≥ subjectDisc + memberRadius`. A ground subject (`elysia`, `industry`) keeps its own
+  glyph radius instead of the disc, and 54 + 6 clears `district` at 87.7 px.
+- The frame's **view radius** is `max(subjectDisc, max(offset + memberRadius))` over the members
+  that share the frame's scale, computed from the records and never hard-coded, and the camera
+  scale is `min(viewW, viewH) / (2 × radius)` with **one** margin applied once. A member's own
+  radius is in there because a mostly-vertical body would otherwise overhang the edge while its
+  centre passed the test. `max` and not `offset + margin` is what keeps a frame whose only member
+  is its own subject (`pell`, `kessen`, `harrow`, `cairn`, `dock`, `district`, `dropzone`, `rio`,
+  `vsaf`) from dividing by zero, since those frames have no same-scale offset at all. On
+  `cressidium` the radius is 193 px, set by `kessen` at 167 plus its 26 px hex; on `elysia` it is
+  266.7 px, set by `vsaf` at 260.7 plus its 6 px dot. An orbit ring takes its own child's radius.
+  A pin sits on the subject's rim, so the disc radius already covers it and a pin is never the
+  thing that sets the fit. The view is **fitted, not clipped**, so a frame whose radius (266.7 px
+  on `elysia`) exceeds the viewBox half-height of 240 is drawn smaller rather than cut off.
 - **Labels are drawn after the bodies and are not part of the fit.** At a small scale a label can
   touch its neighbour: on the mockup `DISTRICT` overlapped the city glyph at 0.59× and `INDUSTRY`
   overlapped `FOB SABER`. `ponytail:` acceptable for now; upgrade to a collision pass when a
@@ -200,10 +211,15 @@ membership to test: `members(F)` is the only set of ids a frame may draw.
 
 ### Data migration
 
-One field is re-valued and three are added; none is retired, and no id changes.
+One field is re-valued and three are added: `frame` is newly set on four records (`district`,
+`industry`, `vsaf`, `rio`), `rio.parent` changes value, `factions[].zone.frame` and
+`elysia.pinBearing` are new fields, and `level` keeps its value while losing its wiring role.
+None is retired, and no id changes.
 
 - **`level` stays, as the coordinate scale**, and stops being a wiring key. `check-all.cjs:53`'s
-  key list keeps it and gains `frame` and `pinBearing`, and nothing filters on it any more.
+  key list keeps `level` alone, because `:65` reports every listed key as missing when it is
+  `null` and `frame` is absent on nine records. Two optional keys get their own type check
+  instead: `frame` is a string or absent, and `pinBearing` is a number in `[0, 360)` or absent.
 - **`frame` is set or re-valued** so the frame that draws each site is explicit:
   - `district`, `industry`, `dropzone` → `frame: "elysia"` (ground in the city's frame)
   - `dock` → `frame: "industry"` (FOB inside the industrial district; its `parent` already says `industry`)
@@ -213,13 +229,13 @@ One field is re-valued and three are added; none is retired, and no id changes.
   - `cressidium`, `tarn`, `cairn`, `pell`, `kessen`, `harrow` keep no `frame` (root frame)
 - **`rio.parent` → `"elysia"`** so the orbit ring draws. Today `rio.parent` is absent, so the
   `ORBITAL` never gets the ring `archive.js:129` would give it; the hull is drawn floating.
-  With this, `rio` is the one body that is both a `parent` child and on a descended frame.
 - **`elysia.pinBearing: 45` is added** — the compass bearing of the city on `cressidium`'s disc.
   It rides the pinned record, not the frame's metadata, so a second cross-scale member cannot
   reuse one value silently, and a record carrying a bearing without being a pin is an error.
 - **`factions[].zone` gains `frame: "elysia"`** (`campaign.js:59-62`), so a zone is drawn where
   its own record says rather than by an id hand-coded in the renderer. `archive.js:125-126`
-  draws a zone where `zone.frame === F`, and a zone's coordinates are translated by the frame's
+  **will** draw a zone where `zone.frame === F` (today it gates on `level === "THEATER"`), and a
+  zone's coordinates are translated by the frame's
   subject offset like any other member's.
 - `pell`, `kessen`, `harrow` keep `parent` and keep no `frame`: they are satellites at the top
   and full bodies when their planet is opened.
@@ -233,7 +249,7 @@ markers.
 | kind | rendered as | note |
 |---|---|---|
 | `PLANET` | art disc: `assets/<id>-thumb.webp` clipped to a circle, with a rim and a shadow terminator (`nov-elysia.png` is the Cressidium candidate for orbit art) | the operator's primary ask; a disc with art reads as a world |
-| `MOON` | art disc at satellite radius; the same art at full size on its planet's frame | one asset, two scales |
+| `MOON` | art disc at the satellite radius (30 px at 1×); the same art at the planet's radius on its planet's frame (54 px) | one asset, two scales |
 | `STATION` | art plate inside a hex silhouette | a station is not a ball |
 | `WRECK FIELD` | art plate inside a jagged silhouette with its existing dashed field | stays a wreck field |
 | `ORBITAL` | art plate in a hull silhouette, on its orbit ring | the Rio Grande reads as a hull, not a world |
@@ -247,13 +263,19 @@ marker today (`archive.js:118`). Silence is the failure mode being removed.
 The frame's head, sub-head, grid label and `aria` derive from the subject's kind rather than
 from a level band (`archive.js:108` today), and from one table rather than two: a `PLANET`,
 `MOON`, `STATION` or `WRECK FIELD` frame reads `ORBIT GRID`; a `DISTRICT`, `FOB` or `ZONE` frame
-reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID · 10 U` and keeps the city's existing
-theatre scale, because its children's coordinates are that scale; the root reads
-`SECTOR HOLOMAP` over `SECTOR GRID · 50 U` and is the one row that is **not fitted**, because it
-has no subject to centre on: its bodies sit at the records' own `x*10, y*4.8` about the origin,
-which is why the mockup's sector frame reads off-centre, and that row is keyed by the root's own
-`kind: "SYSTEM"`, the field it already carries. No new field: the kind is the field. The root's
-view radius is the max offset over its frameless records, so the star cannot set it.
+reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID`; the root reads `SECTOR HOLOMAP` over
+`SECTOR GRID · 50 U`. **Only the root's label carries units**, because only the root draws at
+scale 1: the grid pattern is a fixed 50 px texture (`intel.html:54`), so `50 U` is a
+measurement on the root and false anywhere else (`cressidium` draws at about 1.44×), the same
+reason the legend says `NOT DISTANCE`. `ponytail:` the pattern is not scaled to the fit;
+upgrade if a frame ever needs measurable ground.
+
+- The root is the one frame that is **not fitted**: it has no subject, so its bodies sit at the
+  records' own `x*10, y*4.8` in viewBox coordinates, its fit scale is 1, and its rim centre is
+  the viewBox centre. Its row is keyed by the root's own `kind: "SYSTEM"`, the field it already
+  carries. No new field: the kind is the field.
+- `cx, cy` in the bearing formula is the viewBox centre, `500, 240`, on every frame: a descended
+  frame puts its subject there, and the root measures its rim from there.
 
 ### Rendering the art without shipping a raster mask
 
@@ -271,19 +293,22 @@ The operator's call at review: the system frame draws a star. It is the one draw
 that no record supports, so it is declared rather than smuggled in.
 
 - It is **drawn procedurally in SVG**, not from art, because no asset exists and none is
-  wanted yet. Its position is on the frame's rim at a declared bearing (`starBearing: 270`, due
-  west), not a fixed pixel, so the fitted view cannot slide off it — on the mockup an absolute
-  star and `cressidium` collided once the scale dropped to 0.7×. `ponytail:` a `starBearing`
-  constant in the builder names it as an invented value, upgradeable to a record if the star ever
-  needs a file.
+  wanted yet. Its position is declared as a bearing from the viewBox centre (`starBearing: 270`,
+  due west) at the frame's rim radius, on a frame that is never scaled, so it cannot slide off
+  the canvas: on the root the greatest body distance from `500, 240` is 381 px (`tarn`), which
+  puts the star at about `119, 240` — the left edge at mid height, clear of `cressidium` and
+  `tarn`. `ponytail:` a `starBearing` constant in the builder names it as an invented value,
+  upgradeable to a record if the star ever needs a file. A test asserts that the star's `data-x`
+  and `data-y` land inside the 1000×480 viewBox.
 - It is **not a location**: no `data-loc`, not selectable, no file, no key chip pretending
   otherwise. It carries no `data-frame` either, because `holomap("star")` does not exist and a
   `data-frame` on it would throw; it is not a button. Its `aria` names it as the primary, drawn
   for orientation, and its node carries `role="img"` because an `aria-label` on a bare `<g>` is
   ignored by several screen readers.
 - The key carries `STAR · NO FILE` so a reader is told outright, and the frame's legend keeps
-  saying the satellites' sizes are legibility, not distance. `check-all.cjs:303`'s kind list
-  must exclude `STAR`, or its own "no node carries this kind" check at `:306` trips on it.
+  saying the satellites' sizes are legibility, not distance. The kind list at
+  `check-all.cjs:304` must exclude `STAR`, or its own "no node carries this kind" check at `:306`
+  trips on it; `:303` is the label filter, not that list.
 - Invariant: every drawn body either names a location or is the star; no third case, and no
   drawn body without a file may carry `data-loc`.
 
@@ -348,7 +373,10 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 - `frame` never names the location itself, and the frame graph is acyclic: the frame stack is
   finite and climbing always terminates at `SYSTEM`.
 - `parent`, when set, names a location drawn on the same frame *or* a principal body of the
-  frame above it (the satellite case).
+  frame above it (the satellite case). A **frameless** satellite whose parent sits on a different
+  scale would be cross-scale on two frames while carrying a single `pinBearing`, which is a
+  contradiction, so it throws: today `pell`, `kessen` and `harrow` all share their parent's
+  scale, as do `dock`, `district` and `industry`.
 - A kind with no renderer throws, and a kind with no key chip throws.
 - No `CURRENT OP` marker anywhere while `ops[0]` is `PLANNED`/`UNBRIEFED`, ancestors included.
 - `holomap(frameId)` stays pure: given `C`, returns the shape stated above and touches no DOM.
@@ -387,10 +415,11 @@ Requires tests, all through the pure builder:
   it carries both `frame: "elysia"` and `parent: "elysia"`.
 - Every member's **placed** position — the `data-x`/`data-y` the builder emits, not its raw
   offset, which for a pin is the meaningless cross-frame subtraction above — lands inside the
-  1000×480 viewBox with a margin, so a marker outside its own frame's boundary fails the gate.
-  The radius is derived from the records rather than typed in, which a test can show by moving
-  one record's coordinate and watching the radius change. On `elysia` that radius is set by
-  `vsaf`, not by `rio` or the districts.
+  1000×480 viewBox with a margin, **centre and drawn radius both**, so a mostly-vertical body
+  cannot overhang the edge while its centre passes the check. The radius is derived from the
+  records rather than typed in, which a test can show by moving one record's coordinate and
+  watching the radius change. On `elysia` that radius is set by `vsaf`, not by `rio` or the
+  districts.
 - The breadcrumb renders one button per ancestor frame walking the `frame` chain, and
   terminates at `SYSTEM`.
 - Each frame's expected membership is recomputed in the test from the records, the way `idsOn`
@@ -400,24 +429,28 @@ Requires tests, all through the pure builder:
   marked active and exactly one whenever the frame's chain contains a principal body, and no
   locator node carries `data-loc`.
 - The scale claim is a set equality, and it can fail: for `SYSTEM` and every location id, the
-  members whose `level` differs from their frame's scale must be exactly `{(cressidium, elysia)}`,
-  every frameless record is `level: "SYSTEM"`, and a `pinBearing` on a record that is not a
-  cross-scale member of its frame fails too. A mistyped `level` that moved a record to the rim,
-  or a second cross-scale member with no bearing of its own, fails here.
+  members whose `level` differs from their frame's scale must be exactly the records carrying a
+  `pinBearing`, pair by pair, with the expected set derived rather than typed; every frameless
+  record is `level: "SYSTEM"`; and a `pinBearing` on a record that is not a cross-scale member of
+  its frame fails too. A mistyped `level` that moved a record to the rim, or a second cross-scale
+  member with no bearing of its own, fails here.
 - `CURRENT OP` absence is only worth asserting if the test can make it fail. Op 001 is
   `PLANNED`/`UNBRIEFED`, so `curLoc` is empty and "absent everywhere" is true by construction
   (`check-all.cjs:293`). The test flips `D.ops[0].type` to a flown type **and** `D.ops[0].status` to
   `"ACTIVE"` for the duration, the way `check-all.cjs:387-393` flips `ely.visited`, because the
   ring's guard needs both (`archive.js:117`) and `type` alone leaves `status: "UNBRIEFED"` with
-  `cur` still empty. It then asserts the ring appears on exactly these nodes and nowhere else —
-  `elysia` on the `elysia` frame and on `cressidium`, plus `cressidium` on `SYSTEM` and in the
-  locator — and restores both fields.
+  `cur` still empty. The rule the assertion uses is **the deepest drawn node holding `cur`**, so
+  ancestors are included but only that node carries the ring. It asserts the ring on `elysia`, on
+  `cressidium` and on `SYSTEM` and nowhere else, then restores both fields. The locator is not
+  `class="node"`, so the `check-all.cjs:296` regex cannot see it and it needs its own assertion
+  that it carries no ring.
 - Op 001's leg (`dock` → `elysia`) is drawn on exactly one frame, and zones are drawn on
   `elysia`.
 - The grid label follows the frame's **kind**, from the one table above and not from `level`: a
-  `PLANET` frame reads `ORBIT GRID · 50 U`, a `CITY` frame reads `THEATER GRID · 10 U`, a
-  `DISTRICT` frame reads `GROUND GRID`, and a `MOON` frame reads `ORBIT GRID`, so the units on the
-  label are the units that frame's coordinates are in.
+  `PLANET` frame reads `ORBIT GRID`, a `CITY` frame reads `THEATER GRID`, a `DISTRICT` frame reads
+  `GROUND GRID`, a `MOON` frame reads `ORBIT GRID`, and the root alone carries units,
+  `SECTOR GRID · 50 U`, because a fitted frame draws a fixed 50 px texture at some other scale
+  where a units label would be false.
 
 ## Slices
 
@@ -477,7 +510,7 @@ Requires tests, all through the pure builder:
 - The UI frame stack has no state of its own: it is the `frame` chain from the current frame, so
   `frame` (`archive.js:110`) stays the single source and a second stack would only drift.
 
-- `check-all.cjs:53` requires `level`, which **stays**, and `:65` reports any `null` key as missing.
+- `check-all.cjs:53` requires `level`, which **stays**, and `:65` reports any `null` key as missing — which is why `frame` and `pinBearing` cannot join that list.
   So `frame` joins that list as `string | null` rather than as a non-null key, or the six records
   that keep no `frame` become six new failures the moment the migration lands.
 - The map block runs `:266-404`, not `:266-288`, and all of it is affected: `:283-287` the
