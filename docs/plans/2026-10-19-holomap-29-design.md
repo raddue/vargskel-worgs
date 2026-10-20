@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 5
+revision: 6
 source: "design"
 ---
 
@@ -32,7 +32,8 @@ The structural work #25 asked for has landed. This is a real starting point, not
 
 - `archive.js:112` `holomap(level)` is already pure, already returns `{world, key, grid, aria}`,
   already throws on an unknown level, and already has `fitLevel`, `unitFile` and `showUnit`
-  split out (`archive.js:156`, `:175`, `:184`) and exported (`archive.js:445`).
+  split out (`archive.js:156`, `:175`, `:184`) and exported (`archive.js:451`). Under frames it
+  returns `{world, key, grid, aria, crumbs, locator}`, stated once here rather than twice.
 - `LEVELS` (`archive.js:108`) holds exactly two frames, `SYSTEM` and `THEATER`.
 - Orbit rings already exist and are already honest: only `MOON`, `STATION` and `ORBITAL` with
   a parent drawn on the same frame get one (`archive.js:129`).
@@ -84,10 +85,13 @@ whose `frame` is absent is drawn on `"SYSTEM"`. `level` is retired: "which frame
 `frame`'s job, and "do I orbit something" is `parent`'s job, so a third field asserting the
 same thing can only drift out of step with them.
 
-Satellites are the one place a body is drawn on two frames, deliberately: a moon is a small
-attached body on its planet's ring at the system frame, and a full body on its planet's own
-frame. That is what makes "see the planets and the moons and the stations" true at the top,
-and what gives the descent somewhere to go.
+A body can be drawn on two frames in two roles, and both are stated rather than smuggled. A
+**satellite** is a small attached body riding its parent's ring at the system frame and a full
+body on its planet's own frame: that is what makes "see the planets and the moons and the
+stations" true at the top, and what gives the descent somewhere to go. A **subject** is a member
+of its home frame and also the whole of the frame carrying its own id: `cressidium` is a body on
+`SYSTEM` and the whole of `cressidium`, and `elysia` is a pin on `cressidium` and the whole of
+`elysia`. Nothing else appears twice, and every frame knows which of the two it is drawing.
 
 ### Membership and placement
 
@@ -108,27 +112,39 @@ any pin counting `data-loc` nodes.
 `cressidium`, `tarn` and `cairn` sit as principals and `pell`, `kessen` and `harrow` ride
 their parents' rings.
 
-A record's `x,y` is a SYSTEM-frame coordinate and it is the only coordinate a record has.
-Placement is one rule, not four:
+A record's `x,y` is expressed in its **home frame's scale**, and it is the only coordinate a
+record has. `campaign.js:23` says so outright: "Coordinates are per level, so the two frames are
+not drawn to one scale", and the grids are labelled `SECTOR GRID · 50 U` and
+`THEATER GRID · 10 U` (`archive.js:108-109`). `level` therefore **stays on the records as the
+scale of the coordinates on them**, and what retires is its wiring role: the `l.level===level`
+filter and the two `SYSTEM|THEATER` buttons. A frame's scale is its subject's `level`, and the
+invariant that makes an offset mean anything is that a frame's scale equals the `level` of every
+same-scale member. Placement is one rule, not four:
 
 - On `SYSTEM`, a record is placed at its own `x,y`; a satellite sits on its parent's ring at
   the angle of its own offset from that parent.
-- On a descended frame `F`, the subject sits at the centre and every other member sits at its
-  own offset from the subject, unchanged. Nothing is scaled and nothing is re-projected,
-  because every coordinate is already in the frame's units.
+- On a descended frame `F`, the subject sits at the centre and every member whose `level`
+  matches that frame's scale sits at its own offset from the subject, unchanged. Nothing is
+  scaled and nothing is re-projected, because those coordinates are already in the frame's
+  units.
+- **Angles travel, magnitudes do not.** A member whose `level` differs from the frame's scale is
+  placed **by the angle of its offset only**, on the subject's rim, because the length of that
+  offset is expressed in another scale. Today exactly one member is in this case: `elysia`
+  (THEATER) pinned onto `cressidium` (SYSTEM), where its own 89 px offset and the planet's
+  `kessen` at 167 px are not the same distance. `ponytail:` the angle-only rule is what a
+  one-scale page can honestly do; upgrade to a real projection when a second scale must be
+  measured across.
 - A ring is drawn around the parent at the radius of the child riding it, whether the parent is
   the frame's subject (`rio` over `elysia`) or a satellite (`pell` over `cressidium`).
-- A **pin** is a framed child at its own offset from the subject. `elysia` sits at its offset
-  from `cressidium`, which is where a disc's rim puts it, and the disc is sized so that offset
-  is on it.
-- The frame's **view radius** is the max absolute offset over every member, plus a margin. It is
-  computed from the records and never hard-coded, so no member can fall outside the frame it
-  belongs to. The frame's **ground extent** — the max offset over its `CITY`, `DISTRICT`, `FOB`
-  and `ZONE` members — is a different number, and on `elysia` the two are far apart: `rio` sits
-  well beyond every district, so a boundary sized to the ground would clip the hull, and one
-  sized to the hull would leave the ground huddled in the middle of an empty frame. The view
-  takes the max; the ground ring takes the ground extent; an orbit ring takes its own child's
-  radius.
+- A **pin** is a framed child drawn on its parent's frame. It sits **on the subject's rim at the
+  angle of its offset**, never at the offset's length, for the reason in the `ponytail:` note
+  above.
+- The frame's **view radius** is the max absolute offset over the members **that share the
+  frame's scale**, plus a margin, computed from the records and never hard-coded. A cross-scale
+  pin neither raises it nor needs it: the pin is on the rim by construction. On `cressidium` the
+  radius is set by `kessen` at 167 px, not by `elysia` at 89 px, which is the correction that
+  keeps a marker from falling outside the frame that draws it; on `elysia` it is set by `vsaf`
+  at 261 px, not by `rio` at 210 px. An orbit ring takes its own child's radius.
 
 So the rule is: **every record has one home frame — its `frame` if set, `SYSTEM` otherwise —
 and a satellite is also drawn on its parent's frame.** That gives the no-leak test a real
@@ -146,9 +162,10 @@ membership to test: `members(F)` is the only set of ids a frame may draw.
 
 ### Data migration
 
-Three fields move, one is retired. Every change is a re-value or an addition; no id changes.
+Three fields move, none is retired. Every change is a re-value or an addition; no id changes.
 
-- **`level` retires** everywhere. `check-all.cjs:53`'s key list drops it and gains `frame`.
+- **`level` stays, as the coordinate scale**, and stops being a wiring key. `check-all.cjs:53`'s
+  key list keeps it and gains `frame`, and nothing filters on it any more.
 - **`frame` is set or re-valued** so the frame that draws each site is explicit:
   - `district`, `industry`, `dropzone` → `frame: "elysia"` (ground in the city's frame)
   - `dock` → `frame: "industry"` (FOB inside the industrial district; its `parent` already says `industry`)
@@ -159,6 +176,10 @@ Three fields move, one is retired. Every change is a re-value or an addition; no
 - **`rio.parent` → `"elysia"`** so the orbit ring draws. Today `rio.parent` is absent, so the
   `ORBITAL` never gets the ring `archive.js:129` would give it; the hull is drawn floating.
   With this, `rio` is the one body that is both a `parent` child and on a descended frame.
+- **`factions[].zone` gains `frame: "elysia"`** (`campaign.js:57-62`), so a zone is drawn where
+  its own record says rather than by an id hand-coded in the renderer. `archive.js:125-126`
+  draws a zone where `zone.frame === F`, and a zone's coordinates are translated by the frame's
+  subject offset like any other member's.
 - `pell`, `kessen`, `harrow` keep `parent` and keep no `frame`: they are satellites at the top
   and full bodies when their planet is opened.
 
@@ -195,9 +216,8 @@ new asset format enters the repo. The `<image>` references `assets/<id>-thumb.we
 inside the clip, the rim and terminator are two more SVG shapes over it, and the whole body is
 one `<g>` so it keeps the `data-loc` and `class` attributes the camera, the pane and the
 keyboard path already use. clipPath ids are unique across the world and the locator within a
-mounted frame, and that is asserted, because duplicate ids silently cross-wire two clips. A body that
-has any child location carries `class="body"` plus an `ENTER <NAME>` chip in its pane, so the
-descent is keyboard-reachable and assertable.
+mounted frame, and that is asserted, because duplicate ids silently cross-wire two clips. A body whose `members()` exceeds itself carries `class="body"` plus an `ENTER <NAME>` chip in
+its pane, and the chip carries `data-frame`, so the descent is keyboard-reachable and assertable.
 
 ### The primary star, drawn and declared invented
 
@@ -205,7 +225,8 @@ The operator's call at review: the system frame draws a star. It is the one draw
 that no record supports, so it is declared rather than smuggled in.
 
 - It is **drawn procedurally in SVG**, not from art, because no asset exists and none is
-  wanted yet. Its position is fixed at `x: 8, y: 50` (the frame's upper left, clear of
+  wanted yet. Its position is fixed at `x: 8, y: 50` (pixel 80,240: the left edge at
+  mid height, clear of
   `cressidium` at 30,52 and `tarn` at 86,24) — a `ponytail:` comment in the builder names it as
   an invented constant, upgradeable to a record if the star ever needs a file.
 - It is **not a location**: no `data-loc`, not selectable, no file, no key chip pretending
@@ -230,7 +251,7 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 - **The breadcrumb is the way out**, replacing the two `SYSTEM|THEATER` buttons in
   `intel.html:40` and their delegate at `intel.html:103`: `CRESSIDIUM SYSTEM › CRESSIDIUM ›
   NOV ELYSIA`, one real `<button>` per ancestor, keyboard-reachable. The `SYSTEM VIEW` key
-  chip in the theater frame (`archive.js:139`, asserted at `check-all.cjs:288`) becomes
+  chip in the theater frame (`archive.js:148`, asserted at `check-all.cjs:288`) becomes
   `UP ONE LEVEL` and lives in the breadcrumb instead of the key. The breadcrumb and the locator
   are HTML strips outside `#holo-world`, so the camera and the pinch never reach them, and the
   builder returns both as `crumbs` and `locator` alongside `world`, `key`, `grid` and `aria`,
@@ -248,10 +269,14 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
   `holomap(bodyId)`, which is unambiguous because every principal body's home frame is
   `SYSTEM`. The active ancestor is found by walking the `frame` chain, not `parent`: `elysia`
   has no `parent` (`campaign.js:40`), so a `parent` walk from `industry` stops one frame short.
-- **Cross-frame selection still works**: `showUnit` already descends when the selected site is
-  not on the current frame (`archive.js:184`). With frames keyed by subject, "is not on this
-  frame" becomes "is not in this frame's stack", and the rule sets the whole path rather than
-  one level, so `personnel.lastKnown` and in-orbit links land correctly.
+- **Cross-frame selection still works**, by a rule the records can test: `showUnit` descends when
+  the selected site is **not in `members(current)`** (`archive.js:184`), and the target is that
+  site's **home frame** (`frame` if set, `SYSTEM` otherwise). The earlier wording, "is not on
+  this frame" read as "not in this frame's stack", was wrong in a case the data produces:
+  standing on `elysia` and clicking `kessen` from a relations chip, `kessen`'s home frame
+  `SYSTEM` *is* in the stack, so the frame would not change and `kessen` would not be drawn
+  anywhere on it. Setting the path to the home frame fixes both, so `personnel.lastKnown` and
+  in-orbit links land correctly.
 - **`startLevel()` opens the frame the campaign is on** (`archive.js:155`): currently the
   theater because op 001 lands on `elysia`. Under frames that is `cressidium`. Honest caveat:
   the arrival stops there, because `intel.html:127-128` auto-selects `op.sites.insertion`
@@ -310,13 +335,21 @@ Requires tests, all through the pure builder:
   fails the gate. On `elysia` that radius is set by `rio`, not by the districts.
 - The breadcrumb renders one button per ancestor frame walking the `frame` chain, and
   terminates at `SYSTEM`.
+- Each frame's expected membership is recomputed in the test from the records, the way `idsOn`
+  does at `check-all.cjs:279`, rather than by calling the builder's own `members()`, which would
+  test the builder against itself.
 - Every non-`SYSTEM` frame carries the locator listing the principal bodies with exactly one
   marked active, and no locator node carries `data-loc`.
-- No frame contains `CURRENT OP` while op 001 is unbriefed, locator included.
+- `CURRENT OP` absence is only worth asserting if the test can make it fail. Op 001 is
+  `PLANNED`/`UNBRIEFED`, so `curLoc` is empty and "absent everywhere" is true by construction
+  (`check-all.cjs:293`). The test flips `D.ops[0].type` to a flown type for the duration, the way
+  `check-all.cjs:387-393` flips `ely.visited`, asserts the ring appears on exactly the nodes the
+  design names (ancestors and locator included), and restores it.
 - Op 001's leg (`dock` → `elysia`) is drawn on exactly one frame, and zones are drawn on
   `elysia`.
-- The grid label follows the subject's kind: a `PLANET` frame reads `ORBIT GRID`, a `CITY`
-  frame reads `THEATER GRID · 10 U`.
+- The grid label follows the frame's scale, which is its subject's `level`: a `PLANET` frame
+  reads `ORBIT GRID · 50 U` and a `CITY` frame reads `THEATER GRID · 10 U`, so the units on the
+  label are the units the coordinates are in.
 
 ## Slices
 
@@ -327,15 +360,16 @@ Requires tests, all through the pure builder:
    frame, `elysia` and `industry` included, with their existing glyphs.** It has to: the
    migration re-frames five sites onto `elysia` and one onto `industry`, op 001's sites are
    `{insertion: dropzone, rendezvous: dock, extraction: rio}` (`campaign.js:146`), and
-   `intel.html:127-128` auto-selects `dropzone` on load. A slice that builds only two frames
+   `intel.html:128-129` auto-selects `dropzone` on load. A slice that builds only two frames
    throws or blanks the map on the page's own default selection.
-2. **The city and the hull**: the `elysia` frame's treatment — `rio`'s ring and hull silhouette,
-   and a file that lists personnel. Crew comes from `C.meta.station === "UNS RIO GRANDE"`
-   (`campaign.js:19`), the record that already places them, labelled `RECORDED MUSTER` as that
-   badge already is. Not `stationed()`, which searches *mechs* in `filed` and returns null for
+2. **The city and the hull**: the `elysia` frame's treatment, `rio`'s hull silhouette rather than
+   only its ring, and a file that lists personnel. The list is `C.pilots` whose mech has
+   `stationed(m) === null`, and only while `L["rio"].name === C.meta.station` (`campaign.js:19`),
+   labelled `RECORDED MUSTER` as that badge already is. The condition is the point: `showMech`
+   lets a filed operation override the muster string (`archive.js:189`), so once op 001 is filed
+   the string stops matching and the list empties rather than keeping a crew aboard a hull they
+   have left. Not `stationed()` alone, which searches *mechs* in `filed` and returns null for
    every PLANNED op, and not "aboard", which nothing asserts.
-3. **The ground**: `dock` as a POI on the `industry` frame, so the FOB is reachable by descent
-   rather than only as a badge.
 
 ## Files touched
 
@@ -344,13 +378,33 @@ Requires tests, all through the pure builder:
   placement and returns `{world, key, grid, aria, crumbs, locator}`, `fitLevel` and the frame
   stack, `startLevel`, `hostsOf` reads `frame`, the breadcrumb and locator markup.
 - `intel.html`: the `SYSTEM|THEATER` buttons and their delegate become the breadcrumb mount;
-  the rest of the frame markup (`#holo-world`, `#holo-key`, the camera, pinch, hash sync) stays.
-- `campaign.js`: the data migration above; `level` removed from all thirteen records.
+  the rest of the frame markup (`#holo-world`, `#holo-key`, pinch, hash sync) stays. The camera
+  does **not** stay as it is: re-centring the subject shifts every node on a descended frame and
+  `zoomTo` pans to raw `l.x*10, l.y*4.8` (`intel.html:52`, `:72`), so the builder emits each
+  node's placed coordinates as `data-x`/`data-y` and `zoomTo` reads those, with zones and legs
+  translated by the same subject offset.
+- `campaign.js`: the data migration above; `level` kept as the coordinate scale, its wiring role
+  gone.
 - `style.css`: disc clip and rim, satellite scale, hardware silhouettes, breadcrumb buttons.
 - `check-all.cjs`: the key list at `:53`, and the map block spanning `:266-404` replaced by
   per-frame membership, no-leak, satellite, art, cycle and locator assertions.
 
 ## What this breaks, listed so it is not discovered late
+
+- `check-all.cjs:611` requires `data-level="SYSTEM"`/`"THEATER"` buttons, so it fails loudly once
+  the breadcrumb replaces them.
+- `style.css:88-89` (`.level`, `.holo.theater`) and the `archive.js:167` class toggle go dead
+  silently rather than loudly.
+- `archive.js:184`'s `l.level&&` goes silently false, the same pattern as `:676`, and `showUnit`
+  is easy to miss in Files touched because it also carries the selection path.
+- The `#tab-map` delegate (`intel.html:103`) must learn `[data-frame]` beside `[data-level]`, or
+  every breadcrumb, locator and `ENTER` chip is inert while the builder output still looks right.
+- The comments at `campaign.js:22-24` and `:56` describe levels as drawings and go stale.
+- `assets/nov-elysia.png` has no `-thumb.webp`, so using it as the disc means shipping 2.2 MB or
+  running the `check-all.cjs:80` regen line; the thumb path derives from `l.img`, as
+  `check-all.cjs:79` does, not from the id.
+- The UI frame stack has no state of its own: it is the `frame` chain from the current frame, so
+  `frame` (`archive.js:110`) stays the single source and a second stack would only drift.
 
 - `check-all.cjs:53` requires `level`, which is retired.
 - The map block runs `:266-404`, not `:266-288`, and all of it is affected: `:283-287` the
