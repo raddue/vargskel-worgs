@@ -139,8 +139,8 @@ Placement is one rule, not four:
   the angle of its own offset from that parent.
 - On a descended frame `F`, the subject sits at the centre and every member whose `level`
   matches that frame's scale sits at its own offset from the subject, unchanged. Nothing is
-  scaled and nothing is re-projected, because those coordinates are already in the frame's
-  units.
+  re-projected, because those coordinates are already in the frame's units; the fit scale is
+  applied to the frame at draw time, not to each member's offset.
 - **A cross-scale member is placed by declaration, not by arithmetic.** An offset means something
   only inside one frame's scale: `elysia`'s `x,y` is a THEATER point and `cressidium`'s is a
   SYSTEM point, so subtracting one from the other mixes two origins and yields neither a distance
@@ -187,7 +187,10 @@ Placement is one rule, not four:
   share the frame's scale — floored at the 72 px disc so a frame holding only its subject (`pell`,
   `kessen`, `harrow`, `cairn`, `dock`, `district`, `dropzone`, `rio`, `vsaf`) is not drawn at
   about 40× — computed from the records and never hard-coded. The camera scale is
-  `min(viewW, viewH) / (2 × radius)` with **one margin of 24 px**, applied once. A member's own
+  `min(viewW, viewH) / (2 × viewR)` where `viewR = greatest + 24`. That is the whole formula: the
+  24 px margin lives inside `viewR`, neither subtracted after the divide nor added to the divisor,
+  because the three readings give 1.24×, 1.12× and 1.11× on `cressidium` and only this one is
+  written down. A member's own
   radius is in there because a mostly-vertical body would otherwise overhang the edge while its
   centre passed the test. On `cressidium` the radius is 193 px, set by `kessen` at 167 plus its
   26 px hex; on `elysia` it is 269.7 px, set by `vsaf` at 260.7 plus its 9 px glyph, not by `rio`
@@ -271,9 +274,10 @@ The frame's head, sub-head, grid label and `aria` derive from the subject's kind
 from a level band (`archive.js:108` today), and from one table rather than two: a `PLANET`,
 `MOON`, `STATION`, `WRECK FIELD` or `ORBITAL` frame reads `ORBIT GRID`; a `DISTRICT`, `FOB` or
 `ZONE` frame reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID`; the root reads `SECTOR HOLOMAP` over
-`SECTOR GRID · 50 U`. **Only the root's label carries units**, because only the root draws at
-scale 1: the grid pattern is a fixed 50 px texture (`intel.html:54`), so `50 U` is a
-measurement on the root and false anywhere else (`cressidium` draws at about 1.24×, before the
+`SECTOR GRID · 50 U`. **Only the root's label carries units**, because the grid pattern is a
+fixed 50 px texture (`intel.html:54`) defined in the root's own coordinate units and scaled with
+them, so `50 U` is a
+measurement on the root and false anywhere else (`cressidium` draws at about 1.11× with the
 reason the legend says `NOT DISTANCE`. `ponytail:` the pattern is not scaled to the fit;
 upgrade if a frame ever needs measurable ground.
 
@@ -301,11 +305,11 @@ that no record supports, so it is declared rather than smuggled in.
 
 - It is **drawn procedurally in SVG**, not from art, because no asset exists and none is
   wanted yet. Its position is declared as a bearing from the viewBox centre (`starBearing: 270`,
-  due west) at `starRadius`, the greatest body-centre distance from the viewBox centre, on a frame
-  that is never scaled, so it cannot slide off
-  the canvas: on the root the greatest body distance from `500, 240` is 381 px (`tarn`), which
-  puts the star at about `119, 240` — the left edge at mid height, clear of `cressidium` and
-  `tarn`. `ponytail:` a `starBearing` constant in the builder names it as an invented value,
+  due west) at `starRadius = viewR`, the frame's own view radius, so the star rides the fitted rim
+  and clears the bodies by the margin. It is drawn inside the same scaled group as the bodies, so
+  it scales with them, and the root is no exception: the greatest body distance from `500, 240` on
+  the root is 868 px (`tarn`), so `viewR` is 892 and the root is fitted at about 0.27 like every
+  other frame. `ponytail:` a `starBearing` constant in the builder names it as an invented value,
   upgradeable to a record if the star ever needs a file. A test asserts that the star's `data-x`
   and `data-y` land inside the 1000×480 viewBox with a margin, its own radius too, the same shape
   of check the member positions get at `:428`.
@@ -415,7 +419,9 @@ Requires tests, all through the pure builder:
   every frame, and it finally has a membership to test against.
 - `holomap("cressidium")` draws `cressidium` at centre, `pell` and `kessen` as full bodies and
   `elysia` as a pin; `holomap("SYSTEM")` draws `pell` and `kessen` each on its own ring about
-  `cressidium` (radii 109.5 px and 167 px).
+  `cressidium` (radii 109.5 px and 167 px). The `r` attribute is written unrounded — the
+  `Math.round` at `archive.js:130` goes — and the test still compares within 1 px so the choice
+  cannot rot.
 - `holomap("elysia")` draws `elysia` at centre with `rio` on a ring centred on `elysia`;
   `holomap("tarn")` draws `harrow`.
 - An `ENTER <NAME>` chip appears iff `members(F)` holds more than the subject, so `tarn` has
