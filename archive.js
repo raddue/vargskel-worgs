@@ -178,7 +178,10 @@ const FRAME_META=(subj,isSys)=>{
  const orbit=ART_KINDS.includes(subj.kind),ground=!orbit&&subj.kind!=="CITY";
  return{head:orbit?"ORBIT HOLOMAP":ground?"GROUND HOLOMAP":"THEATER HOLOMAP",sub:subj.name,
   grid:orbit?"ORBIT GRID":ground?"GROUND GRID":"THEATER GRID",
+  /* The lead word tracks the same kind the head and the grid label do, so a DISTRICT frame reads
+     GROUND HOLOMAP and Ground holomap, not the theater sentence (design rev 12). */
   aria:orbit?`Orbit holomap of ${subj.name}: the body, what orbits it, and what stands on it. Select a site to read its file.`
+   :ground?`Ground holomap of ${subj.name}: the ground, its sites and approaches. Select a site to read its file.`
    :`Theater holomap of ${subj.name}: the ground, its sites and approaches. Select a site to read its file.`}};
 let frame=null;
 const stack=[];   /* the descent path, deepest last: climbing is exact and a deep link sets it all */
@@ -189,25 +192,23 @@ function holomap(fid){
  const isSys=fid==="SYSTEM",subj=isSys?null:L[fid],M=FRAME_META(subj,isSys);
  const mem=members(fid),ids=new Set(mem.map(l=>l.id));
  const CX=500,CY=240,pos=new Map();
- /* Rev 11: every frame is fitted, the root included. The root's subject is the viewBox centre,
-    so its members sit at the centre plus their own offset at the fit scale, and its view radius
-    is the farthest body's offset plus that body's radius. A descended frame fits its radius (the
+ /* The root is exempt from the fit: its nodes are already absolute px in this same 1000x480
+    space, so it draws at scale 1 and nothing moves. A descended frame fits its radius (the
     subject's disc rim, or the farthest same-scale member's offset plus that member's radius,
-    floored at the disc so a subject-only frame is not drawn at forty times) into the viewBox,
-    and positions and drawn radii both carry that scale. The radius is computed from the records,
-    never typed per frame. */
+    floored at the disc so a subject-only frame is not drawn at forty times) into the viewBox
+    with a single 24 px margin, and positions and drawn radii both carry that scale. The radius
+    is computed from the records, never typed per frame (design rev 12). */
  const offsets=new Map();
- mem.forEach(l=>{if(l.id!==fid)offsets.set(l.id,isSys?Math.hypot(l.x*10-CX,l.y*4.8-CY):Math.hypot((l.x-subj.x)*10,(l.y-subj.y)*4.8))});
+ mem.forEach(l=>{if(!isSys&&l.id!==fid)offsets.set(l.id,Math.hypot((l.x-subj.x)*10,(l.y-subj.y)*4.8))});
  const frameScale=isSys?"SYSTEM":subj.level;
  const sameScale=mem.filter(l=>l.id!==fid&&l.level===frameScale);
  const pinM=mem.find(l=>l.id!==fid&&l.level!==frameScale);
- const radius=Math.max(DISC_RIM+(pinM?PIN_R:0),...sameScale.map(l=>offsets.get(l.id)+RADII[l.kind]));
- /* The 24 px margin lives inside viewR, applied once: labels are excluded from the fit, so this
-    is their breathing room, and the star rides at viewR itself (design rev 11). */
- const viewR=radius+FIT_MARGIN;
- const scale=Math.min(1000,480)/(2*viewR);
+ const radius=isSys?Math.max(0,...mem.map(l=>Math.hypot(l.x*10-CX,l.y*4.8-CY)))
+  :Math.max(DISC_RIM+(pinM?PIN_R:0),...sameScale.map(l=>offsets.get(l.id)+RADII[l.kind]));
+ const scale=isSys?1:Math.min(1000,480)/(2*(radius+FIT_MARGIN));
+ const viewR=isSys?radius:radius+FIT_MARGIN;
  mem.forEach(l=>{
-  if(isSys){pos.set(l.id,{x:CX+(l.x*10-CX)*scale,y:CY+(l.y*4.8-CY)*scale});return}
+  if(isSys){pos.set(l.id,{x:l.x*10,y:l.y*4.8});return}
   if(l.id===fid){pos.set(l.id,{x:CX,y:CY});return}
   if(l.level===subj.level){pos.set(l.id,{x:CX+(l.x-subj.x)*10*scale,y:CY+(l.y-subj.y)*4.8*scale});return}
   /* A cross-scale member is placed by declaration, not by arithmetic: an offset means something
@@ -266,19 +267,19 @@ function holomap(fid){
  /* The star: the one drawn thing here no record supports, so it is declared rather than
     smuggled in. It is not a location: no data-loc, not selectable, no file, and the key says
     so outright. role="img" because an aria-label on a bare <g> is ignored by several readers.
-    Rev 11: it rides at starRadius = viewR inside the same fitted layout as the bodies and
-    scales with them, so its placed position and its glyph both carry the root's fit scale.
+    starRadius is the greatest body-centre distance from the viewBox centre, and the root draws
+    at scale 1, so the star cannot slide off the canvas and needs no margin (design rev 12).
     ponytail: an invented constant — no asset exists and none is wanted; upgrade to a record if
     the star ever needs a file. */
- const sb=STAR_BEARING*Math.PI/180,sx=CX+viewR*scale*Math.sin(sb),sy=CY-viewR*scale*Math.cos(sb);
+ const sbrad=STAR_BEARING*Math.PI/180,sx=CX+radius*Math.sin(sbrad),sy=CY-radius*Math.cos(sbrad);
  const star=isSys?`<g class="star" role="img" data-x="${sx.toFixed(1)}" data-y="${sy.toFixed(1)}" aria-label="Cressidium, the system's primary star, drawn for orientation. It has no file." transform="translate(${sx.toFixed(1)} ${sy.toFixed(1)})">`+
-  `<circle r="${(30*scale).toFixed(1)}" fill="var(--cyan)" opacity=".10"/><circle r="${(18*scale).toFixed(1)}" fill="var(--cyan)" opacity=".25"/><circle r="${(8*scale).toFixed(1)}" fill="var(--cyan)"/>`+
+  `<circle r="30" fill="var(--cyan)" opacity=".10"/><circle r="18" fill="var(--cyan)" opacity=".25"/><circle r="8" fill="var(--cyan)"/>`+
   [0,45,90,135,180,225,270,315].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);
-   return `<line x1="${(11*scale*c).toFixed(1)}" y1="${(11*scale*s).toFixed(1)}" x2="${(22*scale*c).toFixed(1)}" y2="${(22*scale*s).toFixed(1)}" stroke="var(--cyan)" stroke-width="1.5" opacity=".55"/>`}).join("")+`</g>`:"";
- /* The far grid texture is defined in the root's coordinate units: on the root it scales with
-    the fit, on a fitted frame it stays at its fixed 50 px. Emitted here, not in the page
-    skeleton, because the scale is per frame. */
- const farGrid=`<g transform="translate(${CX} ${CY}) scale(${(isSys?scale:1).toFixed(4)}) translate(${-CX} ${-CY})"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/></g>`;
+   return `<line x1="${(11*c).toFixed(1)}" y1="${(11*s).toFixed(1)}" x2="${(22*c).toFixed(1)}" y2="${(22*s).toFixed(1)}" stroke="var(--cyan)" stroke-width="1.5" opacity=".55"/>`}).join("")+`</g>`:"";
+ /* The far grid texture is the fixed 50 px pattern from the page skeleton, drawn in the root's
+    own coordinate units where the root draws at 1 (design rev 12), so it is not part of the
+    world's scaled group. */
+ const farGrid="";
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
     hostile areas and the muster hull. situation() owns the roles, the map only draws them. One
     ground can hold two roles — the Rio Grande is both the extraction destination and the
@@ -290,7 +291,10 @@ function holomap(fid){
   if(!K)throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no renderer`);
   /* A framed site hangs under the body it sits on, and only while it is not drawn here itself. */
   const hosts=C.locations.filter(x=>x.frame===l.id&&!ids.has(x.id)),bs=marks.get(l.id)||[],p=pos.get(l.id);
-  const r=bodyR(l,l.id===fid?"subject":"member"),labY=l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30);
+  /* A drawn radius is a pixel constant times the fit scale, like a position: art bodies scale,
+     ground glyphs keep their own size because their points are the extent (design rev 12). */
+  const role=l.id===fid?"subject":"member",gm=bodyR(l,role),r=ART_KINDS.includes(l.kind)?gm*scale:gm;
+  const labY=l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30);
   return `<g class="node${members(l.id).length>1?" body":""}${l.visited?"":" unv"}${curSet.has(l.id)?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${curSet.has(l.id)?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}">`+
   `<circle r="${Math.max(28,r)}" fill="transparent"/>`+K.draw(l,r,fid)+
   `<text y="${labY}" text-anchor="middle">${esc(l.name)}</text>`+
