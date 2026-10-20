@@ -336,6 +336,34 @@ else {
     if (!/NOT IN CATALOGUE/i.test(frameHtml)) errs.push("a frame with no catalogue data must say so in the pick");
   }
 
+  /* #30: the placeholder record stays resolvable (the catalogue keeps it, the export still prints
+     it) but no rendered offer list presents it: systems checklist, weapon seats, frame pick. */
+  {
+    const page = mount("loadout.html", "#averna");
+    /* every record's seats are filled, so the weapon offer list only renders once a seat empties:
+       drop a weapon the way a visitor does, then read the seat's select */
+    const dropped = mount("loadout.html", "#averna");
+    /* the first seat may refuse (frame-integrated mains do), so drop seats until one empties */
+    for (const n of Object.keys(dropped.nodes).filter(n => n.indexOf("lo-drop-") === 0)) {
+      dropped.nodes[n].fire("click");
+      if (Object.keys(dropped.nodes).some(k => k.indexOf("lo-pick-") === 0)) break;
+    }
+    const seatHtml = dropped.html("lo-slots");
+    if (!seatHtml) errs.push("the weapon-seat sweep must render at least one empty seat to pin");
+    [["systems", page.html("lo-systems")], ["frame pick", page.html("lo-frame")], ["weapon seats", seatHtml]].forEach(([name, h]) => {
+      if (/ERR: DATA NOT FOUND/.test(h)) errs.push(`the rendered ${name} offer list must not present the catalogue placeholder`);
+    });
+    const catBox = { window: {}, console, matchMedia: () => ({ matches: true }) };
+    vm.runInNewContext(fs.readFileSync(path.join(ROOT, "catalogue.js"), "utf8"), catBox, { filename: "catalogue.js" });
+    const CATX = catBox.window.CATALOGUE;
+    if (!CATX.systems["ERR: DATA NOT FOUND"] || !CATX.frames["GMS ERR: DATA NOT FOUND"]) errs.push("the catalogue must keep the placeholder resolvable for display");
+    if (core.exportLoadout({ mech: "x", frame: "y", pilot: "z", mounts: [], systems: ["ERR: DATA NOT FOUND"] }).indexOf("ERR: DATA NOT FOUND") < 0) errs.push("the export must still print a placeholder a build carries");
+    /* the display side through the page, not just the function: a fixture build carrying the
+       placeholder still prints it in the export pane (peer review note, non-blocking) */
+    const fx = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "averna", frame: "GMS CHOMOLUNGMA", pilot: "daemon", mounts: [], systems: ["ERR: DATA NOT FOUND"] } });
+    if (fx.html("lo-export").indexOf("ERR: DATA NOT FOUND") < 0) errs.push("the export pane must print a placeholder the fixture build carries");
+  }
+
   /* the counter follows the pick rather than the mount: cap = frame.sys + floor(sys/2) + ceil(ll/2) */
   {
     const before = mount("loadout.html", "#alba").html("lo-sp");

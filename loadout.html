@@ -58,6 +58,8 @@
   const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const F = window.__LOADOUT_FIXTURE || null;
   const want = (F && F.mech) || String(location.hash || "").replace(/^#/, "") || (C.mechs[0] || {}).id;
+  /* #30: the catalogue placeholder stays resolvable for display but no offer list presents it */
+  const offered = map => Object.keys(map).filter(n => n.indexOf("ERR: DATA NOT FOUND") < 0).sort();
   const rec = (C.mechs || []).filter(m => m.id === want)[0];
   if (!rec) { el("lo-slots").innerHTML = '<p class="muted">no record for ' + esc(want) + '</p>'; return; }
   let frame = LO.frameOf({ frame: (F && F.frame) || rec.frame }, CAT);
@@ -67,6 +69,8 @@
     sys: rec.sys || 0,
     mounts: (rec.mounts || []).map(m => ({ slot: m.slot, weapons: (m.weapons || []).slice(), locked: !!m.locked })),
     systems: (rec.systems || []).slice() };
+  /* fixture plumbing for the #30 pane pin: a seeded build may carry systems the record does not */
+  if (F && F.systems) build.systems = F.systems.slice();
   const refused = {};
   for (const a of (F && F.place) || []) {
     const r = LO.place(pilot, build, a.slotIndex, a.seat, a.weapon, CAT, a);
@@ -82,7 +86,7 @@
         cells.push(w
           ? '<span class="lo-wep">' + esc(w) + '</span><button class="lo-drop" id="lo-drop-' + i + "-" + s + '" aria-label="remove ' + esc(w) + '">\u2715</button>'
           : '<select class="lo-pick" id="lo-pick-' + i + "-" + s + '" aria-label="weapon for ' + esc(m.slot) + '"><option value="">\u2014</option>' +
-            Object.keys(CAT.weapons).sort().map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join("") + '</select>');
+            offered(CAT.weapons).map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join("") + '</select>');
       }
       return '<div class="lo-slot"><span class="lo-slot-name">' + esc(m.slot) + '</span>' +
         (cells.length ? cells.join("") : '<span class="lo-wep muted">EMPTY</span>') +
@@ -117,7 +121,7 @@
       Object.keys(p).filter(k => typeof p[k] === "string").map(k => esc(p[k])).join(" ") + '</span>').join("") +
     '</div>').join("");
   };
-  const sysNames = () => Object.keys(CAT.systems).sort();
+  const sysNames = () => offered(CAT.systems);
   const renderSystems = () => {
     const chosen = build.systems || [];
     el("lo-systems").innerHTML =
@@ -186,7 +190,7 @@
     if (!pick) return;
     /* a supplement frame is not in the catalogue, so appending the record's own name keeps the
        control from sitting blank and says why the cap cannot be computed */
-    const names = Object.keys(CAT.frames).sort();
+    const names = offered(CAT.frames);
     if (build.frame && names.indexOf(build.frame) < 0) names.push(build.frame);
     pick.innerHTML = names.map(n =>
       '<option value="' + esc(n) + '"' + (n === build.frame ? " selected" : "") + '>' + esc(n) +
