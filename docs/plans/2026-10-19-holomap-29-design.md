@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 7
+revision: 8
 source: "design"
 ---
 
@@ -124,10 +124,15 @@ not drawn to one scale", and the grids are labelled `SECTOR GRID · 50 U` and
 `THEATER GRID · 10 U` (`archive.js:108-109`). `level` therefore **stays on the records as the
 scale of the coordinates on them**, and what retires is its wiring role: the `l.level===level`
 filter and the two `SYSTEM|THEATER` buttons. A frame's scale is its subject's `level` (the root's
-is `SYSTEM`), and the invariant that makes an offset mean anything is: **for every record,
-`level` equals the scale of the frame it is drawn on, unless the record is itself a frame's
-subject, in which case it equals its own frame's scale.** `elysia` is the one record where the
-two differ, and that is exactly why it is a pin. Placement is one rule, not four:
+is `SYSTEM`). The claim that makes an offset mean anything is written as a set equality rather
+than a sentence, because a sentence about equality that every record satisfies tests nothing:
+**for every frame `F` and every member `m` of `F` other than `F`'s subject, collect the `m`
+where `m.level !== scale(F)`. That set equals the declared pins exactly, `{(cressidium,
+elysia)}` today.** Every frameless record is `level: "SYSTEM"`. Two scales are equal for 12 of
+the 13 records, so the set equality is the only version that fails when a mistyped `level`
+moves a record, or when a `pinBearing` appears with no cross-scale member to carry it.
+`elysia` is the one record whose two scales differ, and that is exactly why it is a pin.
+Placement is one rule, not four:
 
 - On `SYSTEM`, a record is placed at its own `x,y`; a satellite sits on its parent's ring at
   the angle of its own offset from that parent.
@@ -139,28 +144,45 @@ two differ, and that is exactly why it is a pin. Placement is one rule, not four
   only inside one frame's scale: `elysia`'s `x,y` is a THEATER point and `cressidium`'s is a
   SYSTEM point, so subtracting one from the other mixes two origins and yields neither a distance
   nor a bearing. A member whose `level` differs from the frame's scale therefore sits on the
-  subject's rim at a **declared bearing** carried by the frame's metadata (`cressidium`:
-  `pinBearing: 45`, up and to the right), the same honest move as the star below. Today exactly
-  one member is in this case: `elysia` on `cressidium`. A frame that draws a cross-scale member
-  without a declared bearing throws rather than inventing an angle. `ponytail:` the declared
+  subject's rim at a **declared bearing carried by the pinned record itself** (`elysia:
+  pinBearing: 45`), the same honest move as the star below. Compass degrees, clockwise from
+  north, drawn `x = cx + r·sin(b)`, `y = cy − r·cos(b)`, because SVG's y axis points down; 45
+  is therefore up and to the right, and the frame's `aria` says `POSITION ON DISC DECLARED`
+  rather than implying a measured spot. The value is grounded, not invented: `campaign.js:30`
+  has `pell` tide-locked over the city's night side, `pell` sits up and right of `cressidium`,
+  and the star is on the other side, so the rim point faces the moon and the planet's dark
+  face. Today exactly one member is in this case: `elysia` on `cressidium`. A cross-scale member
+  with no `pinBearing` of its own throws rather than inventing an angle, so a second one cannot
+  silently land on the same rim point. `ponytail:` the declared
   bearing is what a one-scale page can honestly draw; upgrade to a real projection when a second
   scale must be *measured* across, not merely positioned.
 - A ring is drawn around the parent at the radius of the child riding it, whether the parent is
-  the frame's subject (`rio` over `elysia`) or a satellite (`pell` over `cressidium`).
+  the frame's subject (`rio` over `elysia`) or a principal on the root (`pell` over
+  `cressidium`).
 - A **pin** is a member whose `level` differs from the frame's scale, drawn on the subject's rim
-  at its frame's declared bearing, for the reason in the `ponytail:` note above. The definition is
+  at its own declared bearing, for the reason in the `ponytail:` note above. The definition is
   the narrow one on purpose: `dock`, `district`, `industry` and `rio` each end up with a `frame`
   equal to their `parent` after the migration, but all four share their frame's scale, so they sit
   at their own offsets and none of them is a pin. `elysia` is the only pin in the records.
-- The frame's **view radius** is the max absolute offset over the members **that share the
-  frame's scale**, plus a margin, computed from the records and never hard-coded. A cross-scale
-  pin neither raises it nor needs it: the pin is on the rim by construction. On `cressidium` the
-  radius is set by `kessen` at 167 px, not by `elysia` at 89 px, which is the correction that
-  keeps a marker from falling outside the frame that draws it; on `elysia` it is set by `vsaf`
-  at 260.7 px, not by `rio` at 210.4 px. An orbit ring takes its own child's radius. The view is
-  **fitted, not clipped**: the camera scale is `min(viewW, viewH) / (2 × radius)` times a margin,
-  so a frame whose radius (261 px on `elysia`) exceeds the viewBox half-height of 240 is drawn
-  smaller rather than cut off.
+- **A drawn radius is a pixel constant multiplied by the fit scale**, like a position, and never
+  a viewBox unit. `ponytail:` a planet disc is 54 px at 1×, a moon 30, a station hex 26, a
+  ground-marker dot 6, the city glyph 54 and the subject's disc 88; upgrade to per-body radii if
+  the art needs them. Scaling positions but not radii is what let a planet's disc swallow its own
+  moon's ring on the mockup, so the two are one rule.
+- The frame's **view radius** is `max(subjectDisc, max same-scale offset)`, computed from the
+  records and never hard-coded, and the camera scale is `min(viewW, viewH) / (2 × radius)` with
+  **one** margin applied once. `max` and not `offset + margin` is what keeps a frame whose only
+  member is its own subject (`pell`, `kessen`, `harrow`, `cairn`, `dock`, `district`, `dropzone`,
+  `rio`, `vsaf`) from dividing by zero, since those frames have no same-scale offset at all. On
+  `cressidium` the radius is 167 px, set by `kessen`; on `elysia` it is 260.7 px, set by `vsaf`.
+  An orbit ring takes its own child's radius. A pin sits on the subject's rim, so the disc radius
+  already covers it and a pin is never the thing that sets the fit. The view is **fitted, not
+  clipped**, so a frame whose radius (261 px on `elysia`) exceeds the viewBox half-height of 240
+  is drawn smaller rather than cut off.
+- **Labels are drawn after the bodies and are not part of the fit.** At a small scale a label can
+  touch its neighbour: on the mockup `DISTRICT` overlapped the city glyph at 0.59× and `INDUSTRY`
+  overlapped `FOB SABER`. `ponytail:` acceptable for now; upgrade to a collision pass when a
+  frame carries more than six labelled members.
 
 So the rule is: **every record has one home frame — its `frame` if set, `SYSTEM` otherwise —
 and a satellite is also drawn on its parent's frame.** That gives the no-leak test a real
@@ -178,10 +200,10 @@ membership to test: `members(F)` is the only set of ids a frame may draw.
 
 ### Data migration
 
-One field is re-valued and two are added; none is retired, and no id changes.
+One field is re-valued and three are added; none is retired, and no id changes.
 
 - **`level` stays, as the coordinate scale**, and stops being a wiring key. `check-all.cjs:53`'s
-  key list keeps it and gains `frame`, and nothing filters on it any more.
+  key list keeps it and gains `frame` and `pinBearing`, and nothing filters on it any more.
 - **`frame` is set or re-valued** so the frame that draws each site is explicit:
   - `district`, `industry`, `dropzone` → `frame: "elysia"` (ground in the city's frame)
   - `dock` → `frame: "industry"` (FOB inside the industrial district; its `parent` already says `industry`)
@@ -192,6 +214,9 @@ One field is re-valued and two are added; none is retired, and no id changes.
 - **`rio.parent` → `"elysia"`** so the orbit ring draws. Today `rio.parent` is absent, so the
   `ORBITAL` never gets the ring `archive.js:129` would give it; the hull is drawn floating.
   With this, `rio` is the one body that is both a `parent` child and on a descended frame.
+- **`elysia.pinBearing: 45` is added** — the compass bearing of the city on `cressidium`'s disc.
+  It rides the pinned record, not the frame's metadata, so a second cross-scale member cannot
+  reuse one value silently, and a record carrying a bearing without being a pin is an error.
 - **`factions[].zone` gains `frame: "elysia"`** (`campaign.js:59-62`), so a zone is drawn where
   its own record says rather than by an id hand-coded in the renderer. `archive.js:125-126`
   draws a zone where `zone.frame === F`, and a zone's coordinates are translated by the frame's
@@ -223,8 +248,12 @@ The frame's head, sub-head, grid label and `aria` derive from the subject's kind
 from a level band (`archive.js:108` today), and from one table rather than two: a `PLANET`,
 `MOON`, `STATION` or `WRECK FIELD` frame reads `ORBIT GRID`; a `DISTRICT`, `FOB` or `ZONE` frame
 reads `GROUND GRID`; a `CITY` frame reads `THEATER GRID · 10 U` and keeps the city's existing
-theatre scale, because its children's coordinates are that scale; the root `SYSTEM` keeps
-`SECTOR HOLOMAP`. No new field: the kind is the field.
+theatre scale, because its children's coordinates are that scale; the root reads
+`SECTOR HOLOMAP` over `SECTOR GRID · 50 U` and is the one row that is **not fitted**, because it
+has no subject to centre on: its bodies sit at the records' own `x*10, y*4.8` about the origin,
+which is why the mockup's sector frame reads off-centre, and that row is keyed by the root's own
+`kind: "SYSTEM"`, the field it already carries. No new field: the kind is the field. The root's
+view radius is the max offset over its frameless records, so the star cannot set it.
 
 ### Rendering the art without shipping a raster mask
 
@@ -242,10 +271,11 @@ The operator's call at review: the system frame draws a star. It is the one draw
 that no record supports, so it is declared rather than smuggled in.
 
 - It is **drawn procedurally in SVG**, not from art, because no asset exists and none is
-  wanted yet. Its position is fixed at `x: 8, y: 50` (pixel 80,240: the left edge at
-  mid height, clear of
-  `cressidium` at 30,52 and `tarn` at 86,24) — a `ponytail:` comment in the builder names it as
-  an invented constant, upgradeable to a record if the star ever needs a file.
+  wanted yet. Its position is on the frame's rim at a declared bearing (`starBearing: 270`, due
+  west), not a fixed pixel, so the fitted view cannot slide off it — on the mockup an absolute
+  star and `cressidium` collided once the scale dropped to 0.7×. `ponytail:` a `starBearing`
+  constant in the builder names it as an invented value, upgradeable to a record if the star ever
+  needs a file.
 - It is **not a location**: no `data-loc`, not selectable, no file, no key chip pretending
   otherwise. It carries no `data-frame` either, because `holomap("star")` does not exist and a
   `data-frame` on it would throw; it is not a button. Its `aria` names it as the primary, drawn
@@ -337,12 +367,13 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
 
 Requires tests, all through the pure builder:
 
-- Membership is the contract: for each of the five frames, the frame's `data-loc` set equals
-  `members(F)` exactly, and the locator's set is separate. This generalises the
-  `check-all.cjs:283-287` no-leak pair from two frames to every frame, and it finally has a
-  membership to test against.
+- Membership is the contract: for `SYSTEM` and every location id — 14 frames today, not the five
+  the old map drew — the frame's `data-loc` set equals `members(F)` exactly, and the locator's
+  set is separate. This generalises the `check-all.cjs:283-287` no-leak pair from two frames to
+  every frame, and it finally has a membership to test against.
 - `holomap("cressidium")` draws `cressidium` at centre, `pell` and `kessen` as full bodies and
-  `elysia` as a pin; `holomap("SYSTEM")` draws `pell` and `kessen` on `cressidium`'s ring.
+  `elysia` as a pin; `holomap("SYSTEM")` draws `pell` and `kessen` each on its own ring about
+  `cressidium` (radii 109.5 px and 167 px).
 - `holomap("elysia")` draws `elysia` at centre with `rio` on a ring centred on `elysia`;
   `holomap("tarn")` draws `harrow`.
 - An `ENTER <NAME>` chip appears iff `members(F)` holds more than the subject, so `tarn` has
@@ -354,11 +385,12 @@ Requires tests, all through the pure builder:
 - Every member id appears exactly once on its frame. A second node carrying the same `data-loc`
   is a leak rather than a satellite, which is what pins `rio` to one draw on `elysia` now that
   it carries both `frame: "elysia"` and `parent: "elysia"`.
-- Every member's offset from its subject, scaled by the fitted view, lands inside the 1000×480
-  viewBox with a margin, so a marker outside its own frame's boundary fails the gate. The radius
-  is derived from the records rather than typed in, which a test can show by moving one record's
-  coordinate and watching the radius change. On `elysia` that radius is set by `vsaf`, not by
-  `rio` or the districts.
+- Every member's **placed** position — the `data-x`/`data-y` the builder emits, not its raw
+  offset, which for a pin is the meaningless cross-frame subtraction above — lands inside the
+  1000×480 viewBox with a margin, so a marker outside its own frame's boundary fails the gate.
+  The radius is derived from the records rather than typed in, which a test can show by moving
+  one record's coordinate and watching the radius change. On `elysia` that radius is set by
+  `vsaf`, not by `rio` or the districts.
 - The breadcrumb renders one button per ancestor frame walking the `frame` chain, and
   terminates at `SYSTEM`.
 - Each frame's expected membership is recomputed in the test from the records, the way `idsOn`
@@ -367,11 +399,11 @@ Requires tests, all through the pure builder:
 - Every non-`SYSTEM` frame carries the locator listing the principal bodies with at most one
   marked active and exactly one whenever the frame's chain contains a principal body, and no
   locator node carries `data-loc`.
-- The scale invariant holds on the real records, and it can fail: for every record, `level` equals
-  the scale of the frame it is drawn on, unless the record is itself a frame's subject, in which
-  case it equals its own frame's scale; every frameless record is `level: "SYSTEM"`; and the
-  `cressidium` frame has exactly one cross-scale member (`elysia`). A mistyped `level` that
-  silently switched a record to the rim would fail here.
+- The scale claim is a set equality, and it can fail: for `SYSTEM` and every location id, the
+  members whose `level` differs from their frame's scale must be exactly `{(cressidium, elysia)}`,
+  every frameless record is `level: "SYSTEM"`, and a `pinBearing` on a record that is not a
+  cross-scale member of its frame fails too. A mistyped `level` that moved a record to the rim,
+  or a second cross-scale member with no bearing of its own, fails here.
 - `CURRENT OP` absence is only worth asserting if the test can make it fail. Op 001 is
   `PLANNED`/`UNBRIEFED`, so `curLoc` is empty and "absent everywhere" is true by construction
   (`check-all.cjs:293`). The test flips `D.ops[0].type` to a flown type **and** `D.ops[0].status` to
@@ -485,8 +517,8 @@ Requires tests, all through the pure builder:
   `cressidium.png` may read as a cropped illustration rather than a world. This is the one
   place where the operator's own answer applies: art first, and image generation later for the
   bodies the art does not carry.
-- **Frames multiply assertions.** Four frames of membership plus rings is a bigger gate surface
-  than two, and the honest-parent rules from #25 have to keep holding per frame.
+- **Frames multiply assertions.** Every frame carries membership plus rings, a bigger gate
+  surface than two frames, and the honest-parent rules from #25 have to keep holding per frame.
 - **The locator can crowd a narrow screen.** Repeated art at small size in a strip is exactly
   what breaks at phone width, so the locator must collapse to markers-only below the small
   breakpoint. That needs a probe, not an assertion.
