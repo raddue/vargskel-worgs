@@ -30,3 +30,8 @@ What the exports carry, learned the hard way:
   live build is `loadouts[active_loadout_index]`, not `loadouts[0]`.
 - No export carries live mech state (`current_hp`, structure, stress, heat, repairs), so those come
   from session play, never from an import.
+
+All of those shapes live in `tools/compcon.cjs`: `readExport(text)` returns the roster in one normal
+form, `readBuild(mech)` returns a mech's live build (systems, talent-granted systems, mounts), and
+`node tools/compcon.cjs <export.json> [--mech <name>]` dumps what it sees. Read through it rather
+than hand-walking a fresh script, and `tools/apply-compcon.cjs` already imports it.

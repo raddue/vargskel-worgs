@@ -12,6 +12,7 @@
    the renderer shows current/max. Statuses resolve to the canonical book names
    (lancer-data 3.1.7 lib/statuses.json) plus AI CASCADE from a cascading NHP entry. */
 const fs = require("fs"), path = require("path"), vm = require("vm"), { spawnSync } = require("node:child_process");
+const compcon = require("./compcon.cjs");
 const ROOT = path.join(__dirname, "..");
 const CAMP = path.join(ROOT, "campaign.js");
 
@@ -48,18 +49,6 @@ function loadCampaign() {
   return sandbox.window.CAMPAIGN;
 }
 
-/* A Pilot Group export keeps its payload as a JSON string under `data`, where an archive keeps
-   collections under `data.data`. Only the declared shape is unwrapped, so no other string is parsed. */
-function exportPayload(data) {
-  if (!data || typeof data !== "object" || typeof data.data !== "string") return data;
-  try { return Object.assign({}, data, { data: JSON.parse(data.data) }); } catch (e) { return data; }
-}
-
-function pilotsFrom(data) {  if (Array.isArray(data)) return data.flatMap(pilotsFrom);
-  if (!data || typeof data !== "object") return [];
-  if (Array.isArray(data.mechs)) return [data];
-  return Object.values(data).flatMap(v => (v && typeof v === "object" ? pilotsFrom(v) : []));
-}
 
 /* Map one COMPCON mech onto the site's tracked fields. Pure, so --selftest can assert it. */
 function mapMechState(cm) {
@@ -222,15 +211,6 @@ function selftest() {
   const folded = foldedMechs({ callsign: "Dusty", mechs: [{ name: "Tombstone" }, { name: "Bullet hell" }] }, ["tombstone", "tombstone"]);
   if (JSON.stringify(folded) !== JSON.stringify(["tombstone x2"])) errs.push(`a folded second build must be named, got ${JSON.stringify(folded)}`);
   if (foldedMechs({ callsign: "A", mechs: [{}] }, ["alba"]).length !== 0) errs.push("one mech on one record is not a fold");
-  /* A Pilot Group export keeps its payload as a JSON string under data, so every pilot-group file
-     reported "no pilot records found" while archive-shaped exports worked. */
-  const group = { EXPORT_TYPE: "Pilot Group", data: JSON.stringify({ pilotData: [{ callsign: "A", mechs: [{ id: "tombstone" }] }, { callsign: "B", mechs: [{ id: "skaldr" }] }] }) };
-  const fromGroup = pilotsFrom(exportPayload(group)).length;
-  if (fromGroup !== 2) errs.push(`a Pilot Group export must yield its pilots, got ${fromGroup}`);
-  const archive = { data: { data: [{ collection: "pilots", items: { p: { callsign: "C", mechs: [] } } }] } };
-  if (pilotsFrom(exportPayload(archive)).length !== 1) errs.push("an archive-shaped export must still yield its pilots");
-  if (pilotsFrom(group).length !== 0) errs.push("the raw walk must not read a payload that is still a string");
-  if (pilotsFrom({ a: JSON.stringify({ mechs: [] }) }).length !== 0) errs.push("a nested string must not be walked as a payload");
   const mapped = mapMechState({ current_hp: 8, current_structure: 2, current_stress: 3, current_heat: 4, current_repairs: 5, statuses: ["STUNNED", "lockon"], conditions: ["Shredded"] });
   if (mapped.set.hpNow !== 8 || mapped.set.structure !== 2 || mapped.set.stress !== 3) errs.push("numeric fields did not map");
   if (mapped.set.heatNow !== 4 || mapped.set.repairsNow !== 5) errs.push("current heat/repairs must map to heatNow/repairsNow");
@@ -639,8 +619,7 @@ function main() {
       unmapped++;
       continue;
     }
-    data = exportPayload(data);
-    const pilots = pilotsFrom(data);
+    const pilots = compcon.readExport(data).pilots;
     if (!pilots.length) {
       console.error(`${path.basename(file)}: no pilot records found`);
       unmapped++;
@@ -649,7 +628,7 @@ function main() {
     for (const pilot of pilots) {
       const resolvedIds = [];
       const mine = C.pilots.find(p => (norm(pilot.callsign) && norm(p.name).includes(norm(pilot.callsign))) || (norm(pilot.name) && norm(p.name) === norm(pilot.name)));
-      for (const cm of pilot.mechs || []) {
+      for (const cm of pilot.mechs) {
         const site = C.mechs.find(m => norm(m.name) === norm(cm.name)) || (mine ? C.mechs.find(m => m.pilot === mine.id) : null);
         if (!site) {
           console.error(`${pilot.callsign || pilot.name || "?"}: no site mech matches "${cm.name}"`);
@@ -657,7 +636,7 @@ function main() {
           continue;
         }
         resolvedIds.push(site.id);
-        const { set, rejected, unknown } = mapMechState(cm);
+        const { set, rejected, unknown } = mapMechState(cm.raw);
         if (rejected.length) console.error(`${site.name}: refused condition label(s) ${JSON.stringify(rejected)}`);
         if (unknown.length) console.error(`${site.name}: condition label(s) outside the book list, kept as written: ${JSON.stringify(unknown)}`);
         const res = applyToText(text, site.id, set);
@@ -681,4 +660,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit, pilotsFrom, exportPayload , foldedMechs };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit, foldedMechs };

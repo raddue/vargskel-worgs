@@ -290,6 +290,7 @@ if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/too
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/loadout-check.cjs"], {stdio: "inherit"}).status !== 0) problems.push("loadout checks failed; run: node tools/loadout-check.cjs");
 /* Design tests 6 and 7 live in this selftest and nothing else calls it, so CI never ran them. */
 if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/apply-compcon.cjs", "--selftest"], {stdio: "inherit"}).status !== 0) problems.push("apply-compcon selftest failed; run: node tools/apply-compcon.cjs --selftest");
+if (require("node:child_process").spawnSync(process.execPath, [__dirname + "/tools/compcon.cjs", "--selftest"], {stdio: "inherit"}).status !== 0) problems.push("compcon selftest failed; run: node tools/compcon.cjs --selftest");
 for (const [name, html] of [["solstice-rain.html", fs.readFileSync(__dirname + "/solstice-rain.html", "utf8")]])
   if (/href="(?:gm|solstice-rain-m1|solstice-rain-c[123])\.html"/.test(html)) problems.push(`${name}: crew page must not link to GM pages`);
 /* Self-hosted faces: a missing woff2 degrades silently to the fallback stack. */
