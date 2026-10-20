@@ -316,12 +316,15 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
     const RADII = { PLANET: 54, MOON: 30, STATION: 26, "WRECK FIELD": 9, ORBITAL: 46, CITY: 9, DISTRICT: 8, FOB: 9, ZONE: 9 };
     const DISC_RIM = 72, PIN_R = 12, STAR_BEARING = 270, FIT_MARGIN = 24;
     const ARTK = ["PLANET", "MOON", "STATION", "WRECK FIELD", "ORBITAL"];
-    const frameGeom = F => { const s = by[F];
+    const frameGeom = F => { const s = by[F] || { x: CX / 10, y: CY / 4.8, level: "SYSTEM" };
       const same = membersOf(F).filter(id => id !== F && by[id].level === s.level);
       const offs = same.map(id => Math.hypot((by[id].x - s.x) * 10, (by[id].y - s.y) * 4.8));
       const pins = membersOf(F).filter(id => id !== F && by[id].level !== s.level);
       const radius = Math.max(DISC_RIM + (pins.length ? PIN_R : 0), ...same.map((id, i) => offs[i] + RADII[by[id].kind]));
-      return { same, offs, pins, radius, scale: Math.min(1000, 480) / (2 * (radius + FIT_MARGIN)) }; };
+      /* Rev 11: the 24 px margin lives inside viewR, and the fit divides by viewR, so the root is
+         fitted like every other frame instead of being excepted. */
+      const viewR = radius + FIT_MARGIN;
+      return { same, offs, pins, radius, viewR, scale: Math.min(1000, 480) / (2 * viewR) }; };
 
     FRAMES.forEach(F => { const f = fames[F]; if (!f) return;
       const want = membersOf(F);
@@ -341,8 +344,20 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
       want.forEach(id => { const n = nodes.get(id); if (!n) { problems.push(`UI.holomap("${F}"): ${id} has no placed node carrying data-x/data-y`); return }
         if (!Number.isFinite(n.x) || !Number.isFinite(n.y)) problems.push(`UI.holomap("${F}"): ${id}'s data-x/data-y must be numbers`); });
       if (F === "SYSTEM") {
+        /* Rev 11: the root is fitted like every other frame, centred on the viewBox centre, so a
+           record sits at the centre plus its own offset at the fit scale, not at raw x*10. */
+        const g = frameGeom("SYSTEM");
         want.forEach(id => { const l = by[id], n = nodes.get(id); if (!n) return;
-          if (!near(n.x, l.x * 10, .6) || !near(n.y, l.y * 4.8, .6)) problems.push(`UI.holomap("SYSTEM"): ${id} must sit at its own coordinates (${l.x * 10},${l.y * 4.8}), got (${n.x},${n.y})`); });
+          const ex = CX + (l.x * 10 - CX) * g.scale, ey = CY + (l.y * 4.8 - CY) * g.scale;
+          if (!near(n.x, ex, .6) || !near(n.y, ey, .6)) problems.push(`UI.holomap("SYSTEM"): ${id} must sit at the centre plus its own offset at the fit scale (${ex.toFixed(1)},${ey.toFixed(1)}), got (${n.x},${n.y})`); });
+        /* Every placed root body lands inside the viewBox with a margin, star included below. */
+        want.forEach(id => { const n = nodes.get(id); if (!n) return;
+          const r = RADII[by[id].kind] * g.scale;
+          if (n.x - r < 24 || n.x + r > 976 || n.y - r < 24 || n.y + r > 456) problems.push(`UI.holomap("SYSTEM"): ${id} at (${n.x},${n.y}) with drawn radius ${r.toFixed(1)} overhangs the viewBox margin`); });
+        /* The far grid texture is defined in the root's coordinate units, so on the root it scales
+           with the fit and on a fitted frame it stays at its fixed 50 px. */
+        const wantFar = `translate(${CX} ${CY}) scale(${g.scale.toFixed(4)}) translate(${-CX} ${-CY})`;
+        if (!f.world.includes(wantFar)) problems.push(`UI.holomap("SYSTEM"): the far grid layer must carry the root's fit scale (${wantFar})`);
       } else {
         const s = by[F], g = frameGeom(F);
         want.forEach(id => { const l = by[id], n = nodes.get(id); if (!n) return;
@@ -370,8 +385,8 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
            one rides the rim) or the farthest same-scale member's offset plus that member's radius.
            rio must not set elysia's fit; kessen sets cressidium's. */
         if (typeof f.viewR !== "number" || !Number.isFinite(f.viewR)) problems.push(`UI.holomap("${F}") must return a numeric viewR derived from the records`);
-        else if (!near(f.viewR, g.radius, .6)) problems.push(`UI.holomap("${F}"): view radius ${f.viewR} must equal the derived radius ${g.radius.toFixed(1)} (disc ${DISC_RIM}${g.pins.length ? " + pin " + PIN_R : ""} or farthest same-scale offset plus member radius)`);
-        if (typeof f.scale !== "number" || !near(f.scale, g.scale, .001)) problems.push(`UI.holomap("${F}"): fit scale ${f.scale} must be min(view)/(2*(radius+${FIT_MARGIN})) = ${g.scale.toFixed(4)}`);
+        else if (!near(f.viewR, g.viewR, .6)) problems.push(`UI.holomap("${F}"): view radius ${f.viewR} must equal the derived radius plus the ${FIT_MARGIN} px margin, ${g.viewR.toFixed(1)} (disc ${DISC_RIM}${g.pins.length ? " + pin " + PIN_R : ""} or farthest same-scale offset plus member radius)`);
+        if (typeof f.scale !== "number" || !near(f.scale, g.scale, .001)) problems.push(`UI.holomap("${F}"): fit scale ${f.scale} must be min(view)/(2*viewR) = ${g.scale.toFixed(4)} with viewR ${g.viewR.toFixed(1)}`);
         if (F === "cressidium" && !near(g.radius, Math.hypot(160, 48) + RADII.STATION, 1)) problems.push('UI.holomap("cressidium"): the radius must be set by kessen at 167 plus its hex, not by the pin elysia');
         if (F === "elysia") { const vsaf = Math.hypot(260, -19.2) + RADII.ZONE, rio = Math.hypot(120, -172.8) + RADII.ORBITAL;
           if (!near(g.radius, vsaf, 1)) problems.push('UI.holomap("elysia"): the radius must be set by vsaf, not by the districts');
@@ -386,10 +401,14 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
          subject (rio over elysia) or a satellite (pell over cressidium). Recomputed here. */
       const ORB = ["MOON", "STATION", "ORBITAL"];
       const wantRings = want.filter(id => { const l = by[id]; return l.parent && l.parent !== id && ORB.includes(l.kind) && want.includes(l.parent); }).sort();
-      const gotRings = [...f.world.matchAll(/<circle class="ring" data-ring="([^"]+)"[^>]*r="(\d+)"/g)].map(m => `${m[1]}:${m[2]}`);
-      const wantRingStrs = wantRings.map(id => { const l = by[id], p = nodes.get(l.parent), c = nodes.get(id);
-        return `${l.parent}:${p && c ? Math.round(Math.hypot(c.x - p.x, c.y - p.y)) : "?"}`; }).sort();
-      if (gotRings.slice().sort().join("|") !== wantRingStrs.join("|")) problems.push(`UI.holomap("${F}"): orbit rings ${gotRings.sort().join("|") || "none"} disagree with the records (${wantRingStrs.join("|") || "none"})`);
+      const gotRings = [...f.world.matchAll(/<circle class="ring" data-ring="([^"]+)"[^>]*r="([\d.]+)"/g)].map(m => [m[1], Number(m[2])]);
+      const wantRings2 = wantRings.map(id => { const l = by[id], p = nodes.get(l.parent), c = nodes.get(id);
+        return [l.parent, p && c ? Math.hypot(c.x - p.x, c.y - p.y) : NaN]; });
+      /* Rev 11: the r attribute is written unrounded, and the test compares within 1 px either way,
+         so the rounding choice cannot rot. */
+      const cmp = ps => ps.slice().sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]);
+      const gR = cmp(gotRings), wR = cmp(wantRings2);
+      if (gR.length !== wR.length || gR.some(([k, r], i) => k !== wR[i][0] || !near(r, wR[i][1], 1))) problems.push(`UI.holomap("${F}"): orbit rings ${gR.map(([k, r]) => `${k}:${r}`).join("|") || "none"} disagree with the records (${wR.map(([k, r]) => `${k}:${r.toFixed(1)}`).join("|") || "none"})`);
       if (wantRings.length && !f.key.includes('class="k-orbit"')) problems.push(`UI.holomap("${F}") key must list ORBIT: the frame draws orbit rings`);
       if (!wantRings.length && f.key.includes('class="k-orbit"')) problems.push(`UI.holomap("${F}") key must not offer ORBIT: nothing orbits on that frame`);
 
@@ -434,12 +453,20 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
           if (!/role="img"/.test(starTag)) problems.push('the star node must carry role="img": an aria-label on a bare <g> is ignored by several screen readers');
           if (/data-loc/.test(starTag)) problems.push("the star is not a location: its node must carry no data-loc");
           if (/data-frame/.test(starTag)) problems.push("the star carries no data-frame: holomap(star) does not exist and a data-frame on it would throw");
-          const starR = Math.max(...want.map(id => Math.hypot(by[id].x * 10 - CX, by[id].y * 4.8 - CY)));
-          const sx = CX + starR * Math.sin(STAR_BEARING * Math.PI / 180), sy = CY - starR * Math.cos(STAR_BEARING * Math.PI / 180);
+          /* Rev 11: the star rides at starRadius = viewR inside the same fitted layout as the
+             bodies, so its placed position carries the root's fit scale, and it must clear every
+             root body by the sum of their drawn radii, its own outer glow included. */
+          const gS = frameGeom("SYSTEM"), starR = gS.viewR;
+          const sx = CX + starR * gS.scale * Math.sin(STAR_BEARING * Math.PI / 180), sy = CY - starR * gS.scale * Math.cos(STAR_BEARING * Math.PI / 180);
+          want.forEach(id => { const n = nodes.get(id); if (!n) return;
+            const d = Math.hypot(n.x - sx, n.y - sy), need = (30 + RADII[by[id].kind]) * gS.scale;
+            if (d < need) problems.push(`the star at (${sx.toFixed(1)},${sy.toFixed(1)}) sits inside ${id}: ${d.toFixed(1)} px apart, needs ${need.toFixed(1)}`); });
           if (!new RegExp(`translate\\(${sx.toFixed(1)} ${sy.toFixed(1)}\\)`).test(starTag)) problems.push(`the star sits at its declared bearing ${STAR_BEARING} and radius ${starR.toFixed(1)}: translate(${sx.toFixed(1)} ${sy.toFixed(1)}), not a typed pixel`);
           const sd = starTag.match(/data-x="([^"]+)" data-y="([^"]+)"/) || [];
           if (!near(+sd[1], sx, .6) || !near(+sd[2], sy, .6)) problems.push(`the star's data-x/data-y must be its placed position (${sx.toFixed(1)},${sy.toFixed(1)})`);
           if (sx < 24 || sx > 976 || sy < 24 || sy > 456) problems.push(`the star at (${sx.toFixed(1)},${sy.toFixed(1)}) must land inside the viewBox with a margin`);
+          const starSeg = f.world.slice(f.world.indexOf('<g class="star"'), f.world.indexOf('</g>', f.world.indexOf('<g class="star"')) + 4);
+          if (!starSeg.includes(`r="${(30 * gS.scale).toFixed(1)}"`)) problems.push(`the star scales with the root's fit: its outer glow must read r=${(30 * gS.scale).toFixed(1)}, not a 1x constant`);
         }
       } else if (starTag) problems.push(`UI.holomap("${F}") must not draw the star: it belongs to the system frame`);
 

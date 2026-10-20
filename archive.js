@@ -189,20 +189,25 @@ function holomap(fid){
  const isSys=fid==="SYSTEM",subj=isSys?null:L[fid],M=FRAME_META(subj,isSys);
  const mem=members(fid),ids=new Set(mem.map(l=>l.id));
  const CX=500,CY=240,pos=new Map();
- /* The root is not fitted: its bodies sit at the records' own x*10, y*4.8 and its fit scale is
-    1. A descended frame fits its radius (the subject's disc rim, or the farthest same-scale
-    member's offset plus that member's radius, floored at the disc so a subject-only frame is
-    not drawn at forty times) into the viewBox, and positions and drawn radii both carry that
-    scale. The radius is computed from the records, never typed per frame. */
+ /* Rev 11: every frame is fitted, the root included. The root's subject is the viewBox centre,
+    so its members sit at the centre plus their own offset at the fit scale, and its view radius
+    is the farthest body's offset plus that body's radius. A descended frame fits its radius (the
+    subject's disc rim, or the farthest same-scale member's offset plus that member's radius,
+    floored at the disc so a subject-only frame is not drawn at forty times) into the viewBox,
+    and positions and drawn radii both carry that scale. The radius is computed from the records,
+    never typed per frame. */
  const offsets=new Map();
- mem.forEach(l=>{if(!isSys&&l.id!==fid)offsets.set(l.id,Math.hypot((l.x-subj.x)*10,(l.y-subj.y)*4.8))});
- const sameScale=mem.filter(l=>l.id!==fid&&subj&&l.level===subj.level);
- const pinM=mem.find(l=>l.id!==fid&&subj&&l.level!==subj.level);
- const radius=isSys?Math.max(0,...mem.map(l=>Math.hypot(l.x*10-CX,l.y*4.8-CY)))
-  :Math.max(DISC_RIM+(pinM?PIN_R:0),...sameScale.map(l=>offsets.get(l.id)+RADII[l.kind]));
- const scale=isSys?1:Math.min(1000,480)/(2*(radius+FIT_MARGIN));
+ mem.forEach(l=>{if(l.id!==fid)offsets.set(l.id,isSys?Math.hypot(l.x*10-CX,l.y*4.8-CY):Math.hypot((l.x-subj.x)*10,(l.y-subj.y)*4.8))});
+ const frameScale=isSys?"SYSTEM":subj.level;
+ const sameScale=mem.filter(l=>l.id!==fid&&l.level===frameScale);
+ const pinM=mem.find(l=>l.id!==fid&&l.level!==frameScale);
+ const radius=Math.max(DISC_RIM+(pinM?PIN_R:0),...sameScale.map(l=>offsets.get(l.id)+RADII[l.kind]));
+ /* The 24 px margin lives inside viewR, applied once: labels are excluded from the fit, so this
+    is their breathing room, and the star rides at viewR itself (design rev 11). */
+ const viewR=radius+FIT_MARGIN;
+ const scale=Math.min(1000,480)/(2*viewR);
  mem.forEach(l=>{
-  if(isSys){pos.set(l.id,{x:l.x*10,y:l.y*4.8});return}
+  if(isSys){pos.set(l.id,{x:CX+(l.x*10-CX)*scale,y:CY+(l.y*4.8-CY)*scale});return}
   if(l.id===fid){pos.set(l.id,{x:CX,y:CY});return}
   if(l.level===subj.level){pos.set(l.id,{x:CX+(l.x-subj.x)*10*scale,y:CY+(l.y-subj.y)*4.8*scale});return}
   /* A cross-scale member is placed by declaration, not by arithmetic: an offset means something
@@ -232,7 +237,7 @@ function holomap(fid){
  const orbitKinds=["MOON","STATION","ORBITAL"];
  const rings=mem.filter(l=>l.parent&&l.parent!==l.id&&orbitKinds.includes(l.kind)&&ids.has(l.parent)).map(l=>{
   const p=pos.get(l.parent),c=pos.get(l.id);
-  return `<circle class="ring" data-ring="${esc(l.parent)}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.round(Math.hypot(c.x-p.x,c.y-p.y))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
+  return `<circle class="ring" data-ring="${esc(l.parent)}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.hypot(c.x-p.x,c.y-p.y).toFixed(1)}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
  /* A zone is drawn where its own record says: zone.frame names the frame, and the zone's
     coordinates translate by the frame's subject offset like any other member's. A zone centred
     on a site adds no label: that site's own file already states who holds it. */
@@ -261,13 +266,19 @@ function holomap(fid){
  /* The star: the one drawn thing here no record supports, so it is declared rather than
     smuggled in. It is not a location: no data-loc, not selectable, no file, and the key says
     so outright. role="img" because an aria-label on a bare <g> is ignored by several readers.
+    Rev 11: it rides at starRadius = viewR inside the same fitted layout as the bodies and
+    scales with them, so its placed position and its glyph both carry the root's fit scale.
     ponytail: an invented constant — no asset exists and none is wanted; upgrade to a record if
-    the star ever needs a file. Fixed at x8 y50 (pixel 80,240): the left edge at mid height,
-    clear of cressidium at 30,52 and tarn at 86,24. */
- const star=isSys?`<g class="star" role="img" data-x="${(CX+radius*Math.sin(STAR_BEARING*Math.PI/180)).toFixed(1)}" data-y="${(CY-radius*Math.cos(STAR_BEARING*Math.PI/180)).toFixed(1)}" aria-label="Cressidium, the system's primary star, drawn for orientation. It has no file." transform="translate(${(CX+radius*Math.sin(STAR_BEARING*Math.PI/180)).toFixed(1)} ${(CY-radius*Math.cos(STAR_BEARING*Math.PI/180)).toFixed(1)})">`+
-  `<circle r="30" fill="var(--cyan)" opacity=".10"/><circle r="18" fill="var(--cyan)" opacity=".25"/><circle r="8" fill="var(--cyan)"/>`+
+    the star ever needs a file. */
+ const sb=STAR_BEARING*Math.PI/180,sx=CX+viewR*scale*Math.sin(sb),sy=CY-viewR*scale*Math.cos(sb);
+ const star=isSys?`<g class="star" role="img" data-x="${sx.toFixed(1)}" data-y="${sy.toFixed(1)}" aria-label="Cressidium, the system's primary star, drawn for orientation. It has no file." transform="translate(${sx.toFixed(1)} ${sy.toFixed(1)})">`+
+  `<circle r="${(30*scale).toFixed(1)}" fill="var(--cyan)" opacity=".10"/><circle r="${(18*scale).toFixed(1)}" fill="var(--cyan)" opacity=".25"/><circle r="${(8*scale).toFixed(1)}" fill="var(--cyan)"/>`+
   [0,45,90,135,180,225,270,315].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);
-   return `<line x1="${(11*c).toFixed(1)}" y1="${(11*s).toFixed(1)}" x2="${(22*c).toFixed(1)}" y2="${(22*s).toFixed(1)}" stroke="var(--cyan)" stroke-width="1.5" opacity=".55"/>`}).join("")+`</g>`:"";
+   return `<line x1="${(11*scale*c).toFixed(1)}" y1="${(11*scale*s).toFixed(1)}" x2="${(22*scale*c).toFixed(1)}" y2="${(22*scale*s).toFixed(1)}" stroke="var(--cyan)" stroke-width="1.5" opacity=".55"/>`}).join("")+`</g>`:"";
+ /* The far grid texture is defined in the root's coordinate units: on the root it scales with
+    the fit, on a fitted frame it stays at its fixed 50 px. Emitted here, not in the page
+    skeleton, because the scale is per frame. */
+ const farGrid=`<g transform="translate(${CX} ${CY}) scale(${(isSys?scale:1).toFixed(4)}) translate(${-CX} ${-CY})"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/></g>`;
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
     hostile areas and the muster hull. situation() owns the roles, the map only draws them. One
     ground can hold two roles — the Rio Grande is both the extraction destination and the
@@ -310,7 +321,7 @@ function holomap(fid){
  const locator=isSys?"":`<div class="sys-locator" role="group" aria-label="System locator: open a principal body's frame">`+
   prins.map(id=>`<button type="button" class="loc-body${id===act?" active":""}${id===act&&curSet.has(id)?" cur":""}" data-frame="${esc(id)}"${id===act?' aria-current="true"':""}>${esc(L[id].name)}</button>`).join("")+
   `<span class="loc-star" title="The primary star is drawn for orientation and has no file">STAR</span></div>`;
- return {world:zones+rings+lines+star+nodes,key,grid:M.grid,aria:ariaOut,head:M.head,sub:M.sub,crumbs,locator,viewR:radius,scale};
+ return {world:farGrid+zones+rings+lines+star+nodes,key,grid:M.grid,aria:ariaOut,head:M.head,sub:M.sub,crumbs,locator,viewR,scale};
 }
 /* Pinch ratios are hysteretic: a gesture has to travel 1.35x or 0.74x before it counts as a zoom,
    so a sloppy two-finger tap, or a drift part-way through a gesture, fires nothing. */
