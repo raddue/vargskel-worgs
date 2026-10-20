@@ -1,6 +1,7 @@
 /* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
-   GPL-3.0-or-later (github.com/massif-press/lancer-data). Mechanical fields only; campaign content
-   itself is not lancer-data derived. */
+   GPL-3.0-or-later (github.com/massif-press/lancer-data).
+   Supplement subset from Lancer KTB Data v2.0.2, Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press). Mechanical fields only; campaign
+   content itself is not lancer-data derived. */
 window.CATALOGUE = {
  "weapons": {
   "ERR: DATA NOT FOUND": {
@@ -721,6 +722,29 @@ window.CATALOGUE = {
    "license_level": 0,
    "mechtype": "Balanced",
    "name": "GMS Everest"
+  },
+  "GMS Chomolungma": {
+   "mounts": [
+    "Main/Aux",
+    "Flex"
+   ],
+   "sys": 7,
+   "license": "GMS",
+   "license_level": 0,
+   "mechtype": "Controller/Support",
+   "name": "GMS Chomolungma"
+  },
+  "GMS Sagarmatha": {
+   "mounts": [
+    "Main",
+    "Flex",
+    "Heavy"
+   ],
+   "sys": 6,
+   "license": "GMS",
+   "license_level": 0,
+   "mechtype": "Defender",
+   "name": "GMS Sagarmatha"
   }
  },
  "fittings": {

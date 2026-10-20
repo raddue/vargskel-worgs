@@ -1082,6 +1082,24 @@ if (blankEntries("gear").length) problems.push(`gear with no rules text: ${blank
 const blankSys = blankEntries("systems").filter(n => !KNOWN_BLANK.includes(n));
 if (blankSys.length) problems.push(`systems with no rules text: ${blankSys.join(", ")}`);
 
+/* Supplement frames and talents: lancer-data 3.1.7 carries neither, and the extractor merges them,
+   so a fallback here means the supplement subset went missing rather than that the item is absent. */
+const SUPP_FRAMES = [
+  ["GMS CHOMOLUNGMA", "Controller/Support", "Main/Aux / Flex"],
+  ["GMS SAGARMATHA", "Defender", "Main / Flex / Heavy"],
+];
+SUPP_FRAMES.forEach(([n, mechtype, mounts]) => {
+  const f = (RD.frames || {})[n];
+  if (!f) return problems.push(`detail.js: frames.${n} missing, so the supplement subset did not merge`);
+  if (f.mechtype !== mechtype) problems.push(`frames.${n}: mechtype must be ${mechtype}, got ${f.mechtype}`);
+  if (f.mounts !== mounts) problems.push(`frames.${n}: mounts must be ${mounts}, got ${f.mounts}`);
+});
+["Spaceborn", "House Guard"].forEach(n => {
+  const t = (RD.talents || {})[n];
+  if (!t) return problems.push(`detail.js: talents.${n} missing, so the supplement subset did not merge`);
+  if (!(t.ranks || []).length) problems.push(`talents.${n}: must carry ranks, got ${JSON.stringify(t.ranks)}`);
+});
+
 /* A mounted weapon is a name plus labelled stat rows, not one joined line. */
 const tw = C.mechs.find(m => m.mounts && m.mounts.length && m.pilot) || C.mechs[0];
 const twPage = mount("mech.html", "#" + tw.id);

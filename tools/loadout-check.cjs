@@ -27,6 +27,13 @@ else {
     const f = CAT.frames["GMS Everest"];
     if (!f || !Array.isArray(f.mounts) || f.mounts.join(",") !== "Main,Flex,Heavy")
       errs.push(`catalogue: GMS Everest must carry mounts Main,Flex,Heavy, got ${JSON.stringify(f && f.mounts)}`);
+    /* the supplement subset carries these two frames, so the SP cap check applies instead of
+       skipping them as unknown (mechbay-26 design, `## Risks`) */
+    const chom = CAT.frames["GMS Chomolungma"], sag = CAT.frames["GMS Sagarmatha"];
+    if (!chom || chom.sys !== 7 || chom.mounts.join(",") !== "Main/Aux,Flex")
+      errs.push(`catalogue: GMS Chomolungma must carry sys 7 and mounts Main/Aux,Flex, got ${JSON.stringify(chom)}`);
+    if (!sag || sag.sys !== 6 || sag.mounts.join(",") !== "Main,Flex,Heavy")
+      errs.push(`catalogue: GMS Sagarmatha must carry sys 6 and mounts Main,Flex,Heavy, got ${JSON.stringify(sag)}`);
   }
 }
 const gen = path.join(__dirname, "build-catalogue.cjs");
@@ -327,13 +334,14 @@ else {
       errs.push("picking another pilot must reach the export block");
   }
 
-  /* a record whose frame is not in the catalogue still has a frame: the pick must show it rather
-     than sit blank, and say that no data resolved it (Averna's GMS CHOMOLUNGMA is a supplement) */
+  /* a record whose frame is not in the catalogue keeps its own name in the pick and says why. No
+     campaign record is in that state any more: the supplement subset landed, so Averna's
+     GMS CHOMOLUNGMA resolves. The branch stays as a guard for a supplement nobody extracted and
+     the unknown-frame path keeps its coverage in the unknown-cap assertion below. */
   {
-    const sup = mount("loadout.html", "#averna");
-    const frameHtml = sup.html("lo-frame");
-    if (!/CHOMOLUNGMA/.test(frameHtml)) errs.push("the frame pick must show the record's own frame even when the catalogue lacks it");
-    if (!/NOT IN CATALOGUE/i.test(frameHtml)) errs.push("a frame with no catalogue data must say so in the pick");
+    const averna = mount("loadout.html", "#averna").html("lo-frame");
+    if (!/CHOMOLUNGMA/i.test(averna)) errs.push("the frame pick must show the record's own frame");
+    if (/NOT IN CATALOGUE/i.test(averna)) errs.push("Averna's supplement frame must resolve from the catalogue, not fall back");
   }
 
   /* #30: the placeholder record stays resolvable (the catalogue keeps it, the export still prints
@@ -382,9 +390,11 @@ else {
       errs.push(`the SP cap must follow the pilot pick: expected ${want}, got ${capOf(who2.html("lo-sp"))}`);
   }
 
-  /* the systems checklist reaches the counter and the export, not just the markup */
+  /* the systems checklist reaches the counter and the export, not just the markup. Averna sits
+     exactly at her cap now that her supplement frame carries one, so the toggle needs a build with
+     headroom, and the cap that bites that toggle is asserted below. */
   {
-    const sysPage = mount("loadout.html", "#averna");
+    const sysPage = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "tombstone", systems: [] } });
     const boxes = Object.keys(sysPage.nodes).filter(k => /^lo-sys-\d+$/.test(k));
     if (!boxes.length) errs.push("loadout.html needs a systems checklist (id lo-sys-<index>)");
     else {
@@ -396,6 +406,22 @@ else {
       if (systemsIn(sysPage.html("lo-export")) === before)
         errs.push("toggling a system must change the systems the export carries");
     }
+  }
+
+  /* the supplement frame carries its SP, so Averna's cap is computed from it rather than left "?",
+     her loadout stays inside it, and a build already at cap refuses another system */
+  {
+    const atCap = mount("loadout.html", "#averna");
+    const sp = atCap.html("lo-sp").replace(/<[^>]*>/g, "");
+    const m = /SP (\d+) \/ (\d+)/.exec(sp);
+    if (!m) errs.push(`Averna's supplement frame must give a real SP cap, got ${sp}`);
+    else if (Number(m[1]) > Number(m[2])) errs.push(`Averna's loadout must stay inside her cap, got ${sp}`);
+    const key = Object.keys(atCap.nodes).filter(k => /^lo-sys-\d+$/.test(k)).pop();
+    const before = atCap.html("lo-export");
+    const box = key && atCap.nodes[key];
+    if (box) { box.checked = true; box.fire("change"); }
+    if (box && atCap.html("lo-export") !== before)
+      errs.push("a build already at its SP cap must refuse another system");
   }
 
   /* an unplace packs the seats, so a picker's index after a removal is not the one it had before */
@@ -449,8 +475,11 @@ else {
   if (!framePick) errs.push("loadout.html needs a frame pick (id lo-frame)");
   else {
     const listed = (fr.html("lo-frame").match(/<option/g) || []).length;
-    if (listed < Object.keys(CAT2.frames).length)
-      errs.push(`the frame pick must list every frame, got ${listed} of ${Object.keys(CAT2.frames).length}`);
+    /* every frame that carries data is offered, and the missing-data placeholder never is (issue
+       #30), so the count is against the frames with data rather than the catalogue's key count */
+    const realFrames = Object.keys(CAT2.frames).filter(n => !/ERR: DATA NOT FOUND/i.test(n));
+    if (listed !== realFrames.length)
+      errs.push(`the frame pick must list every frame that carries data and no placeholder, got ${listed} of ${realFrames.length}`);
     const before = fr.html("lo-export");
     framePick.value = candidate;
     framePick.fire("change");

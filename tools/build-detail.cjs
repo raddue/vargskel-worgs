@@ -5,10 +5,13 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const ROOT = path.join(__dirname, "..");
 const LIB = process.env.LANCER_DATA || (!process.argv[2]?.startsWith("--") ? process.argv[2] : "") || "/tmp/ld/lancer-data-3.1.7/lib";
-if (process.argv.includes("--check") && !fs.existsSync(LIB)) { console.log(`detail.js check skipped: lancer-data absent at ${LIB}`); process.exit(0); }
+const SUPP = process.env.SUPPLEMENT_DATA || "/tmp/sup";
+if (process.argv.includes("--check") && (!fs.existsSync(LIB) || !fs.existsSync(SUPP))) { console.log(`detail.js check skipped: lancer-data or supplement absent (${LIB} / ${SUPP})`); process.exit(0); }
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
-const W = load("weapons.json"), S = load("systems.json"), T = load("talents.json"),
-  G = load("pilot_gear.json"), F = load("frames.json"), SK = load("skills.json"), TG = load("tags.json");
+/* the supplement subset holds only what lancer-data lacks, so a concat cannot shadow an entry */
+const sup = f => fs.existsSync(path.join(SUPP, f)) ? JSON.parse(fs.readFileSync(path.join(SUPP, f), "utf8")) : [];
+const W = load("weapons.json"), S = load("systems.json"), T = load("talents.json").concat(sup("talents.json")),
+  G = load("pilot_gear.json"), F = load("frames.json").concat(sup("frames.json")), SK = load("skills.json"), TG = load("tags.json");
 const tagName = id => (TG.find(t => t.id === id) || {}).name || id.replace(/^tg_/, "");
 
 const sandbox = { window: {} };
@@ -103,9 +106,12 @@ for (const p of C.pilots) {
 const ALIAS_SKIP = ["Spaceborn EVA"];
 const realMissing = missing.filter(m => !ALIAS_SKIP.some(a => m.endsWith(a)));
 
+const packs = sup("packs.json");
+const credit = packs.length ? `\n   Supplement subset from ${packs.map(p => `${p.name} v${p.version}`).join(", ")} (GPL-3.0-or-later, (c) Massif Press).` : "";
 const header = `/* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
-   GPL-3.0-or-later (github.com/massif-press/lancer-data). Subset: only items fielded by
-   this campaign; reformatted for display. Campaign content itself is not lancer-data derived. */`;
+   GPL-3.0-or-later (github.com/massif-press/lancer-data).${credit}
+   Subset: only items fielded by this campaign; reformatted for display.
+   Campaign content itself is not lancer-data derived. */`;
 const out = header + "\nwindow.DETAIL = " + JSON.stringify(DETAIL, null, 1) + ";\n";
 if (process.argv.includes("--check")) {
   const cur = fs.readFileSync(path.join(ROOT, "detail.js"), "utf8");

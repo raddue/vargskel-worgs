@@ -7,9 +7,12 @@
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const ROOT = path.join(__dirname, "..");
 const LIB = process.env.LANCER_DATA || (!process.argv[2]?.startsWith("--") ? process.argv[2] : "") || "/tmp/ld/lancer-data-3.1.7/lib";
-if (process.argv.includes("--check") && !fs.existsSync(LIB)) { console.log(`catalogue.js check skipped: lancer-data absent at ${LIB}`); process.exit(0); }
+const SUPP = process.env.SUPPLEMENT_DATA || "/tmp/sup";
+if (process.argv.includes("--check") && (!fs.existsSync(LIB) || !fs.existsSync(SUPP))) { console.log(`catalogue.js check skipped: lancer-data or supplement absent (${LIB} / ${SUPP})`); process.exit(0); }
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
-const W = load("weapons.json"), S = load("systems.json"), F = load("frames.json"), R = load("rules.json");
+/* the supplement subset holds only what lancer-data lacks, so a concat cannot shadow an entry */
+const sup = f => fs.existsSync(path.join(SUPP, f)) ? JSON.parse(fs.readFileSync(path.join(SUPP, f), "utf8")) : [];
+const W = load("weapons.json"), S = load("systems.json"), F = load("frames.json").concat(sup("frames.json")), R = load("rules.json");
 
 const sandbox = { window: {} };
 vm.createContext(sandbox);
@@ -64,9 +67,11 @@ for (const f of F) if (f.source === "GMS" || wantedFrames.has(norm(`${f.source} 
 for (const k of wantedFrames) if (!iF.has(k)) frameless.push(k);
 for (const k of wanted) if (!iW.has(k) && !iS.has(k)) console.log("note: campaign item absent from lancer-data:", k);
 
+const packs = sup("packs.json");
+const credit = packs.length ? `\n   Supplement subset from ${packs.map(p => `${p.name} v${p.version}`).join(", ")} (GPL-3.0-or-later, (c) Massif Press).` : "";
 const header = `/* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
-   GPL-3.0-or-later (github.com/massif-press/lancer-data). Mechanical fields only; campaign content
-   itself is not lancer-data derived. */`;
+   GPL-3.0-or-later (github.com/massif-press/lancer-data).${credit} Mechanical fields only; campaign
+   content itself is not lancer-data derived. */`;
 const out = header + "\nwindow.CATALOGUE = " + JSON.stringify(CATALOGUE, null, 1) + ";\n";
 if (process.argv.includes("--check")) {
   const cur = fs.readFileSync(path.join(ROOT, "catalogue.js"), "utf8");

@@ -1,6 +1,8 @@
 /* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
-   GPL-3.0-or-later (github.com/massif-press/lancer-data). Subset: only items fielded by
-   this campaign; reformatted for display. Campaign content itself is not lancer-data derived. */
+   GPL-3.0-or-later (github.com/massif-press/lancer-data).
+   Supplement subset from Lancer KTB Data v2.0.2, Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press).
+   Subset: only items fielded by this campaign; reformatted for display.
+   Campaign content itself is not lancer-data derived. */
 window.DETAIL = {
  "weapons": {
   "Nexus (Hunter-Killer)": {
@@ -318,6 +320,26 @@ window.DETAIL = {
     }
    ]
   },
+  "Spaceborn": {
+   "terse": "Improve your mobility and gain an inbuilt EVA suite",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Home in the Void",
+     "description": "All of your mechs that you build come with built-in EVA capabilities, meaning you suffer no penalties when operating underwater or in zero-g environments. As a quick action, you can shunt power into this component to fly 3 spaces and take Heat equal to your mech’s Size + 1, although you must land at the end of this movement or fall."
+    }
+   ]
+  },
+  "House Guard": {
+   "terse": "Improve your ability to defend your allies.",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Front Rank",
+     "description": "You count as adjacent when you are within Range 2 for the purposes of your effects on allied characters (from your traits, talents, systems, or weapons) that require adjacency to your mech."
+    }
+   ]
+  },
   "Siege Specialist": {
    "terse": "Destroy terrain and force enemy movement with Cannon weapons",
    "ranks": [
@@ -528,6 +550,28 @@ window.DETAIL = {
   }
  },
  "frames": {
+  "GMS CHOMOLUNGMA": {
+   "source": "GMS",
+   "mechtype": "Controller/Support",
+   "mounts": "Main/Aux / Flex",
+   "traits": [
+    {
+     "name": "Brilliance",
+     "description": "1/scene, the Chomolungma may take any Quick Tech action as a free action, and then may either Bolster or Lock On as a free action."
+    },
+    {
+     "name": "Data Siphon",
+     "description": "Whenever the Chomolungma makes a tech attack against a hostile character, it may also automatically Scan them."
+    },
+    {
+     "name": "Replaceable Parts",
+     "description": "While resting, the Chomolungma can be repaired at a rate of 1 Repair per 1 structure damage, instead of 2 Repairs."
+    }
+   ],
+   "core": {
+    "name": "Advanced Intrusion Package"
+   }
+  },
   "GMS EVEREST": {
    "source": "GMS",
    "mechtype": "Balanced",
@@ -544,6 +588,28 @@ window.DETAIL = {
    ],
    "core": {
     "name": "Hyperspec Fuel Injector"
+   }
+  },
+  "GMS SAGARMATHA": {
+   "source": "GMS",
+   "mechtype": "Defender",
+   "mounts": "Main / Flex / Heavy",
+   "traits": [
+    {
+     "name": "Guardian",
+     "description": "Adjacent allied characters can use the Sagarmatha as hard cover."
+    },
+    {
+     "name": "Heroism",
+     "description": "1/scene the Sagarmatha can brace without sacrificing any actions or movement on its following turn."
+    },
+    {
+     "name": "Replaceable Parts",
+     "description": "While resting, the Sagarmatha can be repaired at a rate of 1 repair per structure damage instead of 2."
+    }
+   ],
+   "core": {
+    "name": "Rallying Cry"
    }
   }
  },

@@ -190,6 +190,13 @@
     if (!pick) return;
     /* a supplement frame is not in the catalogue, so appending the record's own name keeps the
        control from sitting blank and says why the cap cannot be computed */
+    /* a record spells its frame its own way ("GMS CHOMOLUNGMA") while the catalogue spells it the
+       data's way ("GMS Chomolungma"), and a direct read of that key would render a frame that does
+       have data as NOT IN CATALOGUE. Resolve by normalised name, then adopt the catalogue's own
+       spelling so the selected option is one the list actually holds. */
+    const own = LO.frameOf({ frame: build.frame }, CAT);
+    const key = own && Object.keys(CAT.frames).find(n => CAT.frames[n] === own);
+    if (key) build.frame = key;
     const names = offered(CAT.frames);
     if (build.frame && names.indexOf(build.frame) < 0) names.push(build.frame);
     pick.innerHTML = names.map(n =>
