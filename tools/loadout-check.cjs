@@ -494,7 +494,7 @@ else {
 /* every page's shell has to link to it, since navPages asserts one direction only */
 for (const f of fs.readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
   const src = fs.readFileSync(path.join(ROOT, f), "utf8");
-  if (!/href="loadout\.html"/.test(src)) errs.push(`${f}: the shell must link to loadout.html`);
+  if (/href="loadout\.html"/.test(src)) errs.push(`${f}: the nav must not link the sandbox`);
 }
 
   /* the dossier hands the sandbox a mech id, and the sandbox survives an id it does not know */
