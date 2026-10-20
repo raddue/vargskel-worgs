@@ -1,6 +1,6 @@
 /* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
    GPL-3.0-or-later (github.com/massif-press/lancer-data).
-   Supplement subset from Lancer KTB Data v2.0.2, Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press).
+   Supplement subset from Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, LANCER: Dustgrave v2.0.3, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press).
    Subset: only items fielded by this campaign; reformatted for display.
    Campaign content itself is not lancer-data derived. */
 window.DETAIL = {
@@ -310,16 +310,6 @@ window.DETAIL = {
     }
    ]
   },
-  "Heavy Gunner": {
-   "terse": "Pin enemies down with Heavy Ranged weapons",
-   "ranks": [
-    {
-     "rank": 1,
-     "name": "Covering Fire",
-     "description": "Gain the <b>Covering Fire</b> Quick Action."
-    }
-   ]
-  },
   "Spaceborn": {
    "terse": "Improve your mobility and gain an inbuilt EVA suite",
    "ranks": [
@@ -330,13 +320,23 @@ window.DETAIL = {
     }
    ]
   },
-  "House Guard": {
-   "terse": "Improve your ability to defend your allies.",
+  "Field Analyst": {
+   "terse": "Support your allies with your keen analysis of the battlefield.",
    "ranks": [
     {
      "rank": 1,
-     "name": "Front Rank",
-     "description": "You count as adjacent when you are within Range 2 for the purposes of your effects on allied characters (from your traits, talents, systems, or weapons) that require adjacency to your mech."
+     "name": "Tactical Intelligence",
+     "description": "Whenever an allied character in line of sight misses with an attack, you know by how much it missed. Additionally, you gain the “Superior Intelligence” Reaction."
+    }
+   ]
+  },
+  "Infiltrator": {
+   "terse": "Improve your Hide action and perform debilitating sneak attacks",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Prowl",
+     "description": "During your turn, gain the following benefits:<ul><li>Entering line of sight of hostile characters or moving from cover does not stop you from being Hidden.</li><li>You can pass freely through – but not end your turn in – enemy spaces.</li><li>You can Hide even in plain sight of enemies.<br>These effects immediately end when your turn ends (so you lose Hidden if you’re still in line of sight or out of cover at that time).</li></ul>"
     }
    ]
   },
@@ -377,16 +377,6 @@ window.DETAIL = {
      "rank": 1,
      "name": "Stable, Steady",
      "description": "As a protocol, you may <b>steady your aim</b>. If you do, you become Immobilized until the start of your next turn but gain +1 Accuracy on all attacks you make with Rifles."
-    }
-   ]
-  },
-  "Infiltrator": {
-   "terse": "Improve your Hide action and perform debilitating sneak attacks",
-   "ranks": [
-    {
-     "rank": 1,
-     "name": "Prowl",
-     "description": "During your turn, gain the following benefits:<ul><li>Entering line of sight of hostile characters or moving from cover does not stop you from being Hidden.</li><li>You can pass freely through – but not end your turn in – enemy spaces.</li><li>You can Hide even in plain sight of enemies.<br>These effects immediately end when your turn ends (so you lose Hidden if you’re still in line of sight or out of cover at that time).</li></ul>"
     }
    ]
   }

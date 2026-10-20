@@ -31,7 +31,7 @@
    "img": "assets/tizona.png",
    "triggers": "Act Unseen or Unheard (+2), Survive (+2), Take Someone Out (+2), Word on the Street (+2)",
    "gear": "Light Hardsuit, Light Signature, Light A/C, Extra Rations, Sleeping Bag, Wilderness Survival Kit",
-   "talents": "Heavy Gunner 1, Spaceborn 1, House Guard 1"
+   "talents": "Spaceborn 1, Field Analyst 1, Infiltrator 1"
   },
   "danila": {
    "name": "DANILA “SCOOTER” HOWTER-BOWDEN",
@@ -170,7 +170,7 @@
    "sens": 10,
    "save": 10,
    "loadoutString": "Main: Charged Blade · Flex: Missile Rack / Missile Rack · Heavy: Heavy Machine Gun",
-   "systemString": "Spaceborn EVA, Custom Paint Job, Pattern-A Smoke Charges, Stable Structure, Personalizations"
+   "systemString": "Spaceborn EVA, Expanded Compartment, Pattern-A Smoke Charges, Stable Structure, Personalizations"
   },
   "scooteroo": {
    "name": "SCOOTEROO",

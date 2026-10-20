@@ -1,6 +1,6 @@
 /* Rules data (c) Massif Press, LANCER. Derived from @massif/lancer-data 3.1.7,
    GPL-3.0-or-later (github.com/massif-press/lancer-data).
-   Supplement subset from Lancer KTB Data v2.0.2, Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press). Mechanical fields only; campaign
+   Supplement subset from Lancer Long Rim Data v2.0.3, Lancer Wallflower Data v3.0.5, LANCER: Dustgrave v2.0.3, Operation Solstice Rain Data v2.0.2 (GPL-3.0-or-later, (c) Massif Press). Mechanical fields only; campaign
    content itself is not lancer-data derived. */
 window.CATALOGUE = {
  "weapons": {

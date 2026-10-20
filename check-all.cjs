@@ -1126,9 +1126,14 @@ SUPP_FRAMES.forEach(([n, mechtype, mounts]) => {
   if (f.mechtype !== mechtype) problems.push(`frames.${n}: mechtype must be ${mechtype}, got ${f.mechtype}`);
   if (f.mounts !== mounts) problems.push(`frames.${n}: mounts must be ${mounts}, got ${f.mounts}`);
 });
-["Spaceborn", "House Guard"].forEach(n => {
+/* Talents are pinned to the roster rather than to item names, so a supplement talent entering or
+   leaving the campaign cannot leave a silent fallback behind (House Guard left with guillaume's
+   re-import, Field Analyst arrived with it). */
+const fieldedTalents = [...new Set((C.pilots || []).flatMap(p => String(p.talents || "").split(",")
+  .map(t => t.trim().replace(/\s*\d+$/, "")).filter(Boolean)))];
+fieldedTalents.forEach(n => {
   const t = (RD.talents || {})[n];
-  if (!t) return problems.push(`detail.js: talents.${n} missing, so the supplement subset did not merge`);
+  if (!t) return problems.push(`detail.js: talents.${n} is fielded by the campaign but carries no data`);
   if (!(t.ranks || []).length) problems.push(`talents.${n}: must carry ranks, got ${JSON.stringify(t.ranks)}`);
 });
 
