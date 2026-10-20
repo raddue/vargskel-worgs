@@ -236,7 +236,7 @@ None is retired, and no id changes.
   - `cressidium`, `tarn`, `cairn`, `pell`, `kessen`, `harrow` keep no `frame` (root frame)
 - **`rio.parent` → `"elysia"`** so the orbit ring draws. Today `rio.parent` is absent, so the
   `ORBITAL` never gets the ring `archive.js:129` would give it; the hull is drawn floating.
-- **`elysia.pinBearing: 45` is added** — the compass bearing of the city on `cressidium`'s disc.
+- **`elysia.pinBearing: 100` is added** — the compass bearing of the city on `cressidium`'s disc, 10° off the anti-star axis so the pin sits on the night face and clear of `pell`.
   It rides the pinned record, not the frame's metadata, so a second cross-scale member cannot
   reuse one value silently, and a record carrying a bearing without being a pin is an error.
 - **`factions[].zone` gains `frame: "elysia"`** (`campaign.js:59-62`), so a zone is drawn where
