@@ -106,10 +106,14 @@ const artDisc=(l,r,fid)=>{const cid=`clip-${fid}-${l.id}`;
  `<path class="term" d="M0,${-r} A${r},${r} 0 0,0 0,${r} A${Math.max(2,Math.round(r*.55))},${r} 0 0,1 0,${-r}Z"/>`};
 const polyPts=(n,r,rot,jag)=>Array.from({length:n},(_,i)=>{const a=rot+2*Math.PI*i/n+(jag&&i%2?Math.PI/n:0),rr=jag&&i%2?r*.72:r;
  return `${(rr*Math.cos(a)).toFixed(1)},${(rr*Math.sin(a)).toFixed(1)}`}).join(" ");
+/* The hull outline is the boss's mockup ship at 1x, bow first; the bow is the kind's 46 px drawn
+   radius, so the silhouette stays the extent the fit already accounts for. A symmetric hex lens
+   is the shape the design's table gives a STATION, not a hull. */
+const HULL_PTS=[[-42,6],[10,-14],[46,-2],[30,14],[-24,18]];
 const SIL={
  hex:r=>({pts:polyPts(6,r,-Math.PI/6,0),ex:r}),
  jag:r=>({pts:polyPts(8,r,Math.PI/8,1),ex:r}),
- hull:e=>{const r=e/1.6;return{pts:`0,${(-r*.5).toFixed(1)} ${(r*1.6).toFixed(1)},${(-r*.28).toFixed(1)} ${(r*1.6).toFixed(1)},${(r*.28).toFixed(1)} 0,${(r*.5).toFixed(1)} ${(-r*1.6).toFixed(1)},${(r*.28).toFixed(1)} ${(-r*1.6).toFixed(1)},${(-r*.28).toFixed(1)}`,ex:e}}};
+ hull:e=>({pts:HULL_PTS.map(([x,y])=>`${(x*e/46).toFixed(1)},${(y*e/46).toFixed(1)}`).join(" "),ex:e})};
 const artPlate=(l,r,fid,shape)=>{const cid=`clip-${fid}-${l.id}`,s=SIL[shape](r);
  return `<defs><clipPath id="${cid}"><polygon points="${s.pts}"/></clipPath></defs>`+
  `<image href="${esc(thumbOf(l))}" x="${-s.ex}" y="${-s.ex}" width="${s.ex*2}" height="${s.ex*2}" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`+

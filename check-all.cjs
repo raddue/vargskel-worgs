@@ -480,6 +480,26 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
         if ((l.kind === "PLANET" || l.kind === "MOON") && !seg.includes(`assets/${id}-thumb.webp`)) problems.push(`UI.holomap("${F}"): ${id} is a ${l.kind} and must draw as an art disc referencing assets/${id}-thumb.webp`);
         if (l.kind === "STATION") { const clip = (seg.match(/<clipPath id="[^"]+">([\s\S]*?)<\/clipPath>/) || [])[1];
           if (!clip || !/<polygon/.test(clip) || /<circle/.test(clip)) problems.push(`UI.holomap("${F}"): station ${id} must clip to a hex plate, not the disc clip — a station is not a ball`); } });
+
+      /* The hull: an ORBITAL is an art plate in a hull silhouette (design rev 12, body rendering),
+         and that silhouette is the mockup's ship outline, not the symmetric hex lens slice 1
+         shipped, because the hex is the shape the same table gives a STATION. Read from the
+         rendered clip polygon, unscaled by the fit: the bow outruns the stern, the outline is at
+         least twice as long as it is tall, and its greatest extent is the kind's 46 px drawn
+         radius, which is what keeps rio from setting elysia's fit. */
+      want.forEach(id => { const l = by[id]; if (l.kind !== "ORBITAL") return;
+        const seg = nodeSeg(f.world, id);
+        if (!seg.includes(`assets/${id}-thumb.webp`)) problems.push(`UI.holomap("${F}"): ${id} is an ORBITAL and must keep its art plate inside the hull silhouette`);
+        const clip = (seg.match(/<clipPath id="[^"]+">([\s\S]*?)<\/clipPath>/) || [])[1];
+        const poly = clip && (clip.match(/<polygon points="([^"]+)"/) || [])[1];
+        if (!poly || /<circle/.test(clip)) { problems.push(`UI.holomap("${F}"): ${id} is an ORBITAL and must clip to a hull polygon, not the disc clip — the Rio Grande reads as a hull, not a world`); return; }
+        const sc = F === "SYSTEM" ? 1 : frameGeom(F).scale;
+        const pts = poly.trim().split(/\s+/).map(p => p.split(",").map(v => Number(v) / sc));
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const bow = Math.max(...xs), stern = -Math.min(...xs), height = Math.max(...ys) - Math.min(...ys);
+        if (!(bow > stern + .5)) problems.push(`UI.holomap("${F}"): ${id}'s hull must outrun its stern at the bow (the mockup outline is +46 against -42 at 1x), got bow ${bow.toFixed(1)} stern ${stern.toFixed(1)}: a symmetric lens is the station hex, not a hull`);
+        if (!(height * 2 < bow + stern)) problems.push(`UI.holomap("${F}"): ${id}'s hull must be at least twice as long as it is tall, got length ${(bow + stern).toFixed(1)} height ${height.toFixed(1)}`);
+        if (!near(bow, RADII.ORBITAL, .5)) problems.push(`UI.holomap("${F}"): ${id}'s hull extent must be the kind's 46 px drawn radius times the fit, got bow ${bow.toFixed(1)}`); });
       const clipIds = [...f.world.matchAll(/<clipPath id="([^"]+)"/g)].map(m => m[1]);
       const clipDupes = [...new Set(clipIds.filter((x, i) => clipIds.indexOf(x) !== i))];
       if (clipDupes.length) problems.push(`UI.holomap("${F}"): duplicate clipPath ids ${clipDupes.join(", ")}`);
