@@ -37,6 +37,7 @@
  const id=decodeURIComponent(location.hash.slice(1));
  if(!id){location.replace("pilots.html");return;}
  document.getElementById("dossier").innerHTML=UI.pilotDossier(id);
+ UI.wireDossierActions();
  document.title="Vargskel Worgs | "+((window.CAMPAIGN.pilots.find(p=>p.id===id)||{}).name||id);
 })();
 </script>

@@ -806,6 +806,17 @@ else {
   if (!/<div class="primary fill">/.test(html) || !/<aside class="aside fill">/.test(html)) problems.push(`${page}#${id}: both dossier columns must carry fill so the shorter panel stretches to the same bottom edge`);
   if (page === "mech.html") ["STATE", "LAST OUTCOME"].forEach(k => { if (!html.slice(html.indexOf("<h2>CHASSIS FILE</h2>"), html.indexOf("<aside")).includes(`<th scope="row">${k}</th>`)) problems.push(`mech.html#${id}: the chassis file lost its ${k} row`); });
 });
+/* #15: both dossier pages offer copy-link and print actions, driven the way a visitor drives
+   them (fire the button, read what the page did), and the print sheet must not carry them. */
+[["pilot.html", pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
+  const href = `https://raddue.github.io/vargskel-worgs/${page}#${id}`;
+  let copied = null, printed = 0;
+  const p = mount(page, "#" + id, { navigator: { clipboard: { writeText: t => { copied = t; } } }, print: () => { printed++; }, location: { hash: "#" + id, href, replace() {} } });
+  ["dossier-copy", "dossier-print"].forEach(b => { if (!p.nodes[b]) problems.push(`${page}#${id}: the dossier must carry a ${b} action`); });
+  if (p.nodes["dossier-copy"]) { p.nodes["dossier-copy"].fire("click"); if (copied !== href) problems.push(`${page}#${id}: copy-link must write the page URL to the clipboard, got ${JSON.stringify(copied)}`); }
+  if (p.nodes["dossier-print"]) { p.nodes["dossier-print"].fire("click"); if (printed !== 1) problems.push(`${page}#${id}: the print action must call window.print once, got ${printed}`); }
+});
+if (!cssText.includes(".hero-actions{display:none!important}")) problems.push("style.css: the print sheet must hide .hero-actions");
 /* The brand block takes the header's leftover width, so a long page subtitle cannot slide the nav
    tabs sideways between pages - index.html's subtitle is twice the length of a dossier's. */
 const brandRule = (fs.readFileSync(__dirname + "/style.css", "utf8").match(/\.brand\{[^}]*\}/) || [""])[0];
