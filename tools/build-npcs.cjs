@@ -13,8 +13,9 @@ const OUT = path.join(ROOT, "npcs.js");
 const featureText = f => {
   const parts = [f.effect];
   for (const a of f.actions || []) if (a.detail) parts.push(`${a.name ? a.name + ": " : ""}${a.detail}`);
-  const dmgLine = (f.damage || []).map(d => [d.val, d.type].filter(Boolean).join(" ")).join(" ");
-  const rngLine = (f.range || []).map(r => [r.type, r.val].filter(Boolean).join(" ")).join(" ");
+  const asArr = x => (Array.isArray(x) ? x : x ? [x] : []);
+  const dmgLine = asArr(f.damage).map(d => (typeof d === "string" ? d : [d.val, d.type].filter(Boolean).join(" "))).join(" ");
+  const rngLine = asArr(f.range).map(r => (typeof r === "string" ? r : [r.type, r.val].filter(Boolean).join(" "))).join(" ");
   const line = [dmgLine, rngLine].filter(Boolean).join(" · ");
   if (line) parts.push(line);
   return parts.filter(Boolean).join(" ").trim();
