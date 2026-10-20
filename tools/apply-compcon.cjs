@@ -48,8 +48,14 @@ function loadCampaign() {
   return sandbox.window.CAMPAIGN;
 }
 
-function pilotsFrom(data) {
-  if (Array.isArray(data)) return data.flatMap(pilotsFrom);
+/* A Pilot Group export keeps its payload as a JSON string under `data`, where an archive keeps
+   collections under `data.data`. Only the declared shape is unwrapped, so no other string is parsed. */
+function exportPayload(data) {
+  if (!data || typeof data !== "object" || typeof data.data !== "string") return data;
+  try { return Object.assign({}, data, { data: JSON.parse(data.data) }); } catch (e) { return data; }
+}
+
+function pilotsFrom(data) {  if (Array.isArray(data)) return data.flatMap(pilotsFrom);
   if (!data || typeof data !== "object") return [];
   if (Array.isArray(data.mechs)) return [data];
   return Object.values(data).flatMap(v => (v && typeof v === "object" ? pilotsFrom(v) : []));
@@ -211,6 +217,15 @@ function parseLoadoutBlock(text) {
 
 function selftest() {
   const errs = [];
+  /* A Pilot Group export keeps its payload as a JSON string under data, so every pilot-group file
+     reported "no pilot records found" while archive-shaped exports worked. */
+  const group = { EXPORT_TYPE: "Pilot Group", data: JSON.stringify({ pilotData: [{ callsign: "A", mechs: [{ id: "tombstone" }] }, { callsign: "B", mechs: [{ id: "skaldr" }] }] }) };
+  const fromGroup = pilotsFrom(exportPayload(group)).length;
+  if (fromGroup !== 2) errs.push(`a Pilot Group export must yield its pilots, got ${fromGroup}`);
+  const archive = { data: { data: [{ collection: "pilots", items: { p: { callsign: "C", mechs: [] } } }] } };
+  if (pilotsFrom(exportPayload(archive)).length !== 1) errs.push("an archive-shaped export must still yield its pilots");
+  if (pilotsFrom(group).length !== 0) errs.push("the raw walk must not read a payload that is still a string");
+  if (pilotsFrom({ a: JSON.stringify({ mechs: [] }) }).length !== 0) errs.push("a nested string must not be walked as a payload");
   const mapped = mapMechState({ current_hp: 8, current_structure: 2, current_stress: 3, current_heat: 4, current_repairs: 5, statuses: ["STUNNED", "lockon"], conditions: ["Shredded"] });
   if (mapped.set.hpNow !== 8 || mapped.set.structure !== 2 || mapped.set.stress !== 3) errs.push("numeric fields did not map");
   if (mapped.set.heatNow !== 4 || mapped.set.repairsNow !== 5) errs.push("current heat/repairs must map to heatNow/repairsNow");
@@ -610,6 +625,7 @@ function main() {
       unmapped++;
       continue;
     }
+    data = exportPayload(data);
     const pilots = pilotsFrom(data);
     if (!pilots.length) {
       console.error(`${path.basename(file)}: no pilot records found`);
@@ -647,4 +663,4 @@ function main() {
 }
 if (require.main === module) main();
 /* check-all requires this file for the block round trip (#27), so the entry point must not run on load. */
-module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit };
+module.exports = { parseBlock, parseLog, parseLoadoutBlock, validateLoadout, applyToText, lit, pilotsFrom, exportPayload };
