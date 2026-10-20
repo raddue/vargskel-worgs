@@ -37,7 +37,7 @@
       </div>
       <p class="tab-hint">Sector and theater holomap of the Cressidium contract. Tap a site to read its file.</p>
     </div>
-    <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><button class="level" type="button" data-level="SYSTEM">SYSTEM</button><button class="level" type="button" data-level="THEATER">THEATER</button></div><section id="holomap"></section></section>
+    <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><nav class="crumbs" id="holo-crumbs" aria-label="Frame breadcrumb"></nav><div id="holo-locator"></div></div><section id="holomap"></section></section>
     <section class="tabpanel" id="tab-relations" role="tabpanel" aria-labelledby="tl-relations" hidden><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
     <section class="tabpanel" id="tab-personnel" role="tabpanel" aria-labelledby="tl-personnel" hidden><div class="section-head"><h2>NOTABLE PERSONNEL</h2><span>PERSONNEL</span></div><div class="people" id="people-list"></div></section>
   </main>
@@ -49,7 +49,6 @@
 (()=>{
 const L=UI.byId(CAMPAIGN.locations);
 const NO_SEL=`<div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div>`;
-const X=l=>l.x*10,Y=l=>l.y*4.8;
 
 document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="columns holo-split"><div class="primary"><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div></div></div><ul class="holo-key" aria-label="Map key"></ul></div><aside class="aside" id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite">${NO_SEL}</div></aside></div>`;
 document.getElementById("readout").innerHTML=UI.situation().html;
@@ -68,8 +67,11 @@ UI.pickTab=pickTab;
  pickTab writes the URL itself (push on a tab change), so the anchor action is stopped. */
 document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(!t)return;e.preventDefault();pickTab(t.dataset.tab,true)});
 const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
-/* Map a site to the centre of the 1000x480 viewBox. The far grid stays at 1x so the sector frame reads as instrumentation around the zoomed system. */
-const zoomTo=id=>{const l=L[id];if(l)world.style.transform=`translate(${(500-Z*X(l)).toFixed(1)}px,${(240-Z*Y(l)).toFixed(1)}px) scale(${Z})`};
+/* Centre the node where the frame actually placed it (data-x/data-y are placed frame coordinates,
+   not record coordinates: a descended frame recentres its subject). The far grid stays at 1x, so the
+   frame reads as instrumentation around the zoomed ground. A site the frame does not draw has no node
+   and no zoom. */
+const zoomTo=id=>{const n=world.querySelector(`[data-loc="${id}"]`);if(!n)return;const x=+n.dataset.x,y=+n.dataset.y;world.style.transform=`translate(${(500-Z*x).toFixed(1)}px,${(240-Z*y).toFixed(1)}px) scale(${Z})`};
 const resetView=()=>{world.style.transform=""};
 svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc]");if(!t)return;
  e.preventDefault();currentLoc=t.dataset.loc;setHash("map",t.dataset.loc);UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc);syncBack()});
@@ -98,9 +100,10 @@ svg.addEventListener("touchend",()=>{pd=0});
 /* Safari fires non-standard gesture events for a page pinch; the map owns its own pinch. */
 ["gesturestart","gesturechange"].forEach(t=>svg.addEventListener(t,e=>e.preventDefault()));
 syncBack();
-/* The SYSTEM|THEATER buttons sit in the map head strip, outside #holomap: a delegate bound to the map
-   host never sees them, so the frame buttons do nothing. Bound to the panel instead. */
-document.getElementById("tab-map").addEventListener("click",e=>{const lv=e.target.closest("[data-level]");if(lv){UI.fitLevel(lv.dataset.level);syncBack();return}
+/* Every frame move carries data-frame: the breadcrumb and system-locator strips sit in the map head
+   (outside #holomap) and the ENTER chip sits in the reading pane, so one delegate bound to the panel
+   covers all three. fitLevel clears the camera transform itself; syncBack hides the reset control. */
+document.getElementById("tab-map").addEventListener("click",e=>{const fr=e.target.closest("[data-frame]");if(fr){UI.fitLevel(fr.dataset.frame);syncBack();return}
 if(e.target.closest("#holo-back")){backOut();return}
 if(!e.target.closest("svg"))return;                       /* the reading pane has its own clicks */
 const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView();syncBack()});

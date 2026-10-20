@@ -19,8 +19,9 @@ window.CAMPAIGN = {
     station: "UNS RIO GRANDE"
   },
 
-  /* Two levels share one map. SYSTEM is the star's bodies and their orbits; THEATER is Nov Elysia's
-     surface and approaches. Coordinates are per level, so the two frames are not drawn to one scale.
+  /* Frames draw the map. A record's home frame is its `frame` value if set, SYSTEM otherwise; a record
+     with no `frame` and a `parent` also rides its parent's ring as a satellite. `level` stays as the
+     scale of the coordinates on the record, so frames are not drawn to one scale.
      Every note quotes the operation order, and check-all asserts that both ways: the note carries the
      phrase and the operation order still contains it. */
   locations: [
@@ -37,29 +38,29 @@ window.CAMPAIGN = {
     { level: "SYSTEM",  id: "harrow", name: "HARROW'S GATE", kind: "STATION", parent: "tarn", x: 78, y: 38, visited: false, img: "assets/harrow.png",
       notes: "Customs station that holds the Tarn approach." },
 
-    { level: "THEATER", id: "elysia",   name: "NOV ELYSIA", kind: "CITY", frame: "cressidium", x: 38, y: 44, visited: false, faction: "vestan", img: "assets/elysia.png",
+    { level: "THEATER", id: "elysia",   name: "NOV ELYSIA", kind: "CITY", frame: "cressidium", pinBearing: 100, x: 38, y: 44, visited: false, faction: "vestan", img: "assets/elysia.png",
       notes: "Under siege: VSAF hold the approaches to Nov Elysia's central district and are conducting siege operations against the city." },
-    { level: "THEATER", id: "district", name: "CENTRAL DISTRICT", kind: "DISTRICT", parent: "elysia", x: 45, y: 33, visited: false, faction: "vestan", img: "assets/district.png",
+    { level: "THEATER", id: "district", name: "CENTRAL DISTRICT", kind: "DISTRICT", parent: "elysia", frame: "elysia", x: 45, y: 33, visited: false, faction: "vestan", img: "assets/district.png",
       notes: "Where the talks collapsed. Disposition inside the city is not confirmed: assume VSAF infantry and armour in both the industrial and central districts." },
-    { level: "THEATER", id: "industry", name: "INDUSTRIAL DISTRICT", kind: "DISTRICT", parent: "elysia", x: 26, y: 36, ly: -18, visited: false, faction: "vestan", img: "assets/industry.png",
+    { level: "THEATER", id: "industry", name: "INDUSTRIAL DISTRICT", kind: "DISTRICT", parent: "elysia", frame: "elysia", x: 26, y: 36, ly: -18, visited: false, faction: "vestan", img: "assets/industry.png",
       notes: "FOB Saber, the Amanta Motors factory in the industrial district, is the friendly rendezvous point." },
-    { level: "THEATER", id: "dock",     name: "FOB SABER",  kind: "FOB", parent: "industry", x: 20, y: 49, ly: 30, visited: false, img: "assets/dock.png",
+    { level: "THEATER", id: "dock",     name: "FOB SABER",  kind: "FOB", parent: "industry", frame: "industry", x: 20, y: 49, ly: 30, visited: false, img: "assets/dock.png",
       notes: "FOB SABER RENDEZVOUS: the Amanta Motors factory in the industrial district, inside the city and not outside a perimeter. No lance has walked it yet: the Rio Grande has it on the friendly list, and that is the whole of the confirmation. Landing alongside it is impossible: heavy air defense over the industrial district, so the lance walks in from the Kingfisher pad." },
-    { level: "THEATER", id: "dropzone", name: "KINGFISHER PAD", kind: "ZONE", x: 25, y: 63, ly: 30, visited: false, img: "assets/dropzone.png",
+    { level: "THEATER", id: "dropzone", name: "KINGFISHER PAD", kind: "ZONE", frame: "elysia", x: 25, y: 63, ly: 30, visited: false, img: "assets/dropzone.png",
       notes: "Dropship Kingfisher 2-2's pad, the ground this lance lands on before it walks in to FOB Saber." },
-    { level: "THEATER", id: "rio",      name: "UNS RIO GRANDE", kind: "ORBITAL", frame: "cressidium", x: 50, y: 8, visited: true, faction: "union", img: "assets/rio.png",
+    { level: "THEATER", id: "rio",      name: "UNS RIO GRANDE", kind: "ORBITAL", parent: "elysia", frame: "elysia", x: 50, y: 8, visited: true, faction: "union", img: "assets/rio.png",
       notes: "HIGH ORBIT OVER NOV ELYSIA: UNS Rio Grande in high orbit, lightly armed, strike wings exoatmospheric only." },
-    { level: "THEATER", id: "vsaf",     name: "VSAF APPROACH", kind: "ZONE", frame: "cressidium", x: 64, y: 40, visited: false, faction: "vsaf", img: "assets/vsaf.png",
+    { level: "THEATER", id: "vsaf",     name: "VSAF APPROACH", kind: "ZONE", frame: "elysia", x: 64, y: 40, visited: false, faction: "vsaf", img: "assets/vsaf.png",
       notes: "VSAF hold the approaches to Nov Elysia's central district. They are the aggressor: assume an armed chassis off a dropship is hostile on sight." }
   ],
 
-  /* Zones are surface claims, so they belong to the THEATER frame; the sector frame draws none.
+  /* Zones are surface claims, so each zone's frame says where it is drawn; the sector frame draws none.
      Leandric holds inside the city as friendlies, and the Union's presence is its hull in orbit. */
   factions: [
-    { id: "vestan",   name: "Vestan Civic Council",     standing: "NEUTRAL",    zone: { x: 38, y: 44, rx: 170, ry: 115, c: "cyan" } },
-    { id: "vsaf",     name: "Vestan Sovereignty (VSAF)", standing: "HOSTILE", zone: { x: 66, y: 42, rx: 120, ry: 78,  c: "rust" } },
-    { id: "leandric", name: "Leandric States Alliance", standing: "UNKNOWN",    zone: { x: 34, y: 32, rx: 76,  ry: 44,  c: "lime" } },
-    { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { x: 50, y: 9,  rx: 96,  ry: 30,  c: "muted" } }
+    { id: "vestan",   name: "Vestan Civic Council",     standing: "NEUTRAL",    zone: { frame: "elysia", x: 38, y: 44, rx: 170, ry: 115, c: "cyan" } },
+    { id: "vsaf",     name: "Vestan Sovereignty (VSAF)", standing: "HOSTILE", zone: { frame: "elysia", x: 66, y: 42, rx: 120, ry: 78,  c: "rust" } },
+    { id: "leandric", name: "Leandric States Alliance", standing: "UNKNOWN",    zone: { frame: "elysia", x: 34, y: 32, rx: 76,  ry: 44,  c: "lime" } },
+    { id: "union",    name: "Union Delegation",         standing: "CONTRACTED", zone: { frame: "elysia", x: 50, y: 9,  rx: 96,  ry: 30,  c: "muted" } }
   ],
 
   personnel: [

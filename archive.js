@@ -91,97 +91,278 @@ const toggleRecord=(host,id)=>{
 };
 /* #record-detail only exists in the map panel, so a chip on the relations or personnel tab has to bring the map forward or its record renders where nobody can see it. */
 const showAtMap=(kind,id)=>{if(UI.pickTab)UI.pickTab("map");panelHome().append(panel());show(kind,id);animatePane()};
-/* Two frames share one map. SYSTEM is the star's bodies and their orbit rings; THEATER is one body's
-   surface and approaches, at its own scale. The closed set below is why an unknown kind throws. */
+/* Frames draw the map: SYSTEM is the star's bodies and their orbits, and every other frame is one
+   location opened — the planet, the city, the district inside the city. A record's home frame is
+   its `frame` value if set, SYSTEM otherwise; a record with no frame and a `parent` also rides its
+   parent's ring as a satellite. `level` stays on the record as the scale of the coordinates on it.
+   The closed set below is why an unknown kind throws. */
+const thumbOf=l=>String(l.img||"").replace(/\.\w+$/,"-thumb.webp");
+/* Art bodies are clipped by an SVG clipPath per body, so nothing is masked at build time and no
+   new asset format enters the repo; the rim and the terminator are shapes over the clip. */
+const artDisc=(l,r,fid)=>{const cid=`clip-${fid}-${l.id}`;
+ return `<defs><clipPath id="${cid}"><circle r="${r}"/></clipPath></defs>`+
+ `<image href="${esc(thumbOf(l))}" x="${-r}" y="${-r}" width="${r*2}" height="${r*2}" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`+
+ `<circle class="rim" r="${r}" fill="none"/>`+
+ `<path class="term" d="M0,${-r} A${r},${r} 0 0,0 0,${r} A${Math.max(2,Math.round(r*.55))},${r} 0 0,1 0,${-r}Z"/>`};
+const polyPts=(n,r,rot,jag)=>Array.from({length:n},(_,i)=>{const a=rot+2*Math.PI*i/n+(jag&&i%2?Math.PI/n:0),rr=jag&&i%2?r*.72:r;
+ return `${(rr*Math.cos(a)).toFixed(1)},${(rr*Math.sin(a)).toFixed(1)}`}).join(" ");
+const SIL={
+ hex:r=>({pts:polyPts(6,r,-Math.PI/6,0),ex:r}),
+ jag:r=>({pts:polyPts(8,r,Math.PI/8,1),ex:r}),
+ hull:e=>{const r=e/1.6;return{pts:`0,${(-r*.5).toFixed(1)} ${(r*1.6).toFixed(1)},${(-r*.28).toFixed(1)} ${(r*1.6).toFixed(1)},${(r*.28).toFixed(1)} 0,${(r*.5).toFixed(1)} ${(-r*1.6).toFixed(1)},${(r*.28).toFixed(1)} ${(-r*1.6).toFixed(1)},${(-r*.28).toFixed(1)}`,ex:e}}};
+const artPlate=(l,r,fid,shape)=>{const cid=`clip-${fid}-${l.id}`,s=SIL[shape](r);
+ return `<defs><clipPath id="${cid}"><polygon points="${s.pts}"/></clipPath></defs>`+
+ `<image href="${esc(thumbOf(l))}" x="${-s.ex}" y="${-s.ex}" width="${s.ex*2}" height="${s.ex*2}" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`+
+ `<polygon class="rim" points="${s.pts}" fill="none"/>`};
+/* Ground symbols keep their glyphs: CITY, DISTRICT, FOB and ZONE are plan-view markers and the
+   glyph is the right read for them. Worlds become art discs, hardware becomes art on its own
+   silhouette. A kind with no renderer throws, exactly as a kind with no marker used to. */
 const KINDS={
- PLANET:{k:"k-planet",s:`<circle class="shape" r="13"/>`},
- MOON:{k:"k-moon",s:`<circle class="shape" r="7"/>`},
- STATION:{k:"k-station",s:`<rect class="shape" x="-7" y="-7" width="14" height="14"/>`},
- "WRECK FIELD":{k:"k-wreck",s:`<polygon class="shape" points="0,-9 9,0 0,9 -9,0"/>`},
- CITY:{k:"k-city",s:`<polygon class="shape" points="0,-9 9,-3 9,6 -9,6 -9,-3"/>`},
- DISTRICT:{k:"k-district",s:`<polygon class="shape" points="-8,-6 8,-6 8,6 -8,6"/>`},
- FOB:{k:"k-fob",s:`<polygon class="shape" points="0,-9 9,7 -9,7"/>`},
- ZONE:{k:"k-zone",s:`<circle class="shape" r="9" fill="none" stroke-dasharray="2 3"/>`},
- ORBITAL:{k:"k-orbital",s:`<polygon class="shape" points="0,-4 11,0 0,4 -11,0"/>`}
+ PLANET:{k:"k-planet",draw:(l,r,fid)=>artDisc(l,r,fid)},
+ MOON:{k:"k-moon",draw:(l,r,fid)=>artDisc(l,r,fid)},
+ STATION:{k:"k-station",draw:(l,r,fid)=>artPlate(l,r,fid,"hex")},
+ "WRECK FIELD":{k:"k-wreck",draw:(l,r,fid)=>artPlate(l,r,fid,"jag")+`<circle class="shape" r="${r+6}" fill="none" stroke-dasharray="2 3"/>`},
+ ORBITAL:{k:"k-orbital",draw:(l,r,fid)=>artPlate(l,r,fid,"hull")},
+ CITY:{k:"k-city",draw:()=>`<polygon class="shape" points="0,-9 9,-3 9,6 -9,6 -9,-3"/>`},
+ DISTRICT:{k:"k-district",draw:()=>`<polygon class="shape" points="-8,-6 8,-6 8,6 -8,6"/>`},
+ FOB:{k:"k-fob",draw:()=>`<polygon class="shape" points="0,-9 9,7 -9,7"/>`},
+ ZONE:{k:"k-zone",draw:()=>`<circle class="shape" r="9" fill="none" stroke-dasharray="2 3"/>`}
 };
-const LEVELS={
- SYSTEM:{head:"SECTOR HOLOMAP",sub:"CRESSIDIUM SYSTEM",grid:"SECTOR GRID · 50 U",aria:"Sector holomap: the star's bodies and their orbits. Select a body to read its file."},
- THEATER:{head:"THEATER HOLOMAP",sub:"NOV ELYSIA AND APPROACHES",grid:"THEATER GRID · 10 U",aria:"Theater holomap: Nov Elysia, its districts, and the ground approaches. Select a site to read its file."}};
+/* Drawn radii are pixel constants at 1x multiplied by the frame's fit scale, like positions:
+   one radius per kind, the subject's disc rim at 72, the pin's own 12. Scaling positions but
+   not radii is what let a planet's disc swallow its own moon's ring on the mockup, so the two
+   are one rule. ponytail: upgrade to per-body radii if the art needs them. */
+const RADII={PLANET:54,MOON:30,STATION:26,"WRECK FIELD":9,ORBITAL:46,CITY:9,DISTRICT:8,FOB:9,ZONE:9};
+const DISC_RIM=72,PIN_R=12;
+/* One 24 px margin on the fit, applied once: labels are excluded from the fit, so this is their
+   breathing room (design rev 10, placement). */
+const FIT_MARGIN=24;
+const ART_KINDS=["PLANET","MOON","STATION","WRECK FIELD","ORBITAL"];
+/* The star has no record, so its bearing is declared here and named as invented.
+   ponytail: upgrade to a record if the star ever needs a file. */
+const STAR_BEARING=270;
+const bodyR=(l,role)=>role==="subject"?(ART_KINDS.includes(l.kind)?DISC_RIM:RADII[l.kind]):RADII[l.kind];
+const homeOf=l=>(l&&l.frame)||"SYSTEM";
+const isSysFrame=fid=>fid==="SYSTEM"||!!(L[fid]&&L[fid].level==="SYSTEM");
+/* The frame chain from a frame up to SYSTEM, deepest first. A cycle in the records throws here,
+   so the descent stack is always finite and climbing always terminates. */
+function chainOf(fid){
+ if(fid==null)throw new Error("holomap: no frame asked for");
+ if(fid!=="SYSTEM"&&!L[fid])throw new Error(`holomap: ${fid} is not a frame`);
+ const out=[],seen=new Set();let f=fid;
+ while(f!=="SYSTEM"){
+  if(seen.has(f))throw new Error(`holomap: frame cycle at ${f}`);
+  seen.add(f);out.push(f);f=L[f].frame||"SYSTEM";
+ }
+ out.push("SYSTEM");
+ return out;
+}
+/* members(F): the exact set of records a frame draws — its subject, its framed children and its
+   frameless satellites, three alternatives that never overlap. That is the clause which keeps
+   rio drawn exactly once on elysia now that rio carries both a frame and a parent of elysia.
+   SYSTEM is the root and has no subject: it draws every frameless record. */
+function members(fid){
+ if(fid==="SYSTEM")return C.locations.filter(l=>!l.frame);
+ if(!L[fid])throw new Error(`holomap: ${fid} is not a frame`);
+ const s=L[fid];
+ return [s,...C.locations.filter(l=>l.frame===fid),...C.locations.filter(l=>!l.frame&&l.parent===fid)];
+}
+/* The system's principal bodies: frameless and parentless, so a moon that stops being a
+   principal stops appearing in the locator while keeping its place in members on its planet. */
+const principals=()=>C.locations.filter(l=>!l.frame&&!l.parent).map(l=>l.id);
+/* Frame meta derives from the subject's kind, not from a level band: a PLANET frame reads ORBIT
+   GRID, a CITY frame reads THEATER GRID · 10 U, SYSTEM keeps SECTOR HOLOMAP. No new field: the
+   kind is the field. */
+const FRAME_META=(subj,isSys)=>{
+ if(isSys)return{head:"SECTOR HOLOMAP",sub:"CRESSIDIUM SYSTEM",grid:"SECTOR GRID · 50 U",aria:"Sector holomap: the star's bodies and their orbits. Select a body to read its file."};
+ const orbit=ART_KINDS.includes(subj.kind),ground=!orbit&&subj.kind!=="CITY";
+ return{head:orbit?"ORBIT HOLOMAP":ground?"GROUND HOLOMAP":"THEATER HOLOMAP",sub:subj.name,
+  grid:orbit?"ORBIT GRID":ground?"GROUND GRID":"THEATER GRID",
+  aria:orbit?`Orbit holomap of ${subj.name}: the body, what orbits it, and what stands on it. Select a site to read its file.`
+   :`Theater holomap of ${subj.name}: the ground, its sites and approaches. Select a site to read its file.`}};
 let frame=null;
-/* Pure: returns the markup for one frame. Ops legs are drawn only where both ends are on the frame. */
-function holomap(level){
- if(level!=="SYSTEM"&&level!=="THEATER")throw new Error(`holomap: ${level} is not a level`);
- const here=C.locations.filter(l=>l.level===level),X=l=>l.x*10,Y=l=>l.y*4.8;
- /* Only an operation that has actually been flown is "current". Op 001 is planned and unbriefed, so a
-    green current-op ring on its area would claim live tracking the record cannot support. */
+const stack=[];   /* the descent path, deepest last: climbing is exact and a deep link sets it all */
+/* Pure: returns the data for one frame — {world,key,grid,aria,head,sub,crumbs,locator,viewR} —
+   and touches no DOM. Ops legs are drawn only on the deepest frame holding both ends. */
+function holomap(fid){
+ const chain=chainOf(fid);
+ const isSys=fid==="SYSTEM",subj=isSys?null:L[fid],M=FRAME_META(subj,isSys);
+ const mem=members(fid),ids=new Set(mem.map(l=>l.id));
+ const CX=500,CY=240,pos=new Map();
+ /* The root is not fitted: its bodies sit at the records' own x*10, y*4.8 and its fit scale is
+    1. A descended frame fits its radius (the subject's disc rim, or the farthest same-scale
+    member's offset plus that member's radius, floored at the disc so a subject-only frame is
+    not drawn at forty times) into the viewBox, and positions and drawn radii both carry that
+    scale. The radius is computed from the records, never typed per frame. */
+ const offsets=new Map();
+ mem.forEach(l=>{if(!isSys&&l.id!==fid)offsets.set(l.id,Math.hypot((l.x-subj.x)*10,(l.y-subj.y)*4.8))});
+ const sameScale=mem.filter(l=>l.id!==fid&&subj&&l.level===subj.level);
+ const pinM=mem.find(l=>l.id!==fid&&subj&&l.level!==subj.level);
+ const radius=isSys?Math.max(0,...mem.map(l=>Math.hypot(l.x*10-CX,l.y*4.8-CY)))
+  :Math.max(DISC_RIM+(pinM?PIN_R:0),...sameScale.map(l=>offsets.get(l.id)+RADII[l.kind]));
+ const scale=isSys?1:Math.min(1000,480)/(2*(radius+FIT_MARGIN));
+ mem.forEach(l=>{
+  if(isSys){pos.set(l.id,{x:l.x*10,y:l.y*4.8});return}
+  if(l.id===fid){pos.set(l.id,{x:CX,y:CY});return}
+  if(l.level===subj.level){pos.set(l.id,{x:CX+(l.x-subj.x)*10*scale,y:CY+(l.y-subj.y)*4.8*scale});return}
+  /* A cross-scale member is placed by declaration, not by arithmetic: an offset means something
+     only inside one frame's scale, so a member whose level differs from the frame's scale rides
+     the subject's rim at the compass bearing its own record declares. One with no pinBearing of
+     its own throws rather than inventing an angle, so a second pin cannot silently land on the
+     same rim point. ponytail: the declared bearing is what a one-scale page can honestly draw;
+     upgrade to a real projection when a second scale must be measured across, not merely
+     positioned. */
+  if(typeof l.pinBearing!=="number")throw new Error(`holomap: ${l.id} is cross-scale on ${fid} and carries no pinBearing`);
+  const b=l.pinBearing*Math.PI/180,r=DISC_RIM*scale;
+  pos.set(l.id,{x:CX+r*Math.sin(b),y:CY-r*Math.cos(b)});
+ });
+ /* A frame that draws a pin says so in its aria, rather than implying a measured spot. */
+ const pinDrawn=!!pinM;
+ const ariaOut=pinDrawn?M.aria+" POSITION ON DISC DECLARED.":M.aria;
+ /* Only an operation that has actually been flown is "current". Op 001 is planned and unbriefed,
+    so a green ring would claim live tracking the record cannot support. When flown, the ground's
+    frame ancestors carry the ring too: the op's area sits inside them. */
  const cur=(o=>o&&o.type!=="PLANNED"&&o.status!=="UNBRIEFED"?o.loc:"")(C.ops[0]);
- here.forEach(l=>{if(!KINDS[l.kind])throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no marker`)});
- const on=id=>{const l=L[id];return !!l&&l.level===level};
- const legs=level==="THEATER"?["dock",...[...C.ops].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(o=>o.loc)]:[];
- const legsOn=legs.filter(on);
- const lines=legsOn.slice(1).map((id,i)=>{const a=L[legsOn[i]],b=L[id],plan=!b.visited;
-  return `<line x1="${X(a)}" y1="${Y(a)}" x2="${X(b)}" y2="${Y(b)}" stroke="var(${plan?"--muted":"--lime"})" stroke-width="1.5" stroke-dasharray="${plan?"4 6":"6 6"}" opacity=".7"/>`}).join("");
- /* A zone centred on a site adds no label: that site's own file already states who holds it. */
- const zones=level==="THEATER"?C.factions.filter(f=>f.zone).map(f=>{const near=here.some(l=>Math.hypot(l.x-f.zone.x,l.y-f.zone.y)<5);
-  return `<ellipse cx="${f.zone.x*10}" cy="${f.zone.y*4.8}" rx="${f.zone.rx}" ry="${f.zone.ry}" fill="var(--${esc(f.zone.c)})" fill-opacity=".05" stroke="var(--${esc(f.zone.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/>`+(near?"":`<text class="zl" x="${Math.min(910,Math.max(90,f.zone.x*10))}" y="${f.zone.y*4.8+f.zone.ry+14}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`)}).join(""):"";
- /* Rings are orbits, so only things that orbit get one: a district does not orbit its city. */
+ const curSet=new Set();
+ if(cur&&L[cur]){curSet.add(cur);const seen=new Set([cur]);let f=L[cur].frame;
+  while(f&&L[f]&&!seen.has(f)){seen.add(f);curSet.add(f);f=L[f].frame}}
+ /* Rings are orbits, so only things that orbit get one: a district does not orbit its city. An
+    orbit ring takes its own child's radius, whether the parent is the frame's subject (rio over
+    elysia) or a satellite (pell over cressidium). */
  const orbitKinds=["MOON","STATION","ORBITAL"];
- const rings=here.filter(l=>l.parent&&on(l.parent)&&orbitKinds.includes(l.kind)).map(l=>{const p=L[l.parent];
-  return `<circle cx="${X(p)}" cy="${Y(p)}" r="${Math.round(Math.hypot(X(l)-X(p),Y(l)-Y(p)))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
- /* A framed site is not its own node in the frame above it: it hangs under the body it sits on. */
- const hostsOf=id=>C.locations.filter(x=>x.frame===id&&x.level!==level);
+ const rings=mem.filter(l=>l.parent&&l.parent!==l.id&&orbitKinds.includes(l.kind)&&ids.has(l.parent)).map(l=>{
+  const p=pos.get(l.parent),c=pos.get(l.id);
+  return `<circle class="ring" data-ring="${esc(l.parent)}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.round(Math.hypot(c.x-p.x,c.y-p.y))}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
+ /* A zone is drawn where its own record says: zone.frame names the frame, and the zone's
+    coordinates translate by the frame's subject offset like any other member's. A zone centred
+    on a site adds no label: that site's own file already states who holds it. */
+ const zones=C.factions.filter(f=>f.zone&&f.zone.frame===fid).map(f=>{const z=f.zone;
+  const cx=isSys?z.x*10:CX+(z.x-subj.x)*10*scale,cy=isSys?z.y*4.8:CY+(z.y-subj.y)*4.8*scale;
+  const rx=z.rx*scale,ry=z.ry*scale;
+  const nearZ=mem.some(l=>Math.hypot(l.x-z.x,l.y-z.y)<5);
+  return `<ellipse class="zone" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="var(--${esc(z.c)})" fill-opacity=".05" stroke="var(--${esc(z.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/>`+(nearZ?"":`<text class="zl" x="${Math.min(910,Math.max(90,cx)).toFixed(1)}" y="${(cy+ry+14).toFixed(1)}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`)}).join("");
+ /* Ops legs: the route is one list of sites, and a leg is drawn on exactly one frame — the
+    deepest whose subject holds both ends — so it never appears twice. An end that is not drawn
+    there is represented by the ancestor of it that is (dock stands in as industry on elysia). */
+ const legs=["dock",...[...C.ops].sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true})).map(o=>o.loc)];
+ const framesOf=id=>{const out=[id],seen=new Set([id]);let f=L[id]&&L[id].frame;
+  while(f&&L[f]&&!seen.has(f)){seen.add(f);out.push(f);f=L[f].frame}
+  out.push("SYSTEM");return out};
+ const drawnLegs=[];
+ const lines=legs.slice(1).map((b,i)=>{const a=legs[i];
+  if(!L[a]||!L[b])return "";
+  const fb=new Set(framesOf(b)),common=framesOf(a).filter(F=>fb.has(F));
+  if(common[0]!==fid)return "";
+  const rep=x=>ids.has(x)?x:(framesOf(x).find(F=>F!==fid&&ids.has(F))||null);
+  const ra=rep(a),rb=rep(b);if(!ra||!rb||ra===rb)return "";
+  drawnLegs.push(b);
+  const pa=pos.get(ra),pb=pos.get(rb),plan=!L[b].visited;
+  return `<line class="leg" data-leg="${esc(a)}-${esc(b)}" x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="var(${plan?"--muted":"--lime"})" stroke-width="1.5" stroke-dasharray="${plan?"4 6":"6 6"}" opacity=".7"/>`}).join("");
+ /* The star: the one drawn thing here no record supports, so it is declared rather than
+    smuggled in. It is not a location: no data-loc, not selectable, no file, and the key says
+    so outright. role="img" because an aria-label on a bare <g> is ignored by several readers.
+    ponytail: an invented constant — no asset exists and none is wanted; upgrade to a record if
+    the star ever needs a file. Fixed at x8 y50 (pixel 80,240): the left edge at mid height,
+    clear of cressidium at 30,52 and tarn at 86,24. */
+ const star=isSys?`<g class="star" role="img" data-x="${(CX+radius*Math.sin(STAR_BEARING*Math.PI/180)).toFixed(1)}" data-y="${(CY-radius*Math.cos(STAR_BEARING*Math.PI/180)).toFixed(1)}" aria-label="Cressidium, the system's primary star, drawn for orientation. It has no file." transform="translate(${(CX+radius*Math.sin(STAR_BEARING*Math.PI/180)).toFixed(1)} ${(CY-radius*Math.cos(STAR_BEARING*Math.PI/180)).toFixed(1)})">`+
+  `<circle r="30" fill="var(--cyan)" opacity=".10"/><circle r="18" fill="var(--cyan)" opacity=".25"/><circle r="8" fill="var(--cyan)"/>`+
+  [0,45,90,135,180,225,270,315].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);
+   return `<line x1="${(11*c).toFixed(1)}" y1="${(11*s).toFixed(1)}" x2="${(22*c).toFixed(1)}" y2="${(22*s).toFixed(1)}" stroke="var(--cyan)" stroke-width="1.5" opacity=".55"/>`}).join("")+`</g>`:"";
  /* The console's plan badges: insertion, rendezvous and extraction ground off the op, plus the
-    hostile areas and the muster hull. situation() owns the roles, the map only draws them. */
- /* One ground can hold two roles: the Rio Grande is both the extraction destination and the
-    recorded muster hull, so a location maps to a list of badges, not to whichever was pushed last. */
+    hostile areas and the muster hull. situation() owns the roles, the map only draws them. One
+    ground can hold two roles — the Rio Grande is both the extraction destination and the
+    recorded muster hull — so a location maps to a list of badges, not whichever was pushed last. */
  const marks=new Map();
  situation().badges.forEach(b=>{const a=marks.get(b.loc)||[];a.push(b);marks.set(b.loc,a)});
- const nodes=here.map(l=>{const hosts=hostsOf(l.id),bs=marks.get(l.id)||[];
-  return `<g class="node${l.visited?"":" unv"}${l.id===cur?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" transform="translate(${X(l)} ${Y(l)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${l.id===cur?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}"><circle r="28" fill="transparent"/>${KINDS[l.kind].s}<text y="${l.ly!=null?l.ly:(l.kind==="PLANET"?36:30)}" text-anchor="middle">${esc(l.name)}</text>${hosts.map((h,i)=>`<text class="site" y="${(l.ly!=null?l.ly+12:(l.kind==="PLANET"?48:42))+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")}${bs.map((b,i)=>`<text class="badge-label" y="${-30-i*12}" text-anchor="middle">${esc(b.label)}</text>`).join("")}</g>`}).join("");
- const kinds=here.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
+ const nodes=mem.map(l=>{
+  const K=KINDS[l.kind];
+  if(!K)throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no renderer`);
+  /* A framed site hangs under the body it sits on, and only while it is not drawn here itself. */
+  const hosts=C.locations.filter(x=>x.frame===l.id&&!ids.has(x.id)),bs=marks.get(l.id)||[],p=pos.get(l.id);
+  const r=bodyR(l,l.id===fid?"subject":"member"),labY=l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30);
+  return `<g class="node${members(l.id).length>1?" body":""}${l.visited?"":" unv"}${curSet.has(l.id)?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${curSet.has(l.id)?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}">`+
+  `<circle r="${Math.max(28,r)}" fill="transparent"/>`+K.draw(l,r,fid)+
+  `<text y="${labY}" text-anchor="middle">${esc(l.name)}</text>`+
+  hosts.map((h,i)=>`<text class="site" y="${labY+12+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")+
+  bs.map((b,i)=>`<text class="badge-label" y="${-(Math.max(r,13)+17)-i*12}" text-anchor="middle">${esc(b.label)}</text>`).join("")+`</g>`}).join("");
+ const kinds=mem.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
-  +(here.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
-  +(on(cur)?`<li><span class="k-shape k-cur"></span>CURRENT OP</li>`:"")
-  +(legsOn.slice(1).some(id=>L[id].visited)?`<li><span class="k-line"></span>TRAVELLED</li>`:"")
-  +(legsOn.slice(1).some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
-  +(rings?`<li><span class="k-orbit"></span>ORBIT</li>`:"")
-  +(level==="THEATER"?`<li><button class="k-level" type="button" data-level="SYSTEM" aria-label="Back out to the sector view">SYSTEM VIEW</button></li>`:"");
- return {world:zones+rings+lines+nodes,key,grid:LEVELS[level].grid,aria:LEVELS[level].aria};
+  +(isSys?`<li><span class="k-shape k-star"></span>STAR · NO FILE</li>`:"")
+  +(mem.some(l=>!l.visited)?`<li><span class="k-shape k-unv"></span>UNVISITED</li>`:"")
+  +(mem.some(l=>curSet.has(l.id))?`<li><span class="k-shape k-cur"></span>CURRENT OP</li>`:"")
+  +(drawnLegs.some(id=>L[id].visited)?`<li><span class="k-line"></span>TRAVELLED</li>`:"")
+  +(drawnLegs.some(id=>!L[id].visited)?`<li><span class="k-line k-planned"></span>PLANNED LEG</li>`:"")
+  +(rings?`<li><span class="k-orbit"></span>ORBIT</li>`:"");
+ /* The breadcrumb is the way out: one real button per ancestor walking the frame chain,
+    terminating at SYSTEM, plus UP ONE LEVEL where the SYSTEM VIEW key chip used to be. It is an
+    HTML strip outside #holo-world, so the camera and the pinch never reach it. */
+ const anc=chain.slice(1),SEP='<span class="crumb-sep" aria-hidden="true"> › </span>';
+ const crumbs=(isSys?"":`<button class="crumb-up" type="button" data-frame="${esc(anc[0])}">UP ONE LEVEL</button>`)+
+  anc.map(f=>`<button class="crumb" type="button" data-frame="${esc(f)}">${f==="SYSTEM"?"CRESSIDIUM SYSTEM":esc(L[f].name)}</button>`).join(SEP)+
+  (anc.length?SEP:"")+`<span class="crumb-now" aria-current="page">${isSys?"CRESSIDIUM SYSTEM":esc(subj.name)}</span>`;
+ /* The system locator keeps the system in view: the principal bodies plus the declared star,
+    with the ancestor of the frame you stand on marked active — found by walking the frame
+    chain, not parent, because elysia has no parent and a parent walk from industry would stop
+    one frame short. Real buttons in an HTML strip: an SVG <g role="button"> is not a button,
+    and data-frame keeps these out of the pane delegate and the membership counts. Activating
+    one opens that body's frame, which is unambiguous: every principal's home frame is SYSTEM. */
+ const prins=principals(),act=chain.find(f=>prins.includes(f));
+ const locator=isSys?"":`<div class="sys-locator" role="group" aria-label="System locator: open a principal body's frame">`+
+  prins.map(id=>`<button type="button" class="loc-body${id===act?" active":""}${id===act&&curSet.has(id)?" cur":""}" data-frame="${esc(id)}"${id===act?' aria-current="true"':""}>${esc(L[id].name)}</button>`).join("")+
+  `<span class="loc-star" title="The primary star is drawn for orientation and has no file">STAR</span></div>`;
+ return {world:zones+rings+lines+star+nodes,key,grid:M.grid,aria:ariaOut,head:M.head,sub:M.sub,crumbs,locator,viewR:radius,scale};
 }
 /* Pinch ratios are hysteretic: a gesture has to travel 1.35x or 0.74x before it counts as a zoom,
    so a sloppy two-finger tap, or a drift part-way through a gesture, fires nothing. */
 const pinchIntent=ratio=>ratio>=1.35?"in":ratio<=.74?"out":"";
-/* The frame the campaign is actually on: ops land on the theater, so that is what opens. */
-const startLevel=()=>{const l=L[C.ops[0]&&C.ops[0].loc];return l&&l.level==="THEATER"?"THEATER":"SYSTEM"};
-function fitLevel(level){
- const at=level||startLevel(),m=holomap(at),world=el("holo-world");
+/* The frame the campaign is actually on: op 001's ground is elysia, whose home frame is
+   cressidium, so the arrival opens the planet. Honest caveat: intel.html auto-selects the
+   insertion site and showUnit descends from there, so a visitor lands on the city frame — the
+   design claims no arrival view it does not produce. */
+const startLevel=()=>{const l=L[C.ops[0]&&C.ops[0].loc];return l?homeOf(l):"SYSTEM"};
+function fitLevel(fid){
+ const at=fid==null?startLevel():fid;
+ const m=holomap(at),world=el("holo-world");   /* an unknown or cyclic frame throws before anything is touched */
  frame=at;
+ stack.length=0;stack.push(...chainOf(at).slice().reverse());   /* [SYSTEM, ..., at] */
  if(!world)return m;          /* pages without a map still get the pane chips */
  /* The frame swap is a cut, not a camera move: the world's transition rides with the zoom only. */
  world.style.transition="none";
  world.innerHTML=m.world;world.style.transform="";
  if(typeof requestAnimationFrame==="function")requestAnimationFrame(()=>{world.style.transition=""});
  const key=document.querySelector(".holo-key");if(key)key.innerHTML=m.key;
- const head=el("route-heading");if(head)head.textContent=LEVELS[at].head;
- const sub=el("holo-sub");if(sub)sub.textContent=LEVELS[at].sub;
+ const head=el("route-heading");if(head)head.textContent=m.head;
+ const sub=el("holo-sub");if(sub)sub.textContent=m.sub;
  const grid=el("holo-grid");if(grid)grid.textContent=m.grid;
  const svg=document.querySelector("#holomap svg");if(svg)svg.setAttribute("aria-label",m.aria);
- const card=document.querySelector(".holo");if(card){card.classList.toggle("theater",at==="THEATER");card.classList.toggle("system",at==="SYSTEM")}
+ /* The breadcrumb and the locator mount as HTML strips outside the world, so their buttons stay
+    real buttons and the camera never drags them. */
+ const crumbHost=el("holo-crumbs");if(crumbHost)crumbHost.innerHTML=m.crumbs;
+ const locHost=el("holo-locator");if(locHost)locHost.innerHTML=m.locator;
+ const card=document.querySelector(".holo");if(card){const sys=isSysFrame(at);card.classList.toggle("theater",!sys);card.classList.toggle("system",sys)}
  /* The frame can also change from a chip in the reading pane, so the back control is synced here
     rather than only in the map's own click handlers. */
  if(UI.syncBack)UI.syncBack();
  return m;
 }
 function unitFile(id){const l=L[id];if(!l)return "";
- const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id),enter=C.locations.filter(x=>x.frame===id);
+ const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id);
+ /* Descent is by frame now: the ENTER chip appears exactly when the body's frame holds more
+    than the body itself, and it carries data-frame, so the descent is keyboard-reachable and
+    assertable. */
+ const enter=members(id).length>1;
  return `<div class="tag">UNIT STATUS · ${esc(l.kind)}</div><h3 class="mission-title">${esc(l.name)}</h3>`
   +(l.img?`<div class="mech-thumb">${pic(l.img,l.name)}</div>`:"")
   +(l.notes?`<div class="muted">${esc(l.notes)}</div>`:"")+table(
   th("LOCATION STATUS",l.visited?"VISITED":"UNVISITED")+th("FACTION / CONTROL",F[l.faction]?esc(F[l.faction].name):"Unclaimed / not recorded")+th(l.parent?(["MOON","STATION","ORBITAL"].includes(l.kind)?"IN ORBIT":"WITHIN"):"IN ORBIT",l.parent?locBtn(l.parent):"None")+
   th("NEARBY SITES",sats.map(x=>locBtn(x.id)).join(" · ")||"None recorded")+th("NOTABLE PERSONNEL",C.personnel.filter(p=>p.lastKnown===id).map(p=>personCard(p.id)).join("")||"None recorded")+th("OPERATIONS HERE",here.map(opLink).join("<br>")||"None filed")+
   th("UNIT RECORD",here.map(o=>esc(o.outcome)).join("<br>")||"No deeds recorded at this location"))
-  +(enter.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${enter.map(x=>`<button class="chip" type="button" data-loc="${esc(x.id)}">ENTER THEATER · ${esc(x.name)}</button>`).join("")}</div>`:"")}
-function showUnit(id){const l=L[id];if(!l||!panel())return;if(l.level&&l.level!==frame)fitLevel(l.level);
+  +(enter?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><button class="chip" type="button" data-frame="${esc(id)}">ENTER ${esc(l.name)}</button></div>`:"")}
+function showUnit(id){const l=L[id];if(!l||!panel())return;
+ /* Cross-frame selection by a rule the records can test: descend when the selected site is not
+    in members(current), and the target is that site's home frame — so personnel.lastKnown and
+    in-orbit links land correctly instead of stranding a site no frame draws. */
+ if(frame==null||!members(frame).some(m=>m.id===id))fitLevel(homeOf(l));
  mark("loc",id);
  panel().innerHTML=unitFile(id)}
 function showMech(id){const m=M[id];if(!m||!panel())return;const mine=mechOps(id).reverse(),last=filed.filter(o=>o.mechs.includes(id)).pop(),at=stationed(id),nf="NOT FILED";

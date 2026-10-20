@@ -56,8 +56,17 @@
 .k-fob{width:11px;height:11px;clip-path:polygon(50% 0,100% 100%,0 100%)}
 .k-zone{width:11px;height:11px;border-radius:50%;border-style:dashed}
 .k-orbital{width:13px;height:9px;clip-path:polygon(0 50%,50% 0,100% 50%,50% 100%)}
-.k-level{font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:2px 7px;cursor:pointer}
-.k-level:hover,.k-level:focus-visible{background:var(--chip-hover)}
+.k-star{border-radius:50%;border-width:0;background:var(--cyan)}
+/* Art bodies are images under a clip: the rim is their outline (what .shape is for glyphs) and the
+   terminator is the night side. Both ride the node states, or a selected planet looks unselected. */
+.holo-svg .rim{stroke:var(--cyan);stroke-width:1.5}
+.holo-svg .unv .rim{stroke:var(--muted);stroke-dasharray:3 3}
+.holo-svg .node.sel .rim,.holo-svg .node:focus-visible .rim{stroke:var(--cyan);stroke-width:3.5;stroke-dasharray:none}
+.holo-svg .node.cur .rim{stroke:var(--lime);stroke-width:3;stroke-dasharray:none}
+.holo-svg .term{fill:var(--holo-bg);opacity:.45;pointer-events:none}
+/* A body carrying its own frame draws heavier: it is descendable, and the ENTER chip is the say-so. */
+.holo-svg .body .shape{stroke-width:3}
+.holo-svg .body .rim{stroke-width:2.5}
 #record-detail .mech-thumb{margin:10px 0 14px}
 .holo-view{position:relative}
 .holo-svg{touch-action:pan-y}
@@ -84,9 +93,20 @@
 .ro-k{color:var(--muted);white-space:nowrap}
 .ro-v{font-family:var(--sans);font-size:14px}
 .ro-note{margin-top:8px}
-.maphead{display:flex;gap:6px;justify-content:flex-end;padding:14px 28px 0}
+.maphead{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:14px 28px 0}
 .level{font:12px var(--mono);letter-spacing:.12em;padding:8px 14px;background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer}
-main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .level[data-level="SYSTEM"]{color:var(--text);border-color:var(--cyan)}
+/* Frame strips: the breadcrumb is the way out (terminates at SYSTEM), the locator is the way across
+   (the other principal bodies; the star chip is a label, the star has no file). Both are real
+   buttons outside #holo-world, so the camera and the pinch never reach them. */
+.crumbs{display:flex;align-items:center;gap:6px;font:12px var(--mono);letter-spacing:.12em}
+.crumb,.crumb-up,.loc-body{font:12px var(--mono);letter-spacing:.12em;padding:6px 12px;background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer}
+.crumb:hover,.crumb-up:hover,.loc-body:hover,.crumb:focus-visible,.crumb-up:focus-visible,.loc-body:focus-visible{color:var(--text);border-color:var(--cyan)}
+.crumb-sep{color:var(--muted)}
+.crumb-now{color:var(--cyan)}
+.sys-locator{display:flex;gap:6px;align-items:center}
+.loc-body.active{color:var(--cyan);border-color:var(--cyan)}
+.loc-body.cur{color:var(--lime);border-color:var(--lime)}
+.loc-star{font:12px var(--mono);letter-spacing:.12em;color:var(--muted);padding:6px 4px}
 #tab-map .holo-view{min-height:0}
 /* Map-first console: the reading pane sits beside the map on a laptop and drops under it at 1100px,
    deliberately not 900px, so a 1024x768 landscape keeps a big map and 54px hit targets. */

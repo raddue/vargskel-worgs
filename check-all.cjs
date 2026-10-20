@@ -66,6 +66,13 @@ Object.entries(required).forEach(([key, fields]) => {
     if (key === "ops") ["crew", "mechs"].forEach(a => { if (!Array.isArray(x[a])) problems.push(`op ${x.id}: ${a} must be an array`); });
   });
 });
+/* frame and pinBearing are optional keys with their own shape check: frame is absent on the six
+   root records, so listing it as required would report six false absences, and pinBearing rides
+   only the pin. Both still get typed, or a typo would ride into the builder as NaN. */
+C.locations.forEach(l => {
+  if ("frame" in l && typeof l.frame !== "string") problems.push(`location ${l.id}: frame must be a string or absent, got ${JSON.stringify(l.frame)}`);
+  if ("pinBearing" in l && (typeof l.pinBearing !== "number" || !(l.pinBearing >= 0 && l.pinBearing < 360))) problems.push(`location ${l.id}: pinBearing must be a number in [0, 360) or absent, got ${JSON.stringify(l.pinBearing)}`);
+});
 
 if (C.pilots.length !== 6 || C.mechs.length !== 6 || C.ops.length !== 1 || C.events.length || C.threads.length) problems.push('campaign should have six pilots/mechs, one Solstice Rain operation, and no historical events/threads');
 if (!C.pilots.some(p => p.name === "RURIK “DAEMON” VARGSKEL" && p.img === "assets/rurik_vargskel.png") || !fs.existsSync(__dirname + "/assets/rurik_vargskel.png") || !C.pilots.some(p => p.id === "sten" && p.name === "STEN “HAMMER” VARGSKEL" && p.mech === "skaldr" && p.img === "assets/sten.png") || !fs.existsSync(__dirname + "/assets/sten.png") || !C.pilots.some(p => p.name === "HANSEN “DUSTY” MCGRAW") || !C.pilots.some(p => p.id === "spook" && p.name === "NICOLOSO “SPOOK” BENIKO" && p.mech === "alba")) problems.push('roster must keep Rurik, Sten with Skaldr, Dusty, Guillaume, Danila, and Spook with Alba');
@@ -263,8 +270,10 @@ if (!page.includes('id="record-detail"')) problems.push('intel.html: in-place re
 if (C.pilots.find(p => p.id === "dusty")?.img !== "assets/dusty.png" || !fs.existsSync(__dirname + "/assets/dusty.png")) problems.push('Dusty portrait missing from campaign roster/assets');
 if (C.mechs.find(m => m.id === "tombstone")?.img !== "assets/tombstone.png") problems.push('Tombstone image path missing from campaign record');
 if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map still exposes chassis selection controls');
-/* Two-level holomap. The builder is pure (UI.holomap), so both frames are asserted as markup
-   rather than as source substrings — which is all the inline script in index.html allowed. */
+/* Holomap frames. The builder is pure (UI.holomap), so every frame is asserted as returned data
+   rather than as source substrings. Each frame's expected membership is recomputed here from the
+   campaign records, the way idsOn once did, never by asking the builder's own members() — that
+   would test the builder against itself. */
 {
   const vm = require("node:vm");
   const box = { document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener: () => {} }, matchMedia: () => ({ matches: false, addEventListener: () => {} }), CSS: { escape: s => String(s) }, location: { hash: "" }, console };
@@ -274,39 +283,226 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
   try { vm.runInContext(fs.readFileSync(__dirname + "/campaign.js", "utf8"), box); vm.runInContext(fs.readFileSync(__dirname + "/archive.js", "utf8"), box); }
   catch (e) { booted = false; problems.push(`archive.js will not load under a stub DOM, so no frame can be checked: ${e.message}`); }
   const HOLO = booted && (box.UI || (box.window && box.window.UI)), D = booted && box.CAMPAIGN;
-  if (booted && (!HOLO || typeof HOLO.holomap !== "function")) problems.push("archive.js: UI.holomap(level) missing, so the holomap cannot be checked per level");
+  if (booted && (!HOLO || typeof HOLO.holomap !== "function")) problems.push("archive.js: UI.holomap(frameId) missing, so the holomap cannot be checked per frame");
   else if (booted && D) {
-    const idsOn = lvl => D.locations.filter(l => l.level === lvl).map(l => l.id);
-    const drawn = lvl => { let out; try { out = HOLO.holomap(lvl); } catch (e) { problems.push(`UI.holomap("${lvl}") threw: ${e.message}`); return { ids: [], key: "", world: "", grid: "", aria: "" } }
-      if (!out || typeof out.world !== "string" || typeof out.key !== "string") { problems.push(`UI.holomap("${lvl}") must return {world,key} strings`); return { ids: [], key: "", world: "", grid: "", aria: "" } }
-      return { ids: [...out.world.matchAll(/data-loc="([^"]+)"/g)].map(m => m[1]), key: out.key, world: out.world, grid: String(out.grid || ""), aria: String(out.aria || "") }; };
-    const fames = { SYSTEM: drawn("SYSTEM"), THEATER: drawn("THEATER") };
-    Object.keys(fames).forEach(lvl => { const { ids } = fames[lvl], want = idsOn(lvl);
-      if (!want.length) problems.push(`campaign.js: no ${lvl} locations, so that frame cannot be checked`);
-      want.forEach(id => { if (!ids.includes(id)) problems.push(`UI.holomap("${lvl}") omits ${lvl} location ${id}`); });
-      ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${lvl}") draws ${id}, which campaign.js does not mark ${lvl}`); }); });
-    if (!fames.THEATER.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("THEATER") key has no SYSTEM VIEW chip');
-    if (fames.SYSTEM.key.includes("SYSTEM VIEW")) problems.push('UI.holomap("SYSTEM") key offers SYSTEM VIEW, which is where it already is');
-    /* The ring and the key are asserted against the rendered markup, recomputed here from
-       campaign.js: the green ring belongs to an op actually flown, never a planned one, and the
-       key lists exactly the kinds the frame carries, no more and no less. */
-    const curLoc = (o => o && o.type !== "PLANNED" && o.status !== "UNBRIEFED" ? o.loc : "")(D.ops[0]);
-    Object.keys(fames).forEach(lvl => {
-      const { world, key } = fames[lvl], here = D.locations.filter(l => l.level === lvl);
-      const cls = new Map([...world.matchAll(/class="node([^"]*)" data-loc="([^"]+)"/g)].map(m => [m[2], m[1]]));
-      here.forEach(l => {
-        const c = cls.get(l.id) || "";
-        if (c.includes(" cur") !== (l.id === curLoc)) problems.push(`UI.holomap("${lvl}"): ${l.id} carries the current-op ring against the flown-op rule`);
-        if (c.includes(" unv") !== !l.visited) problems.push(`UI.holomap("${lvl}"): ${l.id}'s unvisited marker disagrees with its visited flag`);
-      });
-      const kinds = [...new Set(here.map(l => l.kind))];
-      const labels = [...key.matchAll(/<span class="k-shape [^"]*"><\/span>([^<]+)<\/li>/g)].map(m => m[1])
-        .filter(t => t !== "UNVISITED" && t !== "CURRENT OP");
-      kinds.forEach(k => { if (!labels.includes(k)) problems.push(`UI.holomap("${lvl}") key omits kind ${k}, which the frame carries`); });
-      labels.forEach(k => { if (!kinds.includes(k)) problems.push(`UI.holomap("${lvl}") key lists kind ${k}, which no node on the frame carries`); });
-      if (key.includes("UNVISITED") !== here.some(l => !l.visited)) problems.push(`UI.holomap("${lvl}") key's UNVISITED entry disagrees with the frame's visited flags`);
-      if (key.includes("CURRENT OP") !== here.some(l => l.id === curLoc)) problems.push(`UI.holomap("${lvl}") key's CURRENT OP entry disagrees with the flown-op rule`);
+    const by = Object.fromEntries(D.locations.map(l => [l.id, l]));
+    /* Every frame the records produce: the root, and each body that is opened — the planet, its
+       neighbour, the city on it and the district inside the city. */
+    const FRAMES = ["SYSTEM", "cressidium", "tarn", "elysia", "industry"];
+    /* members(F) from the records: SYSTEM draws every frameless record; another frame draws its
+       subject, its framed children and its frameless satellites. The three sets never overlap —
+       the clause that keeps rio drawn exactly once on elysia now that it carries both a frame and
+       a parent of elysia. */
+    const membersOf = F => F === "SYSTEM"
+      ? D.locations.filter(l => !l.frame).map(l => l.id)
+      : [F, ...D.locations.filter(l => l.frame === F).map(l => l.id), ...D.locations.filter(l => !l.frame && l.parent === F).map(l => l.id)];
+    const drawn = fid => { let out; try { out = HOLO.holomap(fid); } catch (e) { problems.push(`UI.holomap("${fid}") threw: ${e.message}`); return null }
+      if (!out || typeof out.world !== "string" || typeof out.key !== "string") { problems.push(`UI.holomap("${fid}") must return {world,key} strings`); return null }
+      return { ids: [...out.world.matchAll(/data-loc="([^"]+)"/g)].map(m => m[1]), world: out.world, key: out.key, grid: String(out.grid || ""), aria: String(out.aria || ""), crumbs: String(out.crumbs || ""), locator: String(out.locator || ""), viewR: out.viewR, scale: out.scale }; };
+    const fames = {};
+    FRAMES.forEach(F => { fames[F] = drawn(F); });
+    const CX = 500, CY = 240;
+    const nodeSeg = (world, id) => { const at = world.indexOf(`data-loc="${id}"`); if (at < 0) return "";
+      const start = world.lastIndexOf("<g ", at); let end = world.indexOf('<g class="node', at); if (end < 0) end = world.length;
+      return world.slice(start, end); };
+    const nodeMap = world => new Map([...world.matchAll(/<g class="node([^"]*)" data-loc="([^"]+)" data-x="(-?[\d.]+)" data-y="(-?[\d.]+)"/g)].map(m => [m[2], { cls: m[1], x: Number(m[3]), y: Number(m[4]) }]));
+    const chainFrames = F => { const out = [F]; let f = by[F] && by[F].frame; const seen = new Set(out);
+      while (f && !seen.has(f)) { seen.add(f); out.push(f); f = by[f].frame } out.push("SYSTEM"); return out; };
+    const principals = () => D.locations.filter(l => !l.frame && !l.parent).map(l => l.id);
+    const near = (a, b, tol) => Math.abs(a - b) <= tol;
+    /* Rev-10 radii, mirrored here so the test recomputes placement from the records instead of
+       trusting the builder's own constants: one radius per kind at 1x, the subject's disc rim,
+       the pin's own 12, and the star's declared bearing. */
+    const RADII = { PLANET: 54, MOON: 30, STATION: 26, "WRECK FIELD": 9, ORBITAL: 46, CITY: 9, DISTRICT: 8, FOB: 9, ZONE: 9 };
+    const DISC_RIM = 72, PIN_R = 12, STAR_BEARING = 270, FIT_MARGIN = 24;
+    const ARTK = ["PLANET", "MOON", "STATION", "WRECK FIELD", "ORBITAL"];
+    const frameGeom = F => { const s = by[F];
+      const same = membersOf(F).filter(id => id !== F && by[id].level === s.level);
+      const offs = same.map(id => Math.hypot((by[id].x - s.x) * 10, (by[id].y - s.y) * 4.8));
+      const pins = membersOf(F).filter(id => id !== F && by[id].level !== s.level);
+      const radius = Math.max(DISC_RIM + (pins.length ? PIN_R : 0), ...same.map((id, i) => offs[i] + RADII[by[id].kind]));
+      return { same, offs, pins, radius, scale: Math.min(1000, 480) / (2 * (radius + FIT_MARGIN)) }; };
+
+    FRAMES.forEach(F => { const f = fames[F]; if (!f) return;
+      const want = membersOf(F);
+      /* Membership is the contract: the frame's data-loc set equals members(F) exactly, and every
+         member appears exactly once — a second node carrying one id is a leak, not a satellite. */
+      if (!want.length) problems.push(`campaign.js: frame ${F} has no members, so it cannot be checked`);
+      want.forEach(id => { if (!f.ids.includes(id)) problems.push(`UI.holomap("${F}") omits member ${id}`); });
+      f.ids.forEach(id => { if (!want.includes(id)) problems.push(`UI.holomap("${F}") draws ${id}, which is not a member of that frame`); });
+      const dupes = [...new Set(f.ids.filter((id, i) => f.ids.indexOf(id) !== i))];
+      if (dupes.length) problems.push(`UI.holomap("${F}") draws ${dupes.join(", ")} more than once: a second data-loc for one id is a leak, not a satellite`);
+
+      /* Placement: nodes carry data-x/data-y, the placed coordinates intel's camera reads. On
+         SYSTEM a record sits at its own x,y at fit 1; on a descended frame the subject is centred,
+         same-scale members keep their own offsets multiplied by the fit scale, and a cross-scale
+         member rides the subject's rim at the bearing its own record declares. */
+      const nodes = nodeMap(f.world);
+      want.forEach(id => { const n = nodes.get(id); if (!n) { problems.push(`UI.holomap("${F}"): ${id} has no placed node carrying data-x/data-y`); return }
+        if (!Number.isFinite(n.x) || !Number.isFinite(n.y)) problems.push(`UI.holomap("${F}"): ${id}'s data-x/data-y must be numbers`); });
+      if (F === "SYSTEM") {
+        want.forEach(id => { const l = by[id], n = nodes.get(id); if (!n) return;
+          if (!near(n.x, l.x * 10, .6) || !near(n.y, l.y * 4.8, .6)) problems.push(`UI.holomap("SYSTEM"): ${id} must sit at its own coordinates (${l.x * 10},${l.y * 4.8}), got (${n.x},${n.y})`); });
+      } else {
+        const s = by[F], g = frameGeom(F);
+        want.forEach(id => { const l = by[id], n = nodes.get(id); if (!n) return;
+          const dx = (l.x - s.x) * 10, dy = (l.y - s.y) * 4.8;
+          if (id === F) { if (!near(n.x, CX, .6) || !near(n.y, CY, .6)) problems.push(`UI.holomap("${F}"): the subject must sit at the frame centre ${CX},${CY}`); }
+          else if (l.level === s.level) { if (!near(n.x, CX + dx * g.scale, .6) || !near(n.y, CY + dy * g.scale, .6)) problems.push(`UI.holomap("${F}"): ${id} must keep its own offset from the subject at the fit scale (${(CX + dx * g.scale).toFixed(1)},${(CY + dy * g.scale).toFixed(1)}), got (${n.x},${n.y})`); }
+          else {
+            if (typeof l.pinBearing !== "number") problems.push(`UI.holomap("${F}"): cross-scale member ${id} must carry its own pinBearing, not inherit an angle`);
+            else { const b = l.pinBearing * Math.PI / 180, r = DISC_RIM * g.scale;
+              if (!near(n.x, CX + r * Math.sin(b), .6) || !near(n.y, CY - r * Math.cos(b), .6)) problems.push(`UI.holomap("${F}"): pin ${id} must ride the subject's rim at its declared bearing ${l.pinBearing} ((${(CX + r * Math.sin(b)).toFixed(1)},${(CY - r * Math.cos(b)).toFixed(1)}), got (${n.x},${n.y})`); }
+          } });
+        /* No same-scale member may sit inside the subject's disc or glyph. */
+        const subjR = ARTK.includes(s.kind) ? DISC_RIM : RADII[s.kind];
+        g.same.forEach((id, i) => { if (g.offs[i] < subjR + RADII[by[id].kind]) problems.push(`UI.holomap("${F}"): ${id} at offset ${g.offs[i].toFixed(1)} sits inside the subject's drawn extent (${subjR}+${RADII[by[id].kind]})`); });
+        /* The pin is on the night face: within 90 degrees of the anti-star axis, and clear of
+           every same-scale member by the sum of their drawn radii. */
+        g.pins.forEach(id => { const l = by[id]; if (typeof l.pinBearing !== "number") return;
+          const anti = (STAR_BEARING + 180) % 360, db = Math.abs(((l.pinBearing - anti + 540) % 360) - 180);
+          if (db > 90) problems.push(`UI.holomap("${F}"): pin ${id} at bearing ${l.pinBearing} is ${db.toFixed(0)} degrees off the anti-star axis ${anti}: the pin must fall on the night face`);
+          const b = l.pinBearing * Math.PI / 180, px = CX + DISC_RIM * g.scale * Math.sin(b), py = CY - DISC_RIM * g.scale * Math.cos(b);
+          g.same.forEach((mid, i) => { const mn = nodes.get(mid); if (!mn) return;
+            const need = (PIN_R + RADII[by[mid].kind]) * g.scale, d = Math.hypot(mn.x - px, mn.y - py);
+            if (d < need) problems.push(`UI.holomap("${F}"): pin ${id} lands ${d.toFixed(1)} from ${mid}, inside their summed radii ${need.toFixed(1)}`); }); });
+        /* The view radius is derived from the records: the subject's disc (plus the pin's 12 when
+           one rides the rim) or the farthest same-scale member's offset plus that member's radius.
+           rio must not set elysia's fit; kessen sets cressidium's. */
+        if (typeof f.viewR !== "number" || !Number.isFinite(f.viewR)) problems.push(`UI.holomap("${F}") must return a numeric viewR derived from the records`);
+        else if (!near(f.viewR, g.radius, .6)) problems.push(`UI.holomap("${F}"): view radius ${f.viewR} must equal the derived radius ${g.radius.toFixed(1)} (disc ${DISC_RIM}${g.pins.length ? " + pin " + PIN_R : ""} or farthest same-scale offset plus member radius)`);
+        if (typeof f.scale !== "number" || !near(f.scale, g.scale, .001)) problems.push(`UI.holomap("${F}"): fit scale ${f.scale} must be min(view)/(2*(radius+${FIT_MARGIN})) = ${g.scale.toFixed(4)}`);
+        if (F === "cressidium" && !near(g.radius, Math.hypot(160, 48) + RADII.STATION, 1)) problems.push('UI.holomap("cressidium"): the radius must be set by kessen at 167 plus its hex, not by the pin elysia');
+        if (F === "elysia") { const vsaf = Math.hypot(260, -19.2) + RADII.ZONE, rio = Math.hypot(120, -172.8) + RADII.ORBITAL;
+          if (!near(g.radius, vsaf, 1)) problems.push('UI.holomap("elysia"): the radius must be set by vsaf, not by the districts');
+          if (rio >= vsaf) problems.push(`UI.holomap("elysia"): rio at ${rio.toFixed(1)} must not out-reach vsaf at ${vsaf.toFixed(1)}, or the hull would set the fit`); }
+        /* Every placed body, centre and drawn radius, lands inside the viewBox with a margin. */
+        want.forEach(id => { const n = nodes.get(id); if (!n) return;
+          const r = (id === F ? (ARTK.includes(by[id].kind) ? DISC_RIM : RADII[by[id].kind]) : RADII[by[id].kind]) * g.scale;
+          if (n.x - r < 24 || n.x + r > 976 || n.y - r < 24 || n.y + r > 456) problems.push(`UI.holomap("${F}"): ${id} at (${n.x},${n.y}) with drawn radius ${r.toFixed(1)} overhangs the viewBox margin`); });
+      }
+
+      /* Rings: an orbit ring takes its own child's radius, whether the parent is the frame's
+         subject (rio over elysia) or a satellite (pell over cressidium). Recomputed here. */
+      const ORB = ["MOON", "STATION", "ORBITAL"];
+      const wantRings = want.filter(id => { const l = by[id]; return l.parent && l.parent !== id && ORB.includes(l.kind) && want.includes(l.parent); }).sort();
+      const gotRings = [...f.world.matchAll(/<circle class="ring" data-ring="([^"]+)"[^>]*r="(\d+)"/g)].map(m => `${m[1]}:${m[2]}`);
+      const wantRingStrs = wantRings.map(id => { const l = by[id], p = nodes.get(l.parent), c = nodes.get(id);
+        return `${l.parent}:${p && c ? Math.round(Math.hypot(c.x - p.x, c.y - p.y)) : "?"}`; }).sort();
+      if (gotRings.slice().sort().join("|") !== wantRingStrs.join("|")) problems.push(`UI.holomap("${F}"): orbit rings ${gotRings.sort().join("|") || "none"} disagree with the records (${wantRingStrs.join("|") || "none"})`);
+      if (wantRings.length && !f.key.includes('class="k-orbit"')) problems.push(`UI.holomap("${F}") key must list ORBIT: the frame draws orbit rings`);
+      if (!wantRings.length && f.key.includes('class="k-orbit"')) problems.push(`UI.holomap("${F}") key must not offer ORBIT: nothing orbits on that frame`);
+
+      /* Head, grid and aria derive from the subject's kind, not from a level band. Only the root's
+         grid label carries units: a fitted frame draws the fixed 50 px texture at some other scale,
+         where a units label would be false. */
+      const wantGrid = F === "SYSTEM" ? "SECTOR GRID · 50 U" : ARTK.includes(by[F].kind) ? "ORBIT GRID" : by[F].kind === "CITY" ? "THEATER GRID" : "GROUND GRID";
+      if (f.grid !== wantGrid) problems.push(`UI.holomap("${F}").grid must read "${wantGrid}", got "${f.grid}"`);
+      if (F === "SYSTEM") { if (!/Sector holomap/.test(f.aria)) problems.push('UI.holomap("SYSTEM").aria must announce the sector frame'); }
+      else {
+        if (!f.aria.includes(by[F].name)) problems.push(`UI.holomap("${F}").aria must name the frame's subject ${by[F].name}`);
+        const pinHere = want.some(id => id !== F && by[id].level !== by[F].level);
+        if (pinHere !== f.aria.includes("POSITION ON DISC DECLARED")) problems.push(`UI.holomap("${F}").aria must say POSITION ON DISC DECLARED exactly when the frame draws a pin`);
+      }
+      /* The scale claim is a set equality that can fail: the cross-scale members of every frame,
+         pair by pair, are exactly the records carrying a pinBearing; a bearing on a record that is
+         not a cross-scale member of its home frame fails too. */
+      FRAMES.forEach(G => { const s2 = by[G]; if (!s2) return;
+        membersOf(G).forEach(id => { if (id === G) return; const l = by[id];
+          if (l.level !== s2.level && typeof l.pinBearing !== "number") problems.push(`campaign.js: ${id} is cross-scale on ${G} and carries no pinBearing`);
+          if (typeof l.pinBearing === "number" && l.level === s2.level) problems.push(`campaign.js: ${id} carries pinBearing but is not cross-scale on ${G}: a bearing with no pin to carry it`); }); });
+
+      /* The key lists exactly the kinds the frame carries, plus the conditional chips. STAR is the
+         declared invention: it is no record's kind, and the chip says so outright. */
+      const CHIPVOCAB = ["UNVISITED", "CURRENT OP", "TRAVELLED", "PLANNED LEG", "ORBIT", "STAR · NO FILE"];
+      const labels = [...f.key.matchAll(/<span class="k-shape [^"]*"><\/span>([^<]+)<\/li>/g)].map(m => m[1]);
+      const kinds = [...new Set(want.map(id => by[id].kind))];
+      const kindLabels = labels.filter(t => !CHIPVOCAB.includes(t));
+      kinds.forEach(k => { if (!kindLabels.includes(k)) problems.push(`UI.holomap("${F}") key omits kind ${k}, which the frame carries`); });
+      kindLabels.forEach(k => { if (!kinds.includes(k)) problems.push(`UI.holomap("${F}") key lists kind ${k}, which no node on the frame carries`); });
+      if (labels.includes("UNVISITED") !== want.some(id => !by[id].visited)) problems.push(`UI.holomap("${F}") key's UNVISITED entry disagrees with the members' visited flags`);
+      if (f.key.includes("SYSTEM VIEW")) problems.push(`UI.holomap("${F}") key must not offer SYSTEM VIEW: the way out is the breadcrumb`);
+      if ((F === "SYSTEM") !== labels.includes("STAR · NO FILE")) problems.push(`UI.holomap("${F}"): the STAR · NO FILE chip belongs to the system frame alone`);
+
+      /* The star is drawn, declared and no location: procedural SVG at the declared bearing from
+         the viewBox centre, at the root's greatest body-centre distance, role=img, no data-loc,
+         and no other frame carries one. */
+      const starTag = (f.world.match(/<g class="star"[^>]*>/) || [""])[0];
+      if (F === "SYSTEM") {
+        if (!starTag) problems.push('UI.holomap("SYSTEM") must draw the primary star');
+        else {
+          if (!/role="img"/.test(starTag)) problems.push('the star node must carry role="img": an aria-label on a bare <g> is ignored by several screen readers');
+          if (/data-loc/.test(starTag)) problems.push("the star is not a location: its node must carry no data-loc");
+          if (/data-frame/.test(starTag)) problems.push("the star carries no data-frame: holomap(star) does not exist and a data-frame on it would throw");
+          const starR = Math.max(...want.map(id => Math.hypot(by[id].x * 10 - CX, by[id].y * 4.8 - CY)));
+          const sx = CX + starR * Math.sin(STAR_BEARING * Math.PI / 180), sy = CY - starR * Math.cos(STAR_BEARING * Math.PI / 180);
+          if (!new RegExp(`translate\\(${sx.toFixed(1)} ${sy.toFixed(1)}\\)`).test(starTag)) problems.push(`the star sits at its declared bearing ${STAR_BEARING} and radius ${starR.toFixed(1)}: translate(${sx.toFixed(1)} ${sy.toFixed(1)}), not a typed pixel`);
+          const sd = starTag.match(/data-x="([^"]+)" data-y="([^"]+)"/) || [];
+          if (!near(+sd[1], sx, .6) || !near(+sd[2], sy, .6)) problems.push(`the star's data-x/data-y must be its placed position (${sx.toFixed(1)},${sy.toFixed(1)})`);
+          if (sx < 24 || sx > 976 || sy < 24 || sy > 456) problems.push(`the star at (${sx.toFixed(1)},${sy.toFixed(1)}) must land inside the viewBox with a margin`);
+        }
+      } else if (starTag) problems.push(`UI.holomap("${F}") must not draw the star: it belongs to the system frame`);
+
+      /* Art bodies: a planet's or moon's markup references assets/<id>-thumb.webp through an SVG
+         clipPath; a station's plate never uses the disc clip; clipPath ids are unique within the
+         mounted frame, because duplicate ids silently cross-wire two clips. */
+      want.forEach(id => { const l = by[id], seg = nodeSeg(f.world, id);
+        if ((l.kind === "PLANET" || l.kind === "MOON") && !seg.includes(`assets/${id}-thumb.webp`)) problems.push(`UI.holomap("${F}"): ${id} is a ${l.kind} and must draw as an art disc referencing assets/${id}-thumb.webp`);
+        if (l.kind === "STATION") { const clip = (seg.match(/<clipPath id="[^"]+">([\s\S]*?)<\/clipPath>/) || [])[1];
+          if (!clip || !/<polygon/.test(clip) || /<circle/.test(clip)) problems.push(`UI.holomap("${F}"): station ${id} must clip to a hex plate, not the disc clip — a station is not a ball`); } });
+      const clipIds = [...f.world.matchAll(/<clipPath id="([^"]+)"/g)].map(m => m[1]);
+      const clipDupes = [...new Set(clipIds.filter((x, i) => clipIds.indexOf(x) !== i))];
+      if (clipDupes.length) problems.push(`UI.holomap("${F}"): duplicate clipPath ids ${clipDupes.join(", ")}`);
+
+      /* The breadcrumb: one real button per ancestor walking the frame chain, terminating at
+         SYSTEM, plus UP ONE LEVEL where the SYSTEM VIEW key chip used to be. Never a data-loc. */
+      if (/data-loc=/.test(f.crumbs)) problems.push(`UI.holomap("${F}"): crumbs must carry data-frame, never data-loc`);
+      if (F === "SYSTEM") {
+        if (/<button/.test(f.crumbs)) problems.push('UI.holomap("SYSTEM"): the root frame has no ancestors, so its breadcrumb carries no buttons');
+        if (!f.crumbs.includes("CRESSIDIUM SYSTEM")) problems.push('UI.holomap("SYSTEM"): the breadcrumb must name the system frame');
+      } else {
+        const anc = chainFrames(F).slice(1);
+        const btns = [...f.crumbs.matchAll(/<button[^>]*data-frame="([^"]+)"/g)].map(m => m[1]);
+        if (!f.crumbs.includes("UP ONE LEVEL")) problems.push(`UI.holomap("${F}"): the breadcrumb must carry UP ONE LEVEL, the SYSTEM VIEW chip's successor`);
+        if (btns.length !== anc.length + 1) problems.push(`UI.holomap("${F}"): the breadcrumb needs one button per ancestor (${anc.length}) plus UP ONE LEVEL, got ${btns.length}`);
+        if (btns[0] !== anc[0]) problems.push(`UI.holomap("${F}"): UP ONE LEVEL must target the parent frame ${anc[0]}`);
+        if (btns.slice(1).join(",") !== anc.join(",")) problems.push(`UI.holomap("${F}"): crumb buttons must walk the frame chain ${anc.join(" › ")}, got ${btns.slice(1).join(" › ")}`);
+        if (btns[btns.length - 1] !== "SYSTEM") problems.push(`UI.holomap("${F}"): the breadcrumb must terminate at SYSTEM`);
+        if (!f.crumbs.includes(by[F].name)) problems.push(`UI.holomap("${F}"): the breadcrumb must name the current frame`);
+      }
+
+      /* The system locator: every non-SYSTEM frame carries the principal bodies plus the declared
+         star as real buttons outside the world, with exactly one active — the ancestor found by
+         walking the frame chain, not parent. data-frame only, never data-loc, never class node. */
+      if (F === "SYSTEM") { if (f.locator !== "") problems.push('UI.holomap("SYSTEM") must carry no locator: the system is already in view'); }
+      else {
+        const prins = principals();
+        const lbtns = [...f.locator.matchAll(/<button[^>]*class="loc-body([^"]*)"[^>]*data-frame="([^"]+)"/g)].map(m => ({ cls: m[1], id: m[2] }));
+        if (lbtns.map(b => b.id).join(",") !== prins.join(",")) problems.push(`UI.holomap("${F}"): the locator must list exactly the principal bodies ${prins.join(", ")}, got ${lbtns.map(b => b.id).join(", ") || "none"}`);
+        if (/data-loc=/.test(f.locator)) problems.push(`UI.holomap("${F}"): locator nodes must carry data-frame, never data-loc`);
+        if (/class="node/.test(f.locator)) problems.push(`UI.holomap("${F}"): locator nodes must never carry class="node"`);
+        const act = lbtns.filter(b => /\bactive\b/.test(b.cls));
+        if (act.length !== 1) problems.push(`UI.holomap("${F}"): the locator must mark exactly one active body, got ${act.length}`);
+        else { const wantAct = chainFrames(F).find(x => prins.includes(x));
+          if (act[0].id !== wantAct) problems.push(`UI.holomap("${F}"): the locator's active body must be ${wantAct}, the ancestor of the frame, got ${act[0].id}`); }
+        if (!/STAR/.test(f.locator)) problems.push(`UI.holomap("${F}"): the locator's body set is the principals plus the declared star`);
+      }
+
+      /* The ENTER chip lives in the pane and appears iff the frame holds more than its subject,
+         so tarn has one and pell does not. It carries data-frame: descent, not the retired level. */
+      const pane = String(HOLO.unitFile ? HOLO.unitFile(F === "SYSTEM" ? "cressidium" : F) : "");
+      if (/ENTER THEATER/.test(pane)) problems.push(`unitFile still says ENTER THEATER: descent is by frame now, not by level`);
     });
+
+    /* ENTER iff, over every record: members(id) beyond the subject is the whole condition. */
+    if (typeof HOLO.unitFile !== "function") problems.push("archive.js: UI.unitFile(id) missing, so the map pane cannot be checked");
+    else D.locations.forEach(l => { const pane = String(HOLO.unitFile(l.id));
+      const want = membersOf(l.id).length > 1, has = pane.includes(`data-frame="${l.id}"`) && pane.includes(`ENTER ${l.name}`);
+      if (want !== has) problems.push(`unitFile("${l.id}"): the ENTER ${l.name} chip ${want ? "is missing, though its frame holds more than its subject" : "must not appear: its frame holds only its subject"}`);
+    });
+
+    if (fames.SYSTEM && !nodeSeg(fames.SYSTEM.world, "cressidium").includes("NOV ELYSIA SITE")) problems.push('UI.holomap("SYSTEM") must show NOV ELYSIA as a site chip under cressidium: a framed site hangs under the body it sits on');
+
     /* The missing principals are identified by portrait on the map pane, not only by name. */
     const missingPane = HOLO.unitFile ? HOLO.unitFile("elysia") : "";
     if (!HOLO.unitFile) problems.push("archive.js: UI.unitFile(id) missing, so the map pane cannot be checked");
@@ -314,39 +510,42 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
       if (!missingPane.includes(p.img)) problems.push(`unitFile("elysia") omits ${p.id}'s portrait (${p.img}), so a missing principal reads there as a name only`);
     });
     if (!/class="p-face"/.test(missingPane)) problems.push('unitFile must pair personnel portraits with their chips (class="p-face")');
-    /* Each frame has to say which frame it is — to sighted readers in the corner and to screen readers. */
-    if (!/THEATER GRID/.test(fames.THEATER.grid) || !/SECTOR GRID/.test(fames.SYSTEM.grid)) problems.push("each frame's corner grid label must name that frame");
-    if (!/Theater holomap/.test(fames.THEATER.aria) || !/Sector holomap/.test(fames.SYSTEM.aria)) problems.push("each frame must announce itself: holomap(level).aria must name that frame");
-    if (fames.THEATER.aria === fames.SYSTEM.aria) problems.push("the two frames must not share one aria-label");
-    if (!fames.SYSTEM.key.includes('class="k-orbit"')) problems.push('UI.holomap("SYSTEM") key must list ORBIT: the sector frame draws orbit rings');
+
     /* Pinch is the one map gesture a stub cannot perform, so its decision function is kept pure. */
     if (typeof HOLO.pinchIntent !== "function") problems.push("archive.js: UI.pinchIntent(ratio) missing, so the pinch gesture cannot be checked");
     else [[2, "in"], [1.4, "in"], [1.34, ""], [1, ""], [.8, ""], [.74, "out"], [.5, "out"]].forEach(([r, want]) => {
       const got = HOLO.pinchIntent(r);
       if (got !== want) problems.push(`UI.pinchIntent(${r}) = "${got}", want "${want}": pinch thresholds must stay hysteretic`);
     });
-    if (fames.THEATER.key.includes('class="k-orbit"')) problems.push('UI.holomap("THEATER") must not offer an ORBIT chip: a district does not orbit its city');
-    /* A site framed onto a body must hang under that body, not float as a sector node of its own. */
-    D.locations.filter(l => l.frame).forEach(k => {
-      const host = D.locations.find(x => x.id === k.frame);
-      if (!host) return;
-      if (host.level === "SYSTEM") {
-        if (!fames.SYSTEM.world.includes(k.name + " SITE")) problems.push(`UI.holomap("SYSTEM") must show ${k.name} as a chip under ${k.frame}, not leave the site unmentioned`);
-        if (fames.SYSTEM.ids.includes(k.id)) problems.push(`UI.holomap("SYSTEM") must not draw ${k.name} as a node of its own in the sector frame`);
-      }
-      if (fames.THEATER.ids.includes(host.id)) problems.push(`UI.holomap("THEATER") must not draw ${host.id}: it is a body of the sector frame`);
-    });
-    const pane = typeof HOLO.unitFile === "function" ? String(HOLO.unitFile("cressidium")) : "";
-    if (!pane.includes("ENTER THEATER")) problems.push('UI.unitFile("cressidium") has no ENTER THEATER chip, so the theater is pointer-only');
-    const by = Object.fromEntries(D.locations.map(l => [l.id, l])), KINDS = ["PLANET", "MOON", "STATION", "WRECK FIELD", "CITY", "DISTRICT", "FOB", "ZONE", "ORBITAL"];
-    D.locations.forEach(l => { if (l.level !== "SYSTEM" && l.level !== "THEATER") problems.push(`location ${l.id}: level must be SYSTEM or THEATER, got ${JSON.stringify(l.level)}`);
+
+    /* Record wiring: ids become markup and frames become routes. level stays on the record as the
+       scale of its coordinates; frame must name a location that exists, never the record itself,
+       and a parent must be drawn where the child rides. */
+    const KINDS = ["PLANET", "MOON", "STATION", "WRECK FIELD", "CITY", "DISTRICT", "FOB", "ZONE", "ORBITAL"];
+    D.locations.forEach(l => {
+      if (l.level !== "SYSTEM" && l.level !== "THEATER") problems.push(`location ${l.id}: level must be SYSTEM or THEATER, got ${JSON.stringify(l.level)}`);
       if (!KINDS.includes(l.kind)) problems.push(`location ${l.id}: kind ${JSON.stringify(l.kind)} is outside the closed set`);
-      if (l.parent && by[l.parent] && by[l.parent].level !== l.level) problems.push(`location ${l.id}: parent ${l.parent} is on another level`);
-      if (l.frame && (!by[l.frame] || by[l.frame].level !== "SYSTEM")) problems.push(`location ${l.id}: frame ${l.frame} must name a SYSTEM location`); });
+      if (l.frame != null) {
+        if (typeof l.frame !== "string" || !by[l.frame]) problems.push(`location ${l.id}: frame ${JSON.stringify(l.frame)} must name a location that exists`);
+        if (l.frame === l.id) problems.push(`location ${l.id}: frame must not name the location itself`);
+      }
+      if (l.parent) { const p = by[l.parent];
+        if (!p) problems.push(`location ${l.id}: parent ${l.parent} does not exist`);
+        else if (l.frame) { if (!membersOf(l.frame).includes(l.parent)) problems.push(`location ${l.id}: parent ${l.parent} is not drawn on frame ${l.frame}, so the child rides nothing`); }
+        else if (p.frame) problems.push(`location ${l.id}: a frameless satellite's parent ${l.parent} must itself be frameless, a principal of SYSTEM`); }
+    });
+    /* The migration itself, pinned: these re-values are what make the five frames real. */
     if (by.cressidium?.kind !== "PLANET") problems.push("cressidium must be a PLANET: the prose calls Nov Elysia a city on it");
     if (by.elysia?.kind !== "CITY") problems.push("elysia must be a CITY, not a planet");
+    if (by.elysia?.frame !== "cressidium") problems.push("elysia must keep frame cressidium: it is a pin on the planet and the whole of its own frame");
     if (by.pell?.parent !== "cressidium") problems.push("pell must orbit cressidium, not the city");
+    if (by.rio?.frame !== "elysia" || by.rio?.parent !== "elysia") problems.push("rio must carry frame elysia and parent elysia: the hull orbits the city and is drawn exactly once there");
+    ["district", "industry", "dropzone", "vsaf"].forEach(id => { if (by[id]?.frame !== "elysia") problems.push(`${id} must carry frame elysia: the advance is on the city's ground`); });
+    if (by.dock?.frame !== "industry") problems.push("dock must carry frame industry: the FOB sits inside the industrial district");
+    ["cressidium", "tarn", "cairn", "pell", "kessen", "harrow"].forEach(id => { if (by[id] && by[id].frame) problems.push(`${id} must keep no frame: it belongs to the root frame`); });
+    D.factions.forEach(x => { if (x.zone && x.zone.frame !== "elysia") problems.push(`faction ${x.id}: its zone must carry frame elysia, so a zone is drawn where its own record says`); });
     if (!by.dock || !by.elysia) problems.push("dock and elysia ids must survive: index.html builds a route from dock and ops carry loc elysia");
+
     const src = fs.readFileSync(__dirname + "/campaign.js", "utf8");
     /* The order is the source of truth. Each note must carry a phrase the OPORD still contains, so
        changing either side of the pair breaks this. Reading the OPORD region and not the notes is
@@ -382,25 +581,66 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
     const unguarded = D.locations.map(l => l.id)
       .filter(id => !grounded.some(([g]) => g === id) && !chartOnly.some(([c]) => c === id));
     if (unguarded.length) problems.push(`location notes with no assertion at all: ${unguarded.join(", ")}`);
+
     /* The leg legend must follow the lines actually drawn, not whether any site on the route was
-       visited: a route from a visited origin to a planned site has no travelled leg on it. */
-    const keyOf = () => HOLO.holomap("THEATER").key;
-    if (!keyOf().includes("PLANNED LEG")) problems.push("theater key must list PLANNED LEG while the operation's site is unvisited");
-    if (keyOf().includes("TRAVELLED")) problems.push("theater key claims TRAVELLED although no drawn leg ends at a visited site");
+       visited: a route from a visited origin to a planned site has no travelled leg on it. Op
+       001's leg (dock → elysia) is drawn on exactly one frame — the deepest holding both ends. */
+    const legFrames = FRAMES.filter(F => fames[F] && fames[F].world.includes('data-leg="dock-elysia"'));
+    if (legFrames.length !== 1 || legFrames[0] !== "elysia") problems.push(`op 001's leg (dock → elysia) must be drawn on exactly one frame, elysia; got: ${legFrames.join(", ") || "none"}`);
+    const zoneFrames = FRAMES.filter(F => fames[F] && /<ellipse/.test(fames[F].world));
+    if (zoneFrames.length !== 1 || zoneFrames[0] !== "elysia") problems.push(`faction zones are drawn where zone.frame says — on elysia alone; got: ${zoneFrames.join(", ") || "none"}`);
+    if (fames.elysia) {
+      const n = (fames.elysia.world.match(/<ellipse/g) || []).length, want = D.factions.filter(x => x.zone && x.zone.frame === "elysia").length;
+      if (n !== want) problems.push(`UI.holomap("elysia") must draw all ${want} faction zones, drew ${n}`);
+      if (!fames.elysia.world.includes('cx="500.0" cy="240.0"')) problems.push('UI.holomap("elysia"): the Vestan zone is centred on elysia itself, so it must sit at the frame centre 500,240');
+    }
+    const keyOf = () => { try { return HOLO.holomap("elysia").key } catch { return "" } };
+    if (!keyOf().includes("PLANNED LEG")) problems.push("elysia's key must list PLANNED LEG while the operation's site is unvisited");
+    if (keyOf().includes("TRAVELLED")) problems.push("elysia's key claims TRAVELLED although no drawn leg ends at a visited site");
     const ely = D.locations.find(l => l.id === "elysia");
     if (ely) { ely.visited = true;
-      if (!keyOf().includes("TRAVELLED")) problems.push("theater key must list TRAVELLED once a drawn leg ends at a visited site");
+      if (!keyOf().includes("TRAVELLED")) problems.push("elysia's key must list TRAVELLED once a drawn leg ends at a visited site");
       ely.visited = false; }
+
     /* A site inside a district is not in orbit; only moons, stations and orbitals orbit. */
     if (!HOLO.unitFile("dock").includes("WITHIN")) problems.push("FOB Saber's pane row must read WITHIN: its parent is a district");
     if (HOLO.unitFile("dock").includes("IN ORBIT")) problems.push("FOB Saber's pane must not claim IN ORBIT: its parent is a district");
     if (!HOLO.unitFile("pell").includes("IN ORBIT")) problems.push("pell is a moon, so its pane row must read IN ORBIT");
+
     const bad = extra => { D.locations.push(Object.assign({ id: "zz", name: "ZZ", kind: "PLANET", x: 50, y: 50, level: "SYSTEM" }, extra)); let threw = false; try { HOLO.holomap("SYSTEM"); } catch (e) { threw = true } D.locations.pop(); return threw; };
     if (!bad({ kind: "NOPE" })) problems.push("UI.holomap must throw on an unknown kind instead of drawing a wreck field");
-    /* A record with no level belongs to neither frame; that is a data fault, which the level check above reports. */
-    const threw = lvl => { try { HOLO.holomap(lvl); return false } catch { return true } };
-    if (!threw("SURFACE")) problems.push('UI.holomap must throw on an unknown level argument, not draw an empty frame');
-    if (!threw(undefined)) problems.push("UI.holomap must throw when asked for no level at all");
+    /* A frame id that names nothing is a fault, and so is a cycle in the frame chain: the stack
+       has to stay finite and climbing has to terminate at SYSTEM. */
+    const threw = fid => { try { HOLO.holomap(fid); return false } catch { return true } };
+    if (!threw("SURFACE")) problems.push("UI.holomap must throw on an unknown frame id, not draw an empty frame");
+    if (!threw(undefined)) problems.push("UI.holomap must throw when asked for no frame at all");
+    if (!threw("THEATER")) problems.push('UI.holomap must throw on the retired level name THEATER: frames are keyed by subject, not by level');
+    D.locations.push({ id: "cy-a", name: "CY-A", kind: "STATION", level: "SYSTEM", x: 1, y: 1, frame: "cy-b" },
+      { id: "cy-b", name: "CY-B", kind: "STATION", level: "SYSTEM", x: 2, y: 2, frame: "cy-a" });
+    if (!threw("cy-a")) problems.push("UI.holomap must throw on a two-node frame cycle: climbing has to terminate");
+    D.locations.pop(); D.locations.pop();
+
+    /* CURRENT OP absence is only worth asserting because the test can make it fail: op 001 is
+       PLANNED/UNBRIEFED, so cur is empty and "absent everywhere" is true by construction. Flip
+       the op to flown for the duration, assert where the ring appears — ancestors and locator
+       included — and restore it, the way the elysia.visited flip above works. */
+    const curChain = id => { const out = [id]; let f = by[id] && by[id].frame; const seen = new Set(out);
+      while (f && !seen.has(f)) { seen.add(f); out.push(f); f = by[f].frame } return out; };
+    FRAMES.forEach(F => { const f = fames[F]; if (!f) return;
+      if (/ cur[ "]/.test(f.world) || f.key.includes("CURRENT OP") || / cur[ "]/.test(f.locator)) problems.push(`UI.holomap("${F}"): no CURRENT OP marker may appear anywhere while ops[0] is PLANNED/UNBRIEFED, ancestors included`); });
+    const o0 = D.ops[0], t0 = o0.type, s0 = o0.status;
+    o0.type = "SECURE"; o0.status = "ACTIVE";
+    const chain = curChain(o0.loc);
+    FRAMES.forEach(F => { const f2 = drawn(F); if (!f2) return;
+      const cls = nodeMap(f2.world);
+      membersOf(F).forEach(id => { const c = (cls.get(id) || { cls: "" }).cls;
+        if (c.includes(" cur") !== chain.includes(id)) problems.push(`flown op 001: ${id} on frame ${F} ${chain.includes(id) ? "must carry" : "must not carry"} the current-op ring`); });
+      if (f2.key.includes("CURRENT OP") !== membersOf(F).some(id => chain.includes(id))) problems.push(`flown op 001: frame ${F}'s CURRENT OP chip disagrees with the drawn ring rule`);
+      if (F !== "SYSTEM") { const act = [...f2.locator.matchAll(/<button[^>]*class="loc-body([^"]*)"[^>]*data-frame="([^"]+)"/g)].find(m => /\bactive\b/.test(m[1]));
+        if (act && /\bcur\b/.test(act[1]) !== chain.includes(act[2])) problems.push(`flown op 001: the locator's active body ${act && act[2]} ${act && chain.includes(act[2]) ? "must carry" : "must not carry"} the current-op mark`); }
+    });
+    o0.type = t0; o0.status = s0;
+    FRAMES.forEach(F => { const f3 = drawn(F); if (f3 && (/ cur[ "]/.test(f3.world) || f3.key.includes("CURRENT OP"))) problems.push(`UI.holomap("${F}"): the CURRENT OP marker must disappear again once ops[0] is restored to PLANNED/UNBRIEFED`); });
   }
 }
 
@@ -608,14 +848,22 @@ if (!/class="pagebar"/.test(intelPage)) problems.push("intel.html: needs the sti
 /* The hero owns the page identity, so the sticky bar keeps only the tab strip; a second h1 would
    put the title on screen twice and cost the map the vertical space the bar exists to save. */
 if ((intelPage.match(/<h1>/g) || []).length !== 1) problems.push("intel.html: the hero owns the page's single h1; the pagebar carries the tabs only");
-["SYSTEM", "THEATER"].forEach(l => { if (!new RegExp(`data-level="${l}"`).test(intelPage)) problems.push(`intel.html: the map head strip needs a data-level="${l}" button`); });
+/* The frame controls are builder output mounted on two static hosts in the map head: the breadcrumb
+   (frame chain, terminates at SYSTEM) and the system locator (the other principals and the star).
+   The old SYSTEM|THEATER buttons are gone and must not come back as data-level anywhere. */
+["holo-crumbs", "holo-locator"].forEach(id => { if (!new RegExp(`id="${id}"`).test(intelPage)) problems.push(`intel.html: the map head needs an id="${id}" host for the builder's frame strip`); });
+if (/data-level/.test(intelPage)) problems.push("intel.html: the level strip is gone; frame controls carry data-frame, never data-level");
+if (!/closest\("\[data-frame\]"\)/.test(intelPage)) problems.push("intel.html: the panel delegate must fire UI.fitLevel on any [data-frame] control (crumbs, locator, ENTER chip)");
+/* The camera centres the node where the frame placed it: data-x/data-y are placed frame coordinates,
+   not record coordinates rescaled by the dead per-level X/Y constants. */
+if (!/world\.querySelector/.test(intelPage) || !/n\.dataset\.x/.test(intelPage)) problems.push("intel.html: zoomTo must centre the node's placed data-x/data-y, not rescale record coordinates");
 /* #record-detail lives in the map panel, so a record opened from another tab has to reveal that panel;
    and switching tabs must not re-fit, which would wipe the frame and the camera the user set. */
 const archText = fs.readFileSync(__dirname + "/archive.js", "utf8");
 const consoleCss = fs.readFileSync(__dirname + "/style.css", "utf8");
-/* The frame buttons sit in the map head strip, outside #holomap: a delegate bound to the map host
-   never sees them, and a measured click left the frame unchanged. */
-if (/box\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the [data-level] delegate must not be scoped to #holomap — the frame buttons sit outside it and never fire");
+/* The frame strips sit in the map head and the ENTER chip in the reading pane, outside #holomap: a
+   delegate bound to the map host never sees them, and a measured click left the frame unchanged. */
+if (/box\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the [data-frame] delegate must not be scoped to #holomap — the frame strips sit outside it and never fire");
 if (!/getElementById\("tab-map"\)\.addEventListener\("click"/.test(intelPage)) problems.push("intel.html: the frame buttons delegate must live on the #tab-map panel");
 /* An unresolvable ground - an unknown id, or a %-escape that decodes to nothing - must fall
    through to the SELECT TARGET prompt; the arrival auto-select must not overrule it, or a cold
