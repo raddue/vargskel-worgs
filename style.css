@@ -179,3 +179,4 @@ main:has(.holo.theater) .level[data-level="THEATER"],main:has(.holo.system) .lev
 .att-strip{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;margin-bottom:10px;font:12px var(--mono);letter-spacing:.06em}
 .att-cell b{color:var(--cyan)}
 .att-last{margin-left:auto;color:var(--muted)}
+#lo-export pre{white-space:pre-wrap;overflow-wrap:anywhere}

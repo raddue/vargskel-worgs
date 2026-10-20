@@ -184,8 +184,13 @@
   const renderFrame = () => {
     const pick = el("lo-frame");
     if (!pick) return;
-    pick.innerHTML = Object.keys(CAT.frames).sort().map(n =>
-      '<option value="' + esc(n) + '"' + (n === build.frame ? " selected" : "") + '>' + esc(n) + '</option>').join("");
+    /* a supplement frame is not in the catalogue, so appending the record's own name keeps the
+       control from sitting blank and says why the cap cannot be computed */
+    const names = Object.keys(CAT.frames).sort();
+    if (build.frame && names.indexOf(build.frame) < 0) names.push(build.frame);
+    pick.innerHTML = names.map(n =>
+      '<option value="' + esc(n) + '"' + (n === build.frame ? " selected" : "") + '>' + esc(n) +
+      (CAT.frames[n] ? "" : " (NOT IN CATALOGUE)") + '</option>').join("");
     pick.value = build.frame;
     const note = el("lo-frame-note");
     if (!note) return;
