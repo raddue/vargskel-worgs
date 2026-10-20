@@ -21,6 +21,16 @@ const th=(k,v)=>v==null||v===""?"":`<tr><th scope="row">${k}</th><td>${v}</td></
 const table=r=>`<table class="threads-table operation-table"><tbody>${r}</tbody></table>`;
 const chip=(attr,id,label)=>`<button type="button" class="chip" data-${attr}="${esc(id)}">${esc(label)}</button>`;
 const link=(href,label)=>`<a class="chip" href="${esc(href)}">${esc(label)}</a>`;
+/* A dossier's names are its own links: each one points at the FIELD DETAIL entry that explains
+   it, so the reader never leaves the record to find out what a name means. */
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const talentName=n=>String(n).replace(/\s*\d+$/,"").trim();
+const triggerName=s=>String(s).replace(/\s*\(\+\d+\)$/,"").trim();
+const refLink=(href,label,ok)=>ok&&href?link(href,label):esc(label);
+const pilotEntryId=(p,kind,key)=>`pilot-${slug(p.id)}-${kind}-${slug(key)}`;
+const mechEntryId=(m,kind,key)=>`mech-${slug(m.id)}-${kind}-${slug(key)}`;
+/* Two of the same weapon on one chassis render one cell each, so only the first takes the id. */
+const onceId=(seen,id)=>seen.has(id)?null:(seen.add(id),id);
 const notFound=(kind,id)=>`<div class="card"><div class="card-pad"><div class="tag">NOT FOUND</div><div class="muted">No ${kind} record for "${esc(id)}".</div></div></div>`;
 const initial=name=>name.replace(/\u201c([^\u201d]*)\u201d/g,"$1").trim()[0]||"\u00b7";
 const opLink=o=>`<a href="index.html#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o.title)}</a>`; /* dossiers have no op cards of their own; land on the archive entry */
@@ -42,7 +52,7 @@ const thumb=s=>String(s).replace(/\.png$/,"-thumb.webp");
 const pic=(s,alt,focus)=>`<div class="plate"><picture><source srcset="${esc(thumb(s))}" type="image/webp"><img src="${esc(s)}" alt="${esc(alt)}"${focus?` style="object-position:${esc(focus)}"`:""}></picture></div>`;
 function lightbox(){document.addEventListener("click",e=>{const img=e.target.closest(".hero-art img");if(!img)return;const o=document.createElement("div");o.className="lightbox";o.setAttribute("role","dialog");o.setAttribute("aria-label","Portrait full size, tap to close");o.innerHTML=`<img src="${esc(img.getAttribute("src"))}" alt="${esc(img.alt)}">`;o.addEventListener("click",()=>o.remove());document.body.append(o);});}
 const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t).replace(/&lt;br\s*\/?&gt;/gi,"<br>")}</div>`:"";
-const dhead=n=>`<div class="tag" style="margin-top:10px">${esc(n)}</div>`;
+const dhead=(n,id)=>`<div class="tag" style="margin-top:10px"${id?` id="${esc(id)}"`:""}>${esc(n)}</div>`;
 const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
 const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
 /* weapons/systems live in campaign.js as data; the printed string the dossier and mechbay
@@ -51,14 +61,27 @@ const mstr=m=>!(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`${x.slot}: ${x
 /* System names are data in campaign.js; the printed text the dossier and mechbay show is
    derived here, and the golden snapshot pins its exact wording. */
 const systemString=m=>!(m&&m.systems&&m.systems.length)?"":m.systems.join(", ");
+/* The printed strings above stay the pinned text; these wrap each name in a link to its own FIELD
+   DETAIL entry with the same separators, so a row's words do not move when it grows a chip. */
+const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`${esc(x.slot)}: ${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}`).join(" · ");};
+const systemMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.systems&&m.systems.length)?"":m.systems.map(n=>{const id=onceId(seen,mechEntryId(m,"system",n));return refLink(id&&pfx+id,n,(d.systems||{})[n])}).join(", ");};
 const ditems=s=>{const out=[];for(const seg of String(s||"").split("·").map(x=>x.trim()).filter(Boolean)){const mm=seg.match(/^[A-Za-z/ ]+:\s*(.+)$/);for(const it of (mm?mm[1]:seg).split("/").map(x=>x.trim()).filter(Boolean))out.push(it);}return out;};
+/* Both dossier pages print the same three name lists, and every name links to the entry that
+   explains it: the pilot page's own FIELD DETAIL when the list sits on it, the pilot's when the
+   mech page shows the row. */
+const pilotRows=(p,pfx)=>{const d=D();
+ const row=(kind,entry,raw,map)=>{const names=dnames(raw);return th(kind,names.length?names.map(n=>{const key=entry==="trigger"?triggerName(n):entry==="talent"?talentName(n):n;return refLink(pfx+pilotEntryId(p,entry,key),n,map[key])}).join(", "):"NOT FILED")};
+ return [row("TRIGGERS","trigger",p.triggers,d.skills||{}),row("TALENTS","talent",p.talents,d.talents||{}),row("GEAR","gear",p.gear,d.gear||{})];};
 function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
- const tal=dnames(p.talents).map(n=>{const t=(d.talents||{})[n];if(!t)return "";return dhead(n)+dnote(t.terse)+(t.ranks||[]).map(r=>dnote("R"+r.rank+" "+r.name+": "+r.description)).join("");}).join("");
- const sk=dnames(p.triggers).map(s=>{const n=s.replace(/\s*\(\+\d+\)$/,"").trim();const e=(d.skills||{})[n];return e?dhead(n)+dnote(e.description):"";}).join("");
- const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n)+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
+ /* A talent and a trigger carry their rank or bonus in the record ("Hacker 1", "Hack or Fix
+    (+2)"); detail.js keys them without it, so the lookup strips it and the head prints the name. */
+ const tal=dnames(p.talents).map(n=>{const key=talentName(n),t=(d.talents||{})[key];if(!t)return "";return dhead(key,pilotEntryId(p,"talent",key))+dnote(t.terse)+(t.ranks||[]).map(r=>dnote("R"+r.rank+" "+r.name+": "+r.description)).join("");}).join("");
+ const sk=dnames(p.triggers).map(s=>{const n=triggerName(s),e=(d.skills||{})[n];return e?dhead(n,pilotEntryId(p,"trigger",n))+dnote(e.description):"";}).join("");
+ const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n,pilotEntryId(p,"gear",n))+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
  return dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:11px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}
 function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  const items=ditems(mstr(m)).map(n=>[n,(d.weapons||{})[n]]).filter(x=>x[1]);
+ const entrySeen=new Set();
  const seen={};items.forEach(x=>{if(x[1].desc)seen[x[1].desc]=(seen[x[1].desc]||0)+1});
  const kw=(k,v)=>th(k,esc(v||"—"));
  const stat=w=>table(kw("MOUNT",w.mount)+kw("TYPE",w.type)+kw("DAMAGE",w.damage)+kw("RANGE",w.range)+kw("TAGS",w.tags)+kw("LICENSE",w.license));
@@ -66,12 +89,12 @@ function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  const blurb=[...new Set(items.map(x=>x[1].desc).filter(t=>t&&seen[t]>1))].map(t=>dnote(t)).join("");
  /* Each weapon is one grid cell, so a wide monitor reads two or three across instead of one
     full-width stack each. The blurb stays outside the grid: it covers the whole section. */
- const wep=`<div class="wep-grid">`+items.map(([n,w])=>`<div class="weapon">`+(dhead(n)+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
+ const wep=`<div class="wep-grid">`+items.map(([n,w])=>`<div class="weapon">`+(dhead(n,onceId(entrySeen,mechEntryId(m,"weapon",n)))+stat(w)+(w.desc&&seen[w.desc]===1?dnote(w.desc):"")+dnote(w.effect)
   +(w.profiles||[]).map(p=>dhead(p.name)+table(kw("DAMAGE",p.damage)+kw("RANGE",p.range)+kw("TAGS",p.tags))+dnote(p.effect)
     +(p.actions||[]).map(a=>dnote((a.name||"")+(a.activation?` (${a.activation})`:"")+": "+a.detail)).join("")).join(""))+`</div>`).join("")+`</div>`;
- const sys=dnames(systemString(m)).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n)+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
+ const sys=dnames(systemString(m)).map(n=>{const s=(d.systems||{})[n];if(!s)return "";return dhead(n,onceId(entrySeen,mechEntryId(m,"system",n)))+dnote("SP "+s.sp+(s.tags?" · "+s.tags:"")+(s.license?" · "+s.license:""))+dnote(s.effect);}).join("");
  const f=(d.frames||{})[m.frame];
- const fr=f?dhead(m.frame)+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";
+ const fr=f?dhead(m.frame,mechEntryId(m,"frame",m.frame))+dnote([f.source,f.mechtype,"MOUNTS: "+f.mounts].filter(Boolean).join(" · "))+(f.traits||[]).map(t=>dnote(t.name+": "+t.description)).join("")+(f.core?dnote("CORE "+f.core.name+": "+f.core.description):""):"";
  return dsect("MOUNTED WEAPONS",blurb+wep)+dsect("SYSTEMS",sys)+dsect("FRAME",fr);}
 const opPill=o=>pill(o.status,/COMPLETED/.test(o.status)?"lime":"rust");
 const threadPill=t=>pill(t.status,t.status==="ESCALATING"?"rust":"lime");
@@ -577,21 +600,23 @@ if(el("mech-list")){el("mech-count").textContent=`${String(C.mechs.length).padSt
 if(el("faction-list"))el("faction-list").innerHTML=factionTable()
 /* #15 dossier actions: the pages are hash-driven, so the visitor's own URL is the share link.
    Wire runs from the page glue after the dossier lands in #dossier (UI.wireDossierActions). */
-const dossierActions=()=>`<div class="hero-actions"><button class="level" type="button" id="dossier-copy">COPY LINK</button><button class="level" type="button" id="dossier-print">PRINT</button></div>`;
-function wireDossierActions(){const cp=el("dossier-copy"),pr=el("dossier-print");
+const dossierActions=()=>`<div class="hero-actions"><button class="level" type="button" id="dossier-back">BACK</button><button class="level" type="button" id="dossier-copy">COPY LINK</button><button class="level" type="button" id="dossier-print">PRINT</button></div>`;
+function wireDossierActions(){const cp=el("dossier-copy"),pr=el("dossier-print"),bk=el("dossier-back");
+ /* The record history is the browser's own, so a chip jump and a shared link both return the
+    reader where they came from. Pinned stub pages mount without a history global. */
+ if(bk)bk.addEventListener("click",()=>{if(typeof history!=="undefined"&&history.back)history.back();});
  if(cp)cp.addEventListener("click",()=>{if(typeof navigator!=="undefined"&&navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(location.href);
   /* the toast fades itself out, so a second copy drops the class and re-adds it to restart that
      animation rather than leaving the confirmation invisible */
   const t=el("toast");if(t){t.classList.remove("on");t.innerHTML="LINK COPIED";void t.offsetWidth;t.classList.add("on");}});
  if(pr)pr.addEventListener("click",()=>{if(typeof print==="function")print();});}
 function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
- const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse();
+ const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse(),[trig,tal,gear]=pilotRows(p,"#");
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div>${dossierActions()}</div>`+
   (p.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div></div>`:"")+`</section>`+
   `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
-  th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+
-  (p.doctrine?th("DOCTRINE",link(p.doctrine,(p.doctrineTitle||"BUILD GUIDE")+" →")):"")+th("GEAR",esc(p.gear||"NOT FILED"))+
+  trig+tal+(p.doctrine?th("DOCTRINE",link(p.doctrine,(p.doctrineTitle||"BUILD GUIDE")+" →")):"")+gear+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
   `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name,m.imgFocus):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
@@ -600,21 +625,23 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
 }
 /* The mech dossier's aside runs short against the chassis file; the pilot's own rows fill it. */
 const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
- th("STATUS",pill(p.status,"lime"))+th("TRIGGERS",esc(p.triggers||"NOT FILED"))+th("TALENTS",esc(p.talents||"NOT FILED"))+th("GEAR",esc(p.gear||"NOT FILED"))+
+ th("STATUS",pill(p.status,"lime"))+pilotRows(p,"pilot.html#").join("")+
  th("DEPLOYED",pilotOps(p.id).reverse().map(opLink).join("<br>")||"Never"))+`</div></div></section>`:"";
 /* Mirror of pilotFile: the mech dossier's own rows, reused as the pilot dossier's aside so both
    columns end level. A pilot's page carries the summary; the mech's own page carries the full file. */
-const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id);
- return summary?th("LOADOUT",esc(mstr(m)||"—"))+th("SYSTEMS",esc(systemString(m)||"—"))+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"):(
+const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),pfx=summary?"mech.html#":"#";
+ /* The pilot dossier carries the mech's summary rows, so those names link across to the mech page. */
+ const atLoc=at&&L[at]?at:(C.locations.find(l=>l.name===C.meta.station)||{}).id,atName=at&&L[at]?L[at].name:C.meta.station||"—";
+ return summary?th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"):(
   th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+(m.conditions?.length?th("CONDITIONS",m.conditions.map(c=>pill(c,"rust")).join("")):"")+
-  th("STATIONED",at&&L[at]?esc(L[at].name):C.meta.station?esc(C.meta.station):"—")+
+  th("STATIONED",atLoc?link("intel.html#map/"+atLoc,atName):"—")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
   th("STRUCTURE · STRESS",`${esc(m.structure??"—")} · ${esc(m.stress??"—")}`)+
   th("HEAT · REPAIR",`${esc(heatNow(m)??"—")}/${esc(m.heat??"—")} · ${esc(repairsNow(m)??"—")}/${esc(m.repair??"—")}`)+
   th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+
   th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva??"—")} · ${esc(m.spd??"—")} · ${esc(m.edef??"—")} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+
   th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech??"—")} · ${esc(m.limitedBonus??"—")}`)+
-  th("LOADOUT",esc(mstr(m)||"—"))+th("SYSTEMS",esc(systemString(m)||"—"))+
+  th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
 };
 const chassisFile=(m,summary)=>`<section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;

@@ -1215,6 +1215,84 @@ else {
 });
 if (!/\.toast\{position:fixed/.test(cssText)) problems.push("style.css: the copy confirmation needs a fixed .toast rule");
 if (!cssText.includes(".hero-actions{display:none!important}")) problems.push("style.css: the print sheet must hide .hero-actions");
+/* #17 cross-link depth: a dossier's names are live links to the entry that explains them, and one
+   back control returns to the previous record. Every clause reads the rendered page a visitor gets:
+   the anchor, the row it sits in, and the entry it lands on. */
+const cellOf = (html, label) => { const m = new RegExp(`<th scope="row">${label}</th><td>([\\s\\S]*?)</td>`).exec(html); return m ? m[1] : ""; };
+const untag = s => String(s).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+const anchorsIn = s => [...String(s).matchAll(/<a class="chip" href="([^"]+)">([^<]*)<\/a>/g)].map(m => ({ href: m[1], label: m[2], id: m[1].slice(m[1].indexOf("#") + 1) }));
+const entryText = (html, id) => { const m = new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(html); return m ? untag(m[1]).trim() : ""; };
+/* Strip the anchors and whatever is left in a row is a chip that stops at the record it names. */
+const looseNames = s => untag(String(s).replace(/<a class="chip"[\s\S]*?<\/a>/g, "")).replace(/[,\s\u00b7/]+/g, "");
+/* A rank ("Hacker 1") or a trigger bonus ("Hack or Fix (+2)") is the record's own notation, not
+   the entry's name, so the label is compared with that suffix removed. */
+const entryName = label => label.replace(/\s*\(\+\d+\)$/, "").replace(/\s*\d+$/, "").trim();
+/* Purchasable names are the ones the catalogue holds. A talent-granted system (the export's
+   integratedSystems, carried in the site's flat list) is in no catalogue and in no FIELD DETAIL
+   sheet, so its row prints it as text: there is nothing for it to link to. */
+const catBox = { window: {} };
+vm.createContext(catBox);
+vm.runInContext(fs.readFileSync(__dirname + "/catalogue.js", "utf8"), catBox, { filename: "catalogue.js" });
+const CAT = catBox.window.CATALOGUE || {};
+if (!CAT.systems || !CAT.weapons) problems.push("catalogue.js: the item tables must be readable, or a granted name cannot be told from a fielded one");
+const dossierMounts = {};
+const dossierOf = (page, hash) => (dossierMounts[page + hash] ||= mount(page, hash));
+C.pilots.forEach(p => {
+  ["pilot.html", ...(p.mech ? ["mech.html"] : [])].forEach(page => {
+    const hash = page === "pilot.html" ? "#" + p.id : "#" + p.mech;
+    const html = dossierOf(page, hash).html("dossier");
+    const prefix = page === "pilot.html" ? "#" : "pilot.html#";
+    ["TRIGGERS", "TALENTS", "GEAR"].forEach(label => {
+      const cell = cellOf(html, label);
+      if (!cell) return problems.push(`${page}${hash}: the dossier lost its ${label} row`);
+      const loose = looseNames(cell);
+      if (loose) problems.push(`${page}${hash}: ${label} still prints a name that is not a link ("${loose.slice(0, 40)}")`);
+      anchorsIn(cell).forEach(a => {
+        if (a.href !== prefix + a.id) problems.push(`${page}${hash}: ${label} chip "${a.label}" must link ${prefix + a.id}, got ${a.href}`);
+        const want = entryName(a.label), got = entryText(dossierOf("pilot.html", "#" + p.id).html("dossier"), a.id);
+        if (got !== want) problems.push(`${page}${hash}: ${label} chip "${a.label}" lands on ${JSON.stringify(got)}, which is not "${want}"`);
+      });
+    });
+  });
+  /* Every talent the record names carries a rank, and detail.js keys talents without it: no pilot
+     dossier rendered a TALENTS block at all until the lookup stripped that rank. */
+  if (!/<h2>TALENTS<\/h2>/.test(dossierOf("pilot.html", "#" + p.id).html("dossier")))
+    problems.push(`pilot ${p.id}: the TALENTS block must render, so every talent name resolves to its detail.js entry`);
+});
+C.mechs.forEach(m => {
+  const hash = "#" + m.id, html = dossierOf("mech.html", hash).html("dossier");
+  const pin = (snap.mechs || {})[m.id] || {};
+  const weapons = String(pin.loadoutString || "").split("\u00b7").flatMap(seg => (seg.indexOf(":") < 0 ? seg : seg.slice(seg.indexOf(":") + 1)).split("/")).map(s => s.trim()).filter(Boolean);
+  const systems = String(pin.systemString || "").split(",").map(s => s.trim()).filter(Boolean);
+  [["LOADOUT", pin.loadoutString, weapons, CAT.weapons || {}], ["SYSTEMS", pin.systemString, systems, CAT.systems || {}]].forEach(([label, want, names, held]) => {
+    const cell = cellOf(html, label);
+    if (!cell) return problems.push(`mech.html${hash}: the chassis file lost its ${label} row`);
+    /* The row still prints the pinned string; the anchors around the names are markup, not prose. */
+    if (untag(cell).trim() !== want) problems.push(`mech.html${hash}: the ${label} row must print the pinned string, got ${JSON.stringify(untag(cell).trim())}`);
+    names.forEach(n => {
+      const a = anchorsIn(cell).find(a => a.label === n);
+      if (!held[n]) { if (a) problems.push(`mech.html${hash}: ${label} name "${n}" is talent-granted, so the row must print it as text rather than as a chip`); return; }
+      if (!a) return problems.push(`mech.html${hash}: ${label} name "${n}" is not a link`);
+      const got = entryText(html, a.id);
+      if (got !== n) problems.push(`mech.html${hash}: ${label} chip "${n}" lands on ${JSON.stringify(got)}`);
+    });
+  });
+  /* A catalogue system the sheet cannot explain would render as a chip that lands nowhere. */
+  systems.forEach(n => { if ((CAT.systems || {})[n] && !(RD.systems || {})[n]) problems.push(`mech ${m.id}: catalogue system "${n}" has no detail.js entry to link, so its row would drop the rules text`); });
+  /* A location has no page yet (#23), so its link is the console with that ground selected. */
+  const at = dossierOf("mech.html", hash).window.UI.stationed(m.id), fallback = (C.locations.find(l => l.name === C.meta.station) || {}).id;
+  const loc = at || fallback;
+  const stationed = cellOf(html, "STATIONED");
+  if (loc && !stationed.includes(`href="intel.html#map/${loc}"`)) problems.push(`mech.html${hash}: STATIONED must link intel.html#map/${loc}, got ${JSON.stringify(untag(stationed).trim())}`);
+});
+/* The back control walks the record history the reader built, by whatever route they built it. */
+[['pilot.html', pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
+  let backs = 0;
+  const p = mount(page, "#" + id, { history: { back() { backs++; }, length: 3 } });
+  if (!p.nodes["dossier-back"]) return problems.push(`${page}#${id}: the dossier must carry a back control beside copy-link and print`);
+  p.nodes["dossier-back"].fire("click");
+  if (backs !== 1) problems.push(`${page}#${id}: the back control must return to the previous record with history.back, called ${backs} time(s)`);
+});
 /* The brand block takes the header's leftover width, so a long page subtitle cannot slide the nav
    tabs sideways between pages - index.html's subtitle is twice the length of a dossier's. */
 const brandRule = (fs.readFileSync(__dirname + "/style.css", "utf8").match(/\.brand\{[^}]*\}/) || [""])[0];
