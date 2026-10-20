@@ -306,6 +306,33 @@ if (/\.holo-chips|data-mech-class/.test(page)) problems.push('intel.html: map st
       const start = world.lastIndexOf("<g ", at); let end = world.indexOf('<g class="node', at); if (end < 0) end = world.length;
       return world.slice(start, end); };
     const nodeMap = world => new Map([...world.matchAll(/<g class="node([^"]*)" data-loc="([^"]+)" data-x="(-?[\d.]+)" data-y="(-?[\d.]+)"/g)].map(m => [m[2], { cls: m[1], x: Number(m[3]), y: Number(m[4]) }]));
+    /* Two labels must never sit on each other. A name is centred under its body, badges stack above
+       it and a framed site hangs under its host, so a district's label and a badge from the body
+       beside it can land in the same 12px of y and print across one another. There is no layout
+       engine under the harness, so a label's box is its anchor plus the widest class's advance:
+       12px badge labels with .1em tracking, which is 8.4px per character, centred. The anchors are
+       read from the built markup, because the invariant is about positions, not about which records
+       were expected to be drawn. */
+    const CHAR = 8.4, LINE = 12;
+    const labelBoxes = world => {
+      const out = [];
+      for (const id of [...world.matchAll(/<g class="node[^"]*" data-loc="([^"]+)"/g)].map(m => m[1])) {
+        const seg = nodeSeg(world, id); if (!seg) continue;
+        const h = /data-x="(-?[\d.]+)" data-y="(-?[\d.]+)"/.exec(seg); if (!h) continue;
+        for (const t of seg.matchAll(/<text[^>]*y="(-?[\d.]+)"[^>]*>([^<]*)<\/text>/g))
+          out.push({ loc: id, x: Number(h[1]), y: Number(h[2]) + Number(t[1]), text: t[2].trim() });
+      }
+      return out;
+    };
+    for (const F of FRAMES) {
+      const boxes = fames[F] ? labelBoxes(fames[F].world) : [];
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        if (Math.abs(a.y - b.y) >= LINE) continue;
+        if (Math.abs(a.x - b.x) - (a.text.length + b.text.length) * CHAR / 2 < 0)
+          problems.push(`holomap ${F}: labels collide: "${a.text}" (${a.loc} at ${a.x},${a.y}) over "${b.text}" (${b.loc} at ${b.x},${b.y})`);
+      }
+    }
     const chainFrames = F => { const out = [F]; let f = by[F] && by[F].frame; const seen = new Set(out);
       while (f && !seen.has(f)) { seen.add(f); out.push(f); f = by[f].frame } out.push("SYSTEM"); return out; };
     const principals = () => D.locations.filter(l => !l.frame && !l.parent).map(l => l.id);

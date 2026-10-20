@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 13
+revision: 14
 source: "design"
 ---
 
@@ -201,8 +201,11 @@ Placement is one rule, not four:
   off.
 - **Labels are drawn after the bodies and are not part of the fit.** At a small scale a label can
   touch its neighbour: on the mockup `DISTRICT` overlapped the city glyph at 0.59× and `INDUSTRY`
-  overlapped `FOB SABER`. `ponytail:` acceptable for now; upgrade to a collision pass when a
-  frame carries more than six labelled members.
+  overlapped `FOB SABER`. That trigger fired — the crowded frames carry more than six labelled
+  members — so the collision pass landed in revision 14: a label is nudged clear of what its frame
+  has already drawn, down when it hangs under a body and up when it stacks above one, and
+  `check-all.cjs` asserts no two label boxes share a row. A label is still allowed to touch a body,
+  which is the deferral that remains: measuring a label properly needs layout the harness has not got.
 
 So the rule is: **every record has one home frame**: its `frame` if set, `SYSTEM` otherwise,
 and a satellite is also drawn on its parent's frame.** That gives the no-leak test a real

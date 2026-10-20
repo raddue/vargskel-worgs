@@ -290,6 +290,21 @@ function holomap(fid){
     recorded muster hull — so a location maps to a list of badges, not whichever was pushed last. */
  const marks=new Map();
  situation().badges.forEach(b=>{const a=marks.get(b.loc)||[];a.push(b);marks.set(b.loc,a)});
+ /* Labels are drawn after the bodies and are not part of the fit, so two of them land on each
+    other as soon as bodies sit close: the site label hanging under a member printed straight
+    across the subject's name. A label is nudged clear of what this frame has already drawn, down
+    when it hangs under a body and up when it stacks above one, and stops after four rows rather
+    than walk out of the frame (design rev 12: the collision pass the label deferral named, and
+    it fired because the crowded frames carry more than six labelled members). */
+ const placed=[],ADV=8.4; /* 12px badge labels plus .1em tracking is the widest class, so it sets the
+                          estimate for every label; over-estimating only buys space. */
+ const clear=(x,y,txt,dir)=>{
+  for(let k=0;k<4;k++){
+   if(!placed.some(q=>Math.abs(q.y-y)<16&&Math.abs(q.x-x)<(q.txt.length+txt.length)*ADV/2)){placed.push({x,y,txt});return y}
+   y+=dir*16;
+  }
+  placed.push({x,y,txt});return y;
+ };
  const nodes=mem.map(l=>{
   const K=KINDS[l.kind];
   if(!K)throw new Error(`holomap: ${l.id} is a ${l.kind}, which has no renderer`);
@@ -298,12 +313,13 @@ function holomap(fid){
   /* A drawn radius is a pixel constant times the fit scale, like a position: art bodies scale,
      ground glyphs keep their own size because their points are the extent (design rev 12). */
   const role=l.id===fid?"subject":"member",gm=bodyR(l,role),r=ART_KINDS.includes(l.kind)?gm*scale:gm;
-  const labY=l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30);
+  const labY=(l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30));
+  const nameY=clear(p.x,p.y+labY,l.name,1)-p.y;
   return `<g class="node${members(l.id).length>1?" body":""}${l.visited?"":" unv"}${curSet.has(l.id)?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${curSet.has(l.id)?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}">`+
   `<circle r="${Math.max(28,r)}" fill="transparent"/>`+K.draw(l,r,fid)+
-  `<text y="${labY}" text-anchor="middle">${esc(l.name)}</text>`+
-  hosts.map((h,i)=>`<text class="site" y="${labY+12+i*12}" text-anchor="middle">${esc(h.name)} SITE</text>`).join("")+
-  bs.map((b,i)=>`<text class="badge-label" y="${-(Math.max(r,13)+17)-i*12}" text-anchor="middle">${esc(b.label)}</text>`).join("")+`</g>`}).join("");
+  `<text y="${nameY}" text-anchor="middle">${esc(l.name)}</text>`+
+  hosts.map((h,i)=>{const y=clear(p.x,p.y+labY+12+i*12,h.name+" SITE",1)-p.y;return `<text class="site" y="${y}" text-anchor="middle">${esc(h.name)} SITE</text>`}).join("")+
+  bs.map((b,i)=>{const y=clear(p.x,p.y-(Math.max(r,13)+17)-i*12,b.label,-1)-p.y;return `<text class="badge-label" y="${y}" text-anchor="middle">${esc(b.label)}</text>`}).join("")+`</g>`}).join("");
  const kinds=mem.map(l=>l.kind).filter((k,i,a)=>a.indexOf(k)===i);
  const key=kinds.map(k=>`<li><span class="k-shape ${KINDS[k].k}"></span>${esc(k)}</li>`).join("")
   +(isSys?`<li><span class="k-shape k-star"></span>STAR · NO FILE</li>`:"")
