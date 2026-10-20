@@ -131,7 +131,12 @@ if (require.main === module) {
       console.error("usage: node tools/compcon.cjs <export.json> [--mech <name>] | --selftest");
       process.exit(2);
     }
-    const ex = readExport(fs.readFileSync(path.resolve(file), "utf8"));
+    const resolved = path.resolve(file);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+      console.error(`compcon: no export file at ${resolved}`);
+      process.exit(2);
+    }
+    const ex = readExport(fs.readFileSync(resolved, "utf8"));
     console.log(`${path.basename(file)}: ${ex.type}, ${ex.pilots.length} pilot(s)`);
     for (const p of ex.pilots) {
       if (want && !p.mechs.some(m => m.name.toLowerCase().includes(want.toLowerCase()))) continue;
