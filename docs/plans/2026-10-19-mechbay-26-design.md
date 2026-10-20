@@ -465,6 +465,6 @@ commands above), so a round trip tested anywhere else would never execute in CI.
 - **Supplement frames.** `GMS CHOMOLUNGMA` and `GMS SAGARMATHA` are supplement frames, absent from
   lancer-data 3.1.7 (`frames.json` carries Everest and a `missing_frame` placeholder). Chomolungma is
   an Operation Solstice Rain frame; Sagarmatha is an Everest variant from the Wallflower player data.
-  `tools/extract-supplement.cjs` pulls both, plus the Long Rim `Spaceborn` and Karrakin `House Guard`
+  `tools/extract-supplement.cjs` pulls both, plus the Long Rim `Spaceborn` and Dustgrave `Field Analyst`
   talents, out of a COMP/CON archive into `/tmp/sup`, and both generators merge that subset. With the
   cap in place, AVERNA's loadout is legal at LL 0: cap 7 + floor(2/2) + 0 = 8 against her 8 SP.
