@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 4
+revision: 5
 source: "design"
 ---
 
@@ -98,6 +98,12 @@ and what gives the descent somewhere to go.
 - **framed children**: every record with `frame === F`.
 - **satellites**: every record with no `frame` whose `parent === F`.
 
+Those three are alternatives and never overlap. A record that has a `frame` is a framed child
+and can never also be a satellite, which is the clause that keeps `rio` drawn exactly once on
+`elysia` once the migration gives it both a `frame` and a `parent` of `elysia`. Reading the
+three as a sum instead of a set draws two Rio Grandes, and the second one looks like a leak to
+any pin counting `data-loc` nodes.
+
 `SYSTEM` is the root and has no subject: it draws every record with no `frame`, so
 `cressidium`, `tarn` and `cairn` sit as principals and `pell`, `kessen` and `harrow` ride
 their parents' rings.
@@ -115,6 +121,14 @@ Placement is one rule, not four:
 - A **pin** is a framed child at its own offset from the subject. `elysia` sits at its offset
   from `cressidium`, which is where a disc's rim puts it, and the disc is sized so that offset
   is on it.
+- The frame's **view radius** is the max absolute offset over every member, plus a margin. It is
+  computed from the records and never hard-coded, so no member can fall outside the frame it
+  belongs to. The frame's **ground extent** — the max offset over its `CITY`, `DISTRICT`, `FOB`
+  and `ZONE` members — is a different number, and on `elysia` the two are far apart: `rio` sits
+  well beyond every district, so a boundary sized to the ground would clip the hull, and one
+  sized to the hull would leave the ground huddled in the middle of an empty frame. The view
+  takes the max; the ground ring takes the ground extent; an orbit ring takes its own child's
+  radius.
 
 So the rule is: **every record has one home frame — its `frame` if set, `SYSTEM` otherwise —
 and a satellite is also drawn on its parent's frame.** That gives the no-leak test a real
@@ -288,6 +302,12 @@ Requires tests, all through the pure builder:
 - A planet's markup references `assets/<id>-thumb.webp` and a station's does not use the disc
   clip.
 - clipPath ids are unique across the world and the locator in one mounted frame.
+- Every member id appears exactly once on its frame. A second node carrying the same `data-loc`
+  is a leak rather than a satellite, which is what pins `rio` to one draw on `elysia` now that
+  it carries both `frame: "elysia"` and `parent: "elysia"`.
+- Every member's offset from its subject is inside that frame's view radius, and the radius is
+  derived from the records rather than typed in: a marker outside its own frame's boundary
+  fails the gate. On `elysia` that radius is set by `rio`, not by the districts.
 - The breadcrumb renders one button per ancestor frame walking the `frame` chain, and
   terminates at `SYSTEM`.
 - Every non-`SYSTEM` frame carries the locator listing the principal bodies with exactly one
