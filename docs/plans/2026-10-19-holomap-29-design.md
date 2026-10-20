@@ -33,7 +33,7 @@ The structural work #25 asked for has landed. This is a real starting point, not
 - `archive.js:112` `holomap(level)` is already pure, already returns `{world, key, grid, aria}`,
   already throws on an unknown level, and already has `fitLevel`, `unitFile` and `showUnit`
   split out (`archive.js:156`, `:175`, `:184`) and exported (`archive.js:451`). Under frames it
-  returns `{world, key, grid, aria, crumbs, locator}` : that shape is stated once, here, and the
+  returns `{world, key, grid, aria, crumbs, locator}`: that shape is stated once, here, and the
   sections below refer to it rather than repeating it.
 - `LEVELS` (`archive.js:107`) holds exactly two frames, `SYSTEM` and `THEATER`.
 - Orbit rings already exist and are already honest: only `MOON`, `STATION` and `ORBITAL` with
@@ -180,7 +180,7 @@ Placement is one rule, not four:
   its own moon's ring on the mockup, so the two are one rule. 72 and not 88 because `pell` rides
   `cressidium` at 109.5 px, and 72 + 30 clears it while 88 + 30 would not: **no same-scale member
   may sit inside the subject's disc or glyph**, asserted as `offset ≥ subjectRadius +
-  memberRadius` : 109.5 ≥ 72 + 30 on `cressidium`, and 87.7 ≥ 9 + 8 on `elysia`.
+  memberRadius`: 109.5 ≥ 72 + 30 on `cressidium`, and 87.7 ≥ 9 + 8 on `elysia`.
 - **`rio` must not set `elysia`'s fit.** Its hull at 46 px and 210.4 px out gives 256.4, under
   `vsaf` at 260.7 plus its 9 px glyph, which is what the test below asserts.
 - The frame's **view radius** is `max(discRim, max(offset + memberRadius))` over the members that
