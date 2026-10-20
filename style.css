@@ -17,6 +17,7 @@
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);padding:9px 16px;border:1px solid var(--cyan);background:var(--panel);color:var(--text);font:600 12px var(--mono);letter-spacing:.16em;pointer-events:none;opacity:0;z-index:98}
 .toast.on{opacity:1;animation:toast-out .5s ease 2.4s forwards}
 @keyframes toast-out{to{opacity:0}}
+
 /* Crew-facing OPORD: classification banner, numbered five-paragraph body, annexes */
 .opord-class{border:1px solid var(--rust);color:var(--rust);font:13px var(--mono);letter-spacing:.18em;text-align:center;padding:5px;margin-bottom:12px}
 .opord-class:last-child{margin:12px 0 0}
