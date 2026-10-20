@@ -2,7 +2,7 @@
 ticket: "#29"
 title: "Holomap: real bodies, and a descent from system to ground"
 date: "2026-10-19"
-revision: 12
+revision: 13
 source: "design"
 ---
 
@@ -263,7 +263,7 @@ markers.
 | `MOON` | art disc at the satellite radius (30 px at 1×) on every frame but its own, where it takes the 72 px subject disc | one asset, two radii |
 | `STATION` | art plate inside a hex silhouette | a station is not a ball |
 | `WRECK FIELD` | art plate inside a jagged silhouette with its existing dashed field | stays a wreck field |
-| `ORBITAL` | art plate in a hull silhouette, on its orbit ring | the Rio Grande reads as a hull, not a world |
+| `ORBITAL` | art plate in a hull silhouette, on its orbit ring | the Rio Grande reads as a hull, not a world. The outline is asymmetric, bow +46 and stern -42 at the kind's 46 px radius and 32 tall, so it can never pass for the station hex |
 | `CITY`, `DISTRICT`, `FOB`, `ZONE` | the existing `KINDS` glyphs, unchanged | these are ground symbols on a plan view; the glyph is right for them |
 
 Every subject whose kind is an art kind (`PLANET`, `MOON`, `STATION`, `WRECK FIELD`,
@@ -443,6 +443,14 @@ Adding a real record for it later is additive: the same node gains a `data-loc` 
   and its nodes carry `data-frame` and never `data-loc`.
 - A planet's body markup references `assets/<id>-thumb.webp`; a station's does not use the disc
   clip.
+- An `ORBITAL` member's clip is read from the rendered markup unscaled by the fit: the outline is
+  a polygon and not the disc clip, its bow outruns its stern (the mockup outline is +46 against
+  -42 at 1x), it is more than twice as long as it is tall, and its greatest extent is the kind's
+  46 px radius times the fit. That last one is what keeps `rio` from setting `elysia`'s fit.
+- The hull's centroid sits a few px below the node centre by design: the orbit ring and the label
+  key off the node, which is the place, and the silhouette is decoration around it.
+- The plate cover-crops (`preserveAspectRatio="xMidYMid slice"`), so the carrier's art should be
+  a side-on hull or its middle band is what shows inside the outline.
 
 Requires tests, all through the pure builder:
 
