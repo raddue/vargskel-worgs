@@ -14,6 +14,9 @@
 .hero-art .plate{position:absolute;inset:0}
 .plate .mech-silhouette{display:grid;place-items:center;height:100%;transform:none}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:99;cursor:zoom-out}.lightbox img{max-width:96vw;max-height:96vh;object-fit:contain}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);padding:9px 16px;border:1px solid var(--cyan);background:var(--panel);color:var(--text);font:600 12px var(--mono);letter-spacing:.16em;pointer-events:none;opacity:0;z-index:98}
+.toast.on{opacity:1;animation:toast-out .5s ease 2.4s forwards}
+@keyframes toast-out{to{opacity:0}}
 /* Crew-facing OPORD: classification banner, numbered five-paragraph body, annexes */
 .opord-class{border:1px solid var(--rust);color:var(--rust);font:13px var(--mono);letter-spacing:.18em;text-align:center;padding:5px;margin-bottom:12px}
 .opord-class:last-child{margin:12px 0 0}
@@ -41,6 +44,7 @@
   :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--text:#111;--text-soft:#333;--muted:#555;--line:#999;--cyan:#036;--lime:#060;--rust:#900;--rust-light:#900;--rust-wash:#fff;--report-text:#111;--hero-start:#fff;--hero-glow:#fff;--hero-mid:#fff;--silhouette:#555;--avatar-bg:#fff;--thumb-bg:#fff;--thumb-muted:#555;--photo-start:#fff;--photo-muted:#555;--chip-hover:#fff;--holo-bg:#fff;--holo-button-bg:#fff}
   .topline,.nav,.status,.hero-art,.chip,.holo-chips,.lightbox,.footer span:last-child,.hero-actions{display:none!important}
   .sweep,.route-pulse{animation:none!important}
+  .toast{display:none!important}
   .card,article,.vip,.opord-para{break-inside:avoid}
   .shell{max-width:none;padding:0}
   a[href^="http"]::after{content:" (" attr(href) ")";font-size:10px;color:#555}

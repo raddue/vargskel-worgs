@@ -555,16 +555,11 @@ for (const f of fs.readdirSync(ROOT).filter(f => f.endsWith(".html"))) {
 }
 
   /* the dossier hands the sandbox a mech id, and the sandbox survives an id it does not know */
+  /* the sandbox doors are withdrawn while it is not ready to show anyone: the mech cards and both
+     dossiers stop linking loadout.html, and check-all pins that no page offers one. The card-to-id
+     and dossier-to-id link assertions come back with the doors. */
   {
     const { mount } = require("./render.cjs");
-    const chassis = String(mount("campaign.html", "").html("mech-list"));
-    const cardIds = [...chassis.matchAll(/data-mech="([^"]+)"/g)].map(m => m[1]);
-    const links = [...chassis.matchAll(/href="loadout\.html#([^"]+)"/g)].map(m => m[1]);
-    if (!links.length) errs.push("a mech card must link into loadout.html#<mech-id>");
-    else if (links.some(id => cardIds.indexOf(id) < 0)) errs.push("every sandbox link must name a mech the page lists");
-    else if (links.some(id => !id || id.indexOf("?") >= 0)) errs.push("the sandbox link must carry the mech id alone, no query string");
-    const dossier = String(mount("mech.html", "#averna").html("dossier"));
-    if (dossier.indexOf('href="loadout.html#averna"') < 0) errs.push("the mech dossier must link into the sandbox too");
     let unknown = null;
     try { unknown = mount("loadout.html", "#no-such-mech"); }
     catch (e) { errs.push(`an unknown mech id must not throw: ${e && e.message}`); }

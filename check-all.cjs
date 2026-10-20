@@ -1190,7 +1190,23 @@ else {
   ["dossier-copy", "dossier-print"].forEach(b => { if (!p.nodes[b]) problems.push(`${page}#${id}: the dossier must carry a ${b} action`); });
   if (p.nodes["dossier-copy"]) { p.nodes["dossier-copy"].fire("click"); if (copied !== href) problems.push(`${page}#${id}: copy-link must write the page URL to the clipboard, got ${JSON.stringify(copied)}`); }
   if (p.nodes["dossier-print"]) { p.nodes["dossier-print"].fire("click"); if (printed !== 1) problems.push(`${page}#${id}: the print action must call window.print once, got ${printed}`); }
+  /* #15: the copy has to say it happened, so a visitor who clicked has an answer on screen */
+  const toast = p.nodes["toast"];
+  if (!toast) problems.push(`${page}#${id}: the page needs a toast host for the copy confirmation`);
+  else if (!/COPIED/i.test(toast.innerHTML)) problems.push(`${page}#${id}: the copy action must confirm in the toast, got ${JSON.stringify(toast.innerHTML)}`);
+  /* #26: the sandbox is not ready to show anyone yet, so no dossier may offer a door to it */
+  if (/loadout\.html/.test(p.html("dossier"))) problems.push(`${page}#${id}: the dossier must not offer the unreleased sandbox`);
 });
+/* the same goes for the roster's mech cards, the other place a sandbox door used to hang */
+["campaign.html", "mechbay.html"].forEach(page => {
+  if (/loadout\.html/.test(mount(page).html("mech-list"))) problems.push(`${page}: the mech list must not offer the unreleased sandbox`);
+});
+/* the confirmation is announced, not only drawn, so the toast host is a live region */
+["pilot.html", "mech.html"].forEach(page => {
+  const src = fs.readFileSync(__dirname + "/" + page, "utf8");
+  if (!/id="toast"[^>]*(?:role="status"|aria-live)/.test(src)) problems.push(`${page}: the toast host must be a live region (role="status" or aria-live)`);
+});
+if (!/\.toast\{position:fixed/.test(cssText)) problems.push("style.css: the copy confirmation needs a fixed .toast rule");
 if (!cssText.includes(".hero-actions{display:none!important}")) problems.push("style.css: the print sheet must hide .hero-actions");
 /* The brand block takes the header's leftover width, so a long page subtitle cannot slide the nav
    tabs sideways between pages - index.html's subtitle is twice the length of a dossier's. */
