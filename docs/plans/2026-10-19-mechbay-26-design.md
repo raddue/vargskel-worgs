@@ -3,7 +3,7 @@ ticket: "#26"
 title: "Mechbay: interactive loadout sandbox with a range finder"
 date: "2026-10-19"
 source: "design"
-revision: 12
+revision: 13
 ---
 
 # Mechbay: interactive loadout sandbox with a range finder
@@ -232,7 +232,12 @@ FOUND`, ids `missing_*`), `Ship-class` weapons, `id` ending `_integrated` (Latch
 ZF4 SOLIDCORE, Apocalypse Rail; these are frame-integrated and carry no licence), and `talent_item: true` (Fuel Rod
 Gun, Prototype Weapon I-III, Ammo Case I-III, the NHP classes). Scooteroo's `Ammo Case I` is one of those: it stays
 resolvable so the dossier still prints it, and the bay shows it as talent-granted rather than
-purchasable.
+purchasable. Revision 13 pins the offer rule for picks: no pick (weapon, system or frame) lists a
+placeholder name, while display resolution keeps working.
+
+**Frame pick and supplement frames (revision 13).** A record whose frame the catalogue lacks still
+shows that frame in the pick, marked `NOT IN CATALOGUE`, so the control never sits blank; the cap
+cannot be computed while the frame data is absent, and the page says so rather than refusing.
 
 ## System points
 
