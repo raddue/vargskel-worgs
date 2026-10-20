@@ -55,7 +55,7 @@
 .k-district{width:11px;height:11px;border-radius:1px}
 .k-fob{width:11px;height:11px;clip-path:polygon(50% 0,100% 100%,0 100%)}
 .k-zone{width:11px;height:11px;border-radius:50%;border-style:dashed}
-.k-orbital{width:13px;height:9px;clip-path:polygon(0 50%,50% 0,100% 50%,50% 100%)}
+.k-orbital{width:13px;height:9px;clip-path:polygon(0 62.5%,59.1% 0,100% 37.5%,81.8% 87.5%,20.5% 100%)} /* the key chip carries the same ship outline the hull clips to */
 .k-star{border-radius:50%;border-width:0;background:var(--cyan)}
 /* Art bodies are images under a clip: the rim is their outline (what .shape is for glyphs) and the
    terminator is the night side. Both ride the node states, or a selected planet looks unselected. */
