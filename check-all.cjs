@@ -935,6 +935,118 @@ const compactCss = fs.readFileSync(__dirname + "/style.css", "utf8");
   }
 }
 
+/* #19 Ctrl-K command palette: one overlay over every record a page can reach. campaign.js is on
+   every page, so the six campaign kinds are always indexed; detail.js shipped with the two dossier
+   pages only, so the palette's own lot adds its tag to the rest. The overlay is rendered markup
+   under a host each page carries, which is what makes it readable here. */
+const PALETTE_PAGES = ["index.html", "intel.html", "campaign.html", "pilots.html", "pilot.html", "mechbay.html", "mech.html", "solstice-rain.html"];
+PALETTE_PAGES.forEach(p => {
+  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  if (!src.includes('<script src="palette.js"></script>'))
+    problems.push(`${p}: must load palette.js, or Ctrl-K reaches nothing from this page`);
+  if (!src.includes('<script src="detail.js"></script>'))
+    problems.push(`${p}: must load detail.js, or the palette filters the campaign records only and never the catalogue`);
+  const hosts = src.match(/<div id="palette"[^>]*>/g) || [];
+  if (hosts.length !== 1) problems.push(`${p}: must carry one palette host, got ${hosts.length}`);
+  else if (hosts[0] !== '<div id="palette" hidden>') problems.push(`${p}: the palette host must ship hidden, got ${hosts[0]}`);
+});
+const palettePath = __dirname + "/palette.js";
+const paletteSrc = fs.existsSync(palettePath) ? fs.readFileSync(palettePath, "utf8") : "";
+if (!paletteSrc) problems.push("palette.js is missing (#19): nothing binds Ctrl-K, so the palette the ticket names cannot open");
+else {
+  if (!/document\.addEventListener\("keydown"/.test(paletteSrc))
+    problems.push("palette.js: the key binding belongs on the document, so it opens from wherever the page holds focus");
+  if (!/ctrlKey/.test(paletteSrc) || !/metaKey/.test(paletteSrc))
+    problems.push("palette.js: both Ctrl-K and Cmd-K must open the palette");
+  if (!/location\.href\s*=/.test(paletteSrc))
+    problems.push("palette.js: Enter must open the selected record by assigning location.href");
+}
+/* Driven under the stub the way #20's control and #28's stepper are, so the clauses read the markup
+   a page ships. The key binding itself is source-pinned above and probed in chromium, because the
+   stub's document keeps no listener registry. */
+if (paletteSrc) {
+  const m = mount("index.html");
+  const P = m.window.PALETTE, host = m.nodes["palette"];
+  if (!P || typeof P.open !== "function" || typeof P.close !== "function")
+    problems.push("palette.js: must expose PALETTE.open() and PALETTE.close(), the two actions a key press and a header control both ask for");
+  else {
+    P.open();
+    const input = m.nodes["palette-input"];
+    const list = () => m.nodes["palette-list"];
+    if (!host) problems.push("index.html: the page must carry the palette host the overlay renders into");
+    else if (host.hidden) problems.push("opening the palette must reveal its host");
+    if (!input || !list()) problems.push("opening the palette must render its search input and its result list");
+    else {
+      const panel = host.innerHTML;
+      if (!/role="dialog"/.test(panel) || !/aria-modal="true"/.test(panel))
+        problems.push("the palette overlay must be a modal dialog, so a screen reader reads it as one");
+      if (!/id="palette-count"[^>]*aria-live="polite"/.test(panel))
+        problems.push("the palette must announce its match count in a live region, so the filter speaks as it narrows");
+      if (!/id="palette-input"[^>]*aria-label="/.test(panel))
+        problems.push("the palette search input must carry an accessible name");
+      /* A row is a link, so Enter, a click, a middle click and a copied address are all the same act. */
+      const rows = () => ([...(list() ? list().innerHTML.match(/<a class="palette-row[^>]*>/g) || [] : [])]
+        .map(t => ({ href: (/href="([^"]*)"/.exec(t) || [])[1], active: /class="palette-row active"/.test(t) })));
+      const C = m.window.CAMPAIGN, DETAIL = m.window.DETAIL || {};
+      /* Without the catalogue the corpus clause below would compare 28 rows against 28 and pass. */
+      const groups = Object.keys(DETAIL);
+      if (groups.length !== 6)
+        problems.push(`this page's mount carries ${groups.length} catalogue group(s), so the palette cannot filter the catalogue here`);
+      const want = C.ops.length + C.pilots.length + C.mechs.length + C.locations.length + C.personnel.length
+        + groups.reduce((n, g) => n + Object.keys(DETAIL[g]).length, 0);
+      if (rows().length !== want)
+        problems.push(`an empty query must list every record the page can reach: ${rows().length} rows, expected ${want}`);
+      const hrefs = new Set(rows().map(r => r.href));
+      [["pilot.html#", C.pilots], ["mech.html#", C.mechs], ["intel.html#map/", C.locations], ["index.html#op-", C.ops]]
+        .forEach(([pre, recs]) => recs.forEach(r => {
+          if (!hrefs.has(pre + r.id)) problems.push(`the palette must carry ${pre}${r.id}, or that record cannot be found by typing its name`);
+        }));
+      if (!hrefs.has("intel.html#personnel"))
+        problems.push("the palette must carry intel.html#personnel, the tab where a person's card is read");
+      /* Every row opens something: the page it names has to exist, and a row naming an entry inside
+         a record has to land on a page that renders both. Mounting the whole href exercises the
+         destination page's own half, which is what a browser would do with it. */
+      const knownPages = new Set(PALETTE_PAGES.concat(["loadout.html", "docs/guides/averna-omniscient-overlord.html"]));
+      const missing = [], mounted = new Set();
+      [...hrefs].forEach(href => {
+        const [page, frag = ""] = href.split("#");
+        if (!knownPages.has(page)) { missing.push(href + " names no page"); return; }
+        /* Any part that looks like an entry id makes this a record/entry href; reading it by position
+           only would let a wrong record half slip through, since then the entry is not second. */
+        const entry = frag.split("/").find(x => /^(?:mech|pilot)-/.test(x)) || "";
+        if (!entry) return;
+        if (!/^(?:mech\.html|pilot\.html)$/.test(page)) { missing.push(href + " names an entry on a page that renders no dossiers"); return; }
+        if (mounted.has(href)) return;
+        mounted.add(href);
+        /* A hostile href must be named here, not thrown out of the checker. */
+        let html = "";
+        try { html = mount(page, "#" + frag).html("dossier"); } catch (e) { missing.push(href + " (" + e.message + ")"); return; }
+        if (!html || html.includes("NOT FOUND") || !html.includes('id="' + entry + '"')) missing.push(href);
+      });
+      if (missing.length)
+        problems.push(`every palette row must open an entry its destination page renders; not found: ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ` (+${missing.length - 3} more)` : ""}`);
+      input.value = "nexus";
+      input.fire("input");
+      const hits = rows(), at = i => hits[i] || {};
+      if (hits.length !== 2) problems.push(`"nexus" must narrow the list to the two Nexus weapons, got ${hits.length}`);
+      if (!at(0).active) problems.push("the first row of a narrowed list must start active, so Enter opens it");
+      /* The pin names the record, so a row may not drift to a lookalike weapon that still resolves. */
+      if (at(0).href !== "mech.html#averna/mech-averna-weapon-nexus-hunter-killer")
+        problems.push(`the first Nexus row must open averna's weapon entry, got ${at(0).href}`);
+      input.fire("keydown", { key: "ArrowDown" });
+      const after = rows();
+      if (!(after[1] || {}).active || !after[0] || after[0].active) problems.push("ArrowDown must move the active row down one");
+      input.fire("keydown", { key: "ArrowUp" });
+      if (!(rows()[0] || {}).active) problems.push("ArrowUp must bring the active row back up");
+      input.fire("keydown", { key: "Enter" });
+      if (m.window.location.href !== at(0).href)
+        problems.push(`Enter must open the active row: location.href is ${m.window.location.href}, expected ${at(0).href}`);
+      m.nodes["palette-input"].fire("keydown", { key: "Escape" });
+      if (!host.hidden) problems.push("Escape must close the palette");
+    }
+  }
+}
+
 /* #28 session-log stepper: the emission is pure, the round trip goes through the CLI's own
    parser, and the stepper is driven under the stub the way a GM clicks it. */
 {

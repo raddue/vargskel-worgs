@@ -36,6 +36,7 @@ const CODE = [
   "loadout.js",
   "compact.js",
   "offline.js",
+  "palette.js",
   "style.css",
   "theme.css",
   "manifest.webmanifest",

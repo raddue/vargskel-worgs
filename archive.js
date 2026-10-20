@@ -61,6 +61,22 @@ const mstr=m=>!(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`${x.slot}: ${x
 /* System names are data in campaign.js; the printed text the dossier and mechbay show is
    derived here, and the golden snapshot pins its exact wording. */
 const systemString=m=>!(m&&m.systems&&m.systems.length)?"":m.systems.join(", ");
+/* #19 palette: which record carries a catalogue name, and the anchor of its FIELD DETAIL entry.
+   Owner and id come from the rules the dossiers render with, so a jump lands on the entry it names
+   rather than a lookalike. The href carries both, record then entry, the way intel.html's
+   #map/<loc> carries two things; the dossier pages split it. Returns "" when nobody fields it. */
+const entryOwner=(group,name)=>{
+ const kind={weapons:"weapon",systems:"system",frames:"frame",talents:"talent",skills:"trigger",gear:"gear"}[group];
+ if(!kind)return "";
+ if(kind==="frame"){const m=Object.values(M).find(x=>x.frame===name);const id=m&&mechEntryId(m,"frame",name);return id?{href:"mech.html#"+m.id+"/"+id,id:id}:""}
+ if(kind==="weapon"||kind==="system"){
+  const m=Object.values(M).find(x=>kind==="weapon"?(x.mounts||[]).some(y=>(y.weapons||[]).indexOf(name)!==-1):dnames(systemString(x)).indexOf(name)!==-1);
+  const id=m&&mechEntryId(m,kind,name);return id?{href:"mech.html#"+m.id+"/"+id,id:id}:""}
+ const key=kind==="talent"?talentName(name):kind==="trigger"?triggerName(name):name;
+ const p=Object.values(P).find(x=>{const raw=kind==="talent"?x.talents:kind==="trigger"?x.triggers:x.gear;
+  return dnames(raw).some(n=>(kind==="talent"?talentName(n):kind==="trigger"?triggerName(n):n)===key)});
+ const id=p&&pilotEntryId(p,kind,key);return id?{href:"pilot.html#"+p.id+"/"+id,id:id}:"";
+};
 /* The printed strings above stay the pinned text; these wrap each name in a link to its own FIELD
    DETAIL entry with the same separators, so a row's words do not move when it grows a chip. */
 const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`${esc(x.slot)}: ${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}`).join(" · ");};
@@ -694,7 +710,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,sessionCards,attendanceStrip,wireDossierActions,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,entryOwner,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,sessionCards,attendanceStrip,wireDossierActions,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();

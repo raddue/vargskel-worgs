@@ -15,6 +15,20 @@
 .plate .mech-silhouette{display:grid;place-items:center;height:100%;transform:none}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:99;cursor:zoom-out}.lightbox img{max-width:96vw;max-height:96vh;object-fit:contain}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);padding:9px 16px;border:1px solid var(--cyan);background:var(--panel);color:var(--text);font:600 12px var(--mono);letter-spacing:.16em;pointer-events:none;opacity:0;z-index:98}
+/* #19 command palette: the overlay is the page's host div, so a click on it (not on the panel)
+   closes, and the panel scrolls its own list rather than the page behind it. */
+#palette{position:fixed;inset:0;z-index:97;display:flex;align-items:flex-start;justify-content:center;padding:11vh 20px 24px;background:rgba(2,13,24,.86)}
+#palette[hidden]{display:none}
+.palette-panel{width:min(680px,100%);max-height:74vh;display:flex;flex-direction:column;border:1px solid var(--cyan);background:var(--panel);box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.palette-input{font:600 15px var(--mono);letter-spacing:.06em;color:var(--text);background:var(--bg);border:0;border-bottom:1px solid var(--line);padding:14px 16px}
+.palette-input:focus{outline:none;border-bottom-color:var(--cyan)}
+.palette-input::placeholder{color:var(--cyan);opacity:.7}
+.palette-count{margin:0;padding:7px 16px;font:600 10px var(--mono);letter-spacing:.16em;color:var(--cyan);border-bottom:1px solid var(--line)}
+.palette-list{list-style:none;margin:0;padding:0;overflow:auto}
+.palette-row{display:flex;gap:12px;justify-content:space-between;align-items:baseline;padding:9px 16px;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none;font:13px var(--mono)}
+.palette-row.active,.palette-row:hover{background:var(--panel2)}
+.palette-row.active{box-shadow:inset 2px 0 0 var(--cyan)}
+.palette-group{font:600 10px var(--mono);letter-spacing:.16em;color:var(--cyan);opacity:.8;white-space:nowrap}
 .toast.on{opacity:1;animation:toast-out .5s ease 2.4s forwards}
 @keyframes toast-out{to{opacity:0}}
 

@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="style.css">
   <script src="offline.js"></script>
+  <script src="palette.js"></script>
   <script src="compact.js"></script>
 </head>
 <body>
@@ -34,15 +35,19 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <footer class="footer"><span>VARGSKEL WORGS / CHASSIS DOSSIER</span></footer>
 </div>
+<div id="palette" hidden></div>
 <script src="campaign.js"></script>
 <script src="detail.js"></script>
 <script src="archive.js"></script>
 <script>
 (()=>{
- const id=decodeURIComponent(location.hash.slice(1));
+ /* #19: a palette row names a record and the entry inside it, the way intel.html's #map/<loc>
+    names two things. Land the reader on that entry instead of the top of the file. */
+ const raw=decodeURIComponent(location.hash.slice(1)).split("/"),id=raw[0],entry=raw[1]||"";
  if(!id){location.replace("mechbay.html");return;}
  document.getElementById("dossier").innerHTML=UI.mechDossier(id);
  UI.wireDossierActions();
+ if(entry){const hit=document.getElementById(id+"-x")||document.getElementById(entry);if(hit&&hit.scrollIntoView)hit.scrollIntoView({block:"center"});}
  document.title="Vargskel Worgs | "+((window.CAMPAIGN.mechs.find(m=>m.id===id)||{}).name||id);
 })();
 </script>
