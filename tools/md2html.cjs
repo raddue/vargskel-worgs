@@ -255,6 +255,7 @@ function render() {
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
 </style>
 <script src="${p("offline.js")}"></script>
+<script src="${p("theme.js")}"></script>
 <script src="${p("compact.js")}"></script>
 </head>
 <body>

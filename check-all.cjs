@@ -1061,6 +1061,92 @@ if (paletteSrc) {
   }
 }
 
+/* #1 selectable colour themes. The control is chrome.themeToggle(), so it rides the pages that load
+   theme.js the way the density chip does, and theme.js applies the stored choice from <head>, before
+   the body paints. Only colour tokens differ: the ice group in theme.css overrides the same variables
+   :root declares, so no rule in style.css or combat-page.css needs a second copy. loadout.html is the
+   peer's file under the one-writer rule, so it carries neither the script nor the chip and renders the
+   default palette; that residual is its own ticket, the way #33 is #19's. */
+const THEME_PAGES = navPages.filter(p => p !== "loadout.html");
+THEME_PAGES.forEach(p => {
+  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  const prefix = p.includes("/") ? "../../" : "";
+  if (!src.includes(`<script src="${prefix}theme.js"></script>`))
+    problems.push(`${p}: must load theme.js, or the stored palette never reaches this page`);
+});
+const themeCss = fs.readFileSync(__dirname + "/theme.css", "utf8");
+const iceGroup = (themeCss.match(/html\[data-theme="ice"\]\s*\{[\s\S]*?\}/) || [""])[0];
+if (!iceGroup)
+  problems.push('theme.css: the ice group must be html[data-theme="ice"], so it beats :root on specificity alone and needs no !important');
+else {
+  /* The three colours the ticket takes from the unit logo. A tint that drops one is not the tint asked for. */
+  ["#001020", "#0070b0", "#00c0f0"].forEach(hex => {
+    if (!iceGroup.toLowerCase().includes(hex)) problems.push(`theme.css: the ice group must carry the logo colour ${hex}`);
+  });
+  /* A token the ice group invents recolours nothing, so every override must name one :root declares. */
+  const rootGroup = (themeCss.match(/:root\s*\{[\s\S]*?\}/) || [""])[0];
+  const rootNames = new Set([...rootGroup.matchAll(/(--[a-z0-9-]+)\s*:/g)].map(m => m[1]));
+  [...iceGroup.matchAll(/(--[a-z0-9-]+)\s*:/g)].forEach(m => {
+    if (!rootNames.has(m[1])) problems.push(`theme.css: the ice group sets ${m[1]}, which :root never declares, so nothing consumes it`);
+  });
+}
+PALETTE_PAGES.forEach(p => {
+  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  const controls = src.match(/<button class="theme-toggle"[\s\S]*?<\/button>/g) || [];
+  if (controls.length !== 1) problems.push(`${p}: must carry one theme control, got ${controls.length}`);
+  else if (controls[0] !== chrome.themeToggle()) problems.push(`${p}: the theme control differs from tools/chrome.cjs; copy chrome.themeToggle() into the page`);
+});
+/* Both ways, the rule #19's control already pays for: a chip on a page that loads no theme.js is a
+   button that recolours nothing. */
+navPages.filter(p => !PALETTE_PAGES.includes(p)).forEach(p => {
+  const src = fs.readFileSync(__dirname + "/" + p, "utf8");
+  if (/theme-toggle/.test(src))
+    problems.push(`${p}: carries the theme control without loading theme.js, so the button recolours nothing`);
+});
+const themeJsPath = __dirname + "/theme.js";
+const themeJs = fs.existsSync(themeJsPath) ? fs.readFileSync(themeJsPath, "utf8") : "";
+if (!themeJs) problems.push("theme.js is missing (#1): nothing applies the stored palette, so the choice the ticket names cannot persist");
+else {
+  if (!/localStorage/.test(themeJs)) problems.push("theme.js: the choice must persist in the visitor's own storage");
+  if (!/dataset\.theme/.test(themeJs)) problems.push("theme.js: must set data-theme on the page root, the only hook the ice group in theme.css has");
+  if (!/getElementById\("theme-toggle"\)/.test(themeJs)) problems.push("theme.js: must reach the header control by the id chrome.themeToggle() ships");
+  /* Storage throws in private mode; a theme that fails there must still paint, not white-screen.
+     Named for the read path, so a guard on the write alone does not satisfy it. */
+  if (!/try\s*\{\s*return store/.test(themeJs)) problems.push("theme.js: reading storage must be guarded, since it throws in private mode and the palette still has to paint");
+}
+/* Driven through the control and through a second page load, the way #20's density choice is: the
+   ticket's acceptance is a choice that survives a reload, which the markup alone must re-apply. */
+if (themeJs) {
+  const memStore = () => { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => { m.set(k, String(v)); }, removeItem: k => { m.delete(k); } }; };
+  const store = memStore();
+  const first = mount("pilots.html", "", { localStorage: store });
+  const btn = first.nodes["theme-toggle"];
+  if (!btn) problems.push("pilots.html: the theme control must reach the page markup");
+  else {
+    if (first.doc.documentElement.dataset.theme !== "") problems.push("a first visit must paint the default palette, not the ice one");
+    btn.fire("click");
+    if (first.doc.documentElement.dataset.theme !== "ice") problems.push("the theme control must set data-theme=ice on the page root");
+    if (btn.getAttribute("aria-pressed") !== "true") problems.push("turning the ice palette on must tell a screen reader it is pressed");
+    if (store.getItem("vw.theme") !== "ice") problems.push("the theme choice must be written to the visitor's own storage");
+    const reload = mount("pilots.html", "", { localStorage: store });
+    if (reload.doc.documentElement.dataset.theme !== "ice") problems.push("a reload must re-apply the stored palette");
+    /* Same clause #20 paid for: the stub cannot see the head script run before the control exists, so
+       this guards the requirement and the chromium probe is what proves the ordering. */
+    if (reload.nodes["theme-toggle"].getAttribute("aria-pressed") !== "true")
+      problems.push("a reload must tell a screen reader the stored palette is on, not just the stylesheet");
+    reload.nodes["theme-toggle"].fire("click");
+    if (reload.doc.documentElement.dataset.theme !== "") problems.push("turning the ice palette off must clear the attribute");
+    if (store.getItem("vw.theme") !== null) problems.push("turning the ice palette off must drop the stored choice");
+  }
+}
+const themeStyleCss = fs.readFileSync(__dirname + "/style.css", "utf8");
+/* Named in full, so a .theme-toggle that only appears in the hover and pressed rules still counts as
+   unstyled: the base rule is the one that gives the chip its border, type and padding. */
+if (!/\.compact-toggle,\.palette-toggle,\.theme-toggle\{/.test(themeStyleCss))
+  problems.push("style.css: the theme control must share the density chip's base rule, or it is the one unstyled button in the header");
+if (!/html\[data-theme="ice"\] \.theme-toggle\{/.test(themeStyleCss))
+  problems.push("style.css: the pressed theme control must light up the way the pressed density control does");
+
 /* #28 session-log stepper: the emission is pure, the round trip goes through the CLI's own
    parser, and the stepper is driven under the stub the way a GM clicks it. */
 {

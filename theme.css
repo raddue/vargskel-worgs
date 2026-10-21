@@ -96,3 +96,32 @@
   --holo-bg:#02131e;
   --holo-button-bg:#062432;
 }
+/* #1 ice-blue corp tint, the second theme. The unit logo's three colours do the work: navy #001020
+   is the ground, blue #0070b0 the structural line, cyan #00c0f0 the accent (already the default's
+   --cyan, so the accent is identical in both themes and only the ground shifts). Every value here
+   overrides a token :root declares, and nothing else changes: no layout, no type, no content. The
+   semantic colours stay put on purpose, so damage and warning read the same in either theme.
+   html[data-theme="ice"] beats :root on specificity alone, which is why no !important appears. */
+html[data-theme="ice"]{
+  --bg:#001020;
+  --panel:#04203a;
+  --panel2:#072c4c;
+  --line:#0070b0;
+  --text:#eaf4fb;
+  --muted:#8fb6d4;
+  --cyan:#00c0f0;
+  --text-soft:#b3d4e8;
+  --report-text:#c8dcea;
+  --hero-start:#001830;
+  --hero-glow:#0070b0;
+  --hero-mid:#04243c;
+  --silhouette:#6f9cbd;
+  --avatar-bg:#0a3355;
+  --thumb-bg:#062a44;
+  --thumb-muted:#6b93ad;
+  --photo-start:#0d3a5c;
+  --photo-muted:#5f8fb0;
+  --chip-hover:#0a4468;
+  --holo-bg:#00182c;
+  --holo-button-bg:#04304e;
+}

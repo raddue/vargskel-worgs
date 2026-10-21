@@ -37,6 +37,7 @@ const CODE = [
   "compact.js",
   "offline.js",
   "palette.js",
+  "theme.js",
   "style.css",
   "theme.css",
   "manifest.webmanifest",
