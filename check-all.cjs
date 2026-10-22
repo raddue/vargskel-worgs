@@ -91,6 +91,11 @@ if (!fs.existsSync(__dirname + "/assets/scooteroo.png")) problems.push('Scootero
 /* INTEL is a page of its own: the map and the faction ledger live on intel.html, and every
    page's nav must reach it, so a link cannot quietly rot back into an index anchor. */
 const navPages = ["index.html", "intel.html", "pilots.html", "mechbay.html", "mech.html", "pilot.html", "solstice-rain.html", "campaign.html", "loadout.html", "docs/guides/averna-omniscient-overlord.html"];
+const overview = fs.readFileSync(__dirname + "/index.html", "utf8");
+const brothers = fs.existsSync(__dirname + "/vargskel-brothers.html") ? fs.readFileSync(__dirname + "/vargskel-brothers.html", "utf8") : "";
+if (!/id="unit-history"/.test(overview) || !/Ironmark Services/.test(overview)) problems.push("overview: unit history must explain Ironmark's destruction");
+if (!/Rurik/.test(brothers) || !/Sten/.test(brothers) || !/Mara Venn/.test(brothers) || !/Kade Orlov/.test(brothers) || !/Tala Neri/.test(brothers) || !/Vesper Korr/.test(brothers)) problems.push("brothers: combined dossier must preserve named crew");
+if (/href="vargskel-brothers\.html"/.test(overview) || navPages.some(p => fs.readFileSync(__dirname + "/" + p, "utf8").includes('href="vargskel-brothers.html"'))) problems.push("brothers: dossier must stay unlinked from public navigation");
 navPages.forEach(p => {
   const src = fs.existsSync(__dirname + "/" + p) ? fs.readFileSync(__dirname + "/" + p, "utf8") : "";
   if (!/href="(?:\.\.\/){0,2}intel\.html">INTEL</.test(src)) problems.push(`${p}: nav INTEL must link to intel.html, not an index anchor`);
