@@ -114,6 +114,10 @@
 
   window.PALETTE = { open: open, close: close };
 
+  /* A row for a record on the current page only changes the hash, so nothing reloads and the
+     overlay would stay up over the page it just navigated. */
+  window.addEventListener("hashchange", close);
+
   /* The header control is the way in for a visitor who has not been told about Ctrl-K. This file is
      in <head>, so the button is not parsed yet when it runs: the click hangs off the document, which
      also covers a page that assembles its header later. */
