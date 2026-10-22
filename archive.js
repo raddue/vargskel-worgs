@@ -628,10 +628,10 @@ function wireDossierActions(){const cp=el("dossier-copy"),pr=el("dossier-print")
  if(pr)pr.addEventListener("click",()=>{if(typeof print==="function")print();});}
 /* Career totals from the ledger, shown in the pilot hero; a stat nobody logged shows nothing. */
 const PILOT_HERO=[["dealt","DAMAGE DEALT"],["taken","DAMAGE TAKEN"],["kills","KILLS"],["hacks","HACKS"],["lockons","LOCK-ONS"],["moves","MOVES"]];
-const pilotStats=id=>{const rows=(C.ledger||[]).filter(e=>e.pilot===id);return PILOT_HERO.filter(([k])=>rows.some(e=>e[k]!=null)).map(([k,l])=>`<div>${l}<strong>${rows.reduce((n,e)=>n+(Number(e[k])||0),0)}</strong></div>`).join("");};
+const pilotStats=id=>{const rows=(C.ledger||[]).filter(e=>e.pilot===id);return PILOT_HERO.filter(([k])=>rows.some(e=>e[k]!=null)).map(([k,l])=>`<div class="stat"><label>${l}</label><strong>${String(rows.reduce((n,e)=>n+(Number(e[k])||0),0)).padStart(2,"0")}</strong></div>`).join("");};
 function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse(),[trig,tal,gear]=pilotRows(p,"#");
- return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span>${pilotStats(id)}</div></div>`+
+ return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div>${pilotStats(id)?`<div class="stats hero-stats">${pilotStats(id)}</div>`:""}</div>`+
   (p.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div></div>`:"")+`</section>`+
   `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+

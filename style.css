@@ -236,3 +236,4 @@ html[data-compact="1"] .mission-title{font-size:19px}
 html[data-compact="1"] .operation-table th{padding:5px 12px 5px 0}
 html[data-compact="1"] .operation-table td{font-size:14px;padding:5px 0}
 html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
+.hero-stats{margin-top:18px}.hero-stats .stat{flex:0 1 150px;min-width:0}

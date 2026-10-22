@@ -1743,8 +1743,8 @@ if (mount) {
       ["dossier-back", "dossier-copy", "dossier-print"].forEach(b => { if (html.includes(`id="${b}"`)) problems.push(`pilot.html#${p.id}: pilot pages carry no ${b} button`); });
       Object.entries(NAMES).forEach(([k, label]) => {
         const has = rows.some(e => e[k] != null), sum = rows.reduce((n, e) => n + (Number(e[k]) || 0), 0);
-        const m = new RegExp(`<div>${label}<strong>(\\d+)</strong></div>`).exec(hero);
-        if (has && (!m || Number(m[1]) !== sum)) problems.push(`pilot.html#${p.id}: hero must show ${label} ${sum}`);
+        const m = new RegExp(`<div class="stat"><label>${label}</label><strong>(\\d+)</strong></div>`).exec(hero);
+        if (has && (!m || m[1] !== String(sum).padStart(2, "0"))) problems.push(`pilot.html#${p.id}: hero must show ${label} ${sum}`);
         if (!has && m) problems.push(`pilot.html#${p.id}: nothing logged for ${label}, so the hero shows none`);
       });
       if (new RegExp('<th scope="row">(KILLS|HACKS|LOCK-ONS)</th>').test(html)) problems.push(`pilot.html#${p.id}: stats live in the hero, not the pilot file`);
