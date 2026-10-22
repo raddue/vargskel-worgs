@@ -1567,11 +1567,11 @@ else {
   const gearHtml = pkPage.window.UI.detailPilot(pk);
   if (gearHtml.includes("&lt;br&gt;")) problems.push(`pilot.html#${pk.id}: ${gearName}'s <br> paragraph marker renders as text`);
   if (!gearHtml.includes("first paragraph<br>second paragraph")) problems.push(`pilot.html#${pk.id}: ${gearName}'s <br> paragraph marker renders no break`);
-  /* The chassis card already links out, so the file beside a pilot lists only what a pilot needs. */
+  /* One chassis pane beside a pilot: card, then loadout and systems. Deployment is implied by the pilot file. */
   const pkHtml = pkPage.html("dossier");
   const pkAside = pkHtml.slice(pkHtml.indexOf("<aside"), pkHtml.indexOf("</aside>"));
   const asideRows = [...pkAside.matchAll(/<th scope="row">([^<]+)<\/th>/g)].map(m => m[1]).join(",");
-  if (asideRows !== "LOADOUT,SYSTEMS,DEPLOYED") problems.push(`pilot.html#${pk.id}: the chassis file beside a pilot should list LOADOUT,SYSTEMS,DEPLOYED, got "${asideRows}"`);
+  if (asideRows !== "LOADOUT,SYSTEMS" || (pkAside.match(/<section>/g) || []).length !== 1) problems.push(`pilot.html#${pk.id}: the chassis file beside a pilot should be one pane listing LOADOUT,SYSTEMS, got "${asideRows}"`);
 }
 /* Both dossier columns carry fill, so the shorter panel stretches to the same bottom edge. A mech's
    own page keeps the full chassis file: provenance for the summary a pilot's page carries. */[["pilot.html", pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {

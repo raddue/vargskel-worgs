@@ -640,7 +640,7 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
   `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name,m.imgFocus):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No chassis assigned.</div>`)+
-  `</div></div></section>`+(m?chassisFile(m,true):"")+`</aside></div>`+detailPilot(p);
+  (m?`<div class="stack-rows">`+table(chassisRows(m,true))+`</div>`:"")+`</div></div></section></aside></div>`+detailPilot(p);
 }
 /* The mech dossier's aside runs short against the chassis file; the pilot's own rows fill it. */
 const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
@@ -651,7 +651,7 @@ const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><spa
 const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),pfx=summary?"mech.html#":"#";
  /* The pilot dossier carries the mech's summary rows, so those names link across to the mech page. */
  const atLoc=at&&L[at]?at:(C.locations.find(l=>l.name===C.meta.station)||{}).id,atName=at&&L[at]?L[at].name:C.meta.station||"—";
- return summary?th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"):(
+ return summary?th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—"):(
   th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+(m.conditions?.length?th("CONDITIONS",m.conditions.map(c=>pill(c,"rust")).join("")):"")+
   th("STATIONED",atLoc?link("intel.html#map/"+atLoc,atName):"—")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
@@ -663,7 +663,7 @@ const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.i
   th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
 };
-const chassisFile=(m,summary)=>`<section class="stack-rows"><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
+const chassisFile=(m,summary)=>`<section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
 function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
  const p=m.pilot?P[m.pilot]:null;
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div>${dossierActions()}</div>`+
