@@ -250,4 +250,4 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 .mech-card+.stack-rows{margin-top:14px;border-top:1px solid var(--line)}
 .mech-card+.stack-rows .operation-table{margin-top:0}
 /* Stacked panes: one mount per line, so the dot separator is redundant. */
-.stack-rows .mount{display:block}.stack-rows .mount-sep{display:none}
+.stack-rows .mount{display:flex;align-items:baseline}.stack-rows .mount-slot{flex:0 0 5.5em}.stack-rows .mount-weapons{min-width:0}.stack-rows .mount-sep{display:none}

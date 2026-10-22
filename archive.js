@@ -81,7 +81,7 @@ const entryOwner=(group,name)=>{
 };
 /* The printed strings above stay the pinned text; these wrap each name in a link to its own FIELD
    DETAIL entry with the same separators, so a row's words do not move when it grows a chip. */
-const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`<span class="mount">${esc(x.slot)}: ${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}</span>`).join('<span class="mount-sep"> · </span>');};
+const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`<span class="mount"><span class="mount-slot">${esc(x.slot)}:</span> <span class="mount-weapons">${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}</span></span>`).join('<span class="mount-sep"> · </span>');};
 const systemMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.systems&&m.systems.length)?"":joinRefs(m.systems.map(n=>{const id=onceId(seen,mechEntryId(m,"system",n));return refLink(id&&pfx+id,n,(d.systems||{})[n])}));};
 const ditems=s=>{const out=[];for(const seg of String(s||"").split("·").map(x=>x.trim()).filter(Boolean)){const mm=seg.match(/^[A-Za-z/ ]+:\s*(.+)$/);for(const it of (mm?mm[1]:seg).split("/").map(x=>x.trim()).filter(Boolean))out.push(it);}return out;};
 /* Both dossier pages print the same three name lists, and every name links to the entry that
