@@ -1581,7 +1581,7 @@ else {
 });
 /* #15: both dossier pages offer copy-link and print actions, driven the way a visitor drives
    them (fire the button, read what the page did), and the print sheet must not carry them. */
-[["pilot.html", pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
+[["mech.html", tw.id]].forEach(([page, id]) => {
   const href = `https://raddue.github.io/vargskel-worgs/${page}#${id}`;
   let copied = null, printed = 0;
   const p = mount(page, "#" + id, { navigator: { clipboard: { writeText: t => { copied = t; } } }, print: () => { printed++; }, location: { hash: "#" + id, href, replace() {} } });
@@ -1677,7 +1677,7 @@ C.mechs.forEach(m => {
   if (loc && !stationed.includes(`href="intel.html#map/${loc}"`)) problems.push(`mech.html${hash}: STATIONED must link intel.html#map/${loc}, got ${JSON.stringify(untag(stationed).trim())}`);
 });
 /* The back control walks the record history the reader built, by whatever route they built it. */
-[['pilot.html', pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
+[["mech.html", tw.id]].forEach(([page, id]) => {
   let backs = 0;
   const p = mount(page, "#" + id, { history: { back() { backs++; }, length: 3 } });
   if (!p.nodes["dossier-back"]) return problems.push(`${page}#${id}: the dossier must carry a back control beside copy-link and print`);
@@ -1736,11 +1736,18 @@ if (mount) {
     const record = mount("index.html").html("stats");
     if (!record.includes("<label>DAMAGE DEALT</label>")) problems.push("index.html COMPANY RECORD must show DAMAGE DEALT");
     else if (!record.includes(`<strong>${String(dmg).padStart(2, "0")}</strong>`)) problems.push(`index.html COMPANY RECORD: DAMAGE DEALT must show the ledger total ${dmg}`);
+    const NAMES = { dealt: "DAMAGE DEALT", taken: "DAMAGE TAKEN", kills: "KILLS", hacks: "HACKS", lockons: "LOCK-ONS", moves: "MOVES" };
     C.pilots.forEach(p => {
-      const rows = (C.ledger || []).filter(e => e.pilot === p.id && e.kills != null), k = rows.reduce((n, e) => n + e.kills, 0);
-      const shown = /<th scope="row">KILLS<\/th><td>(\d+)</.exec(mount("pilot.html", "#" + p.id).html("dossier"));
-      if (rows.length && (!shown || Number(shown[1]) !== k)) problems.push(`pilot.html#${p.id}: pilot file must show KILLS ${k}`);
-      if (!rows.length && shown) problems.push(`pilot.html#${p.id}: no logged kills, so no KILLS row`);
+      const rows = (C.ledger || []).filter(e => e.pilot === p.id);
+      const html = mount("pilot.html", "#" + p.id).html("dossier"), hero = html.slice(0, html.indexOf("</section>"));
+      ["dossier-back", "dossier-copy", "dossier-print"].forEach(b => { if (html.includes(`id="${b}"`)) problems.push(`pilot.html#${p.id}: pilot pages carry no ${b} button`); });
+      Object.entries(NAMES).forEach(([k, label]) => {
+        const has = rows.some(e => e[k] != null), sum = rows.reduce((n, e) => n + (Number(e[k]) || 0), 0);
+        const m = new RegExp(`<div>${label}<strong>(\\d+)</strong></div>`).exec(hero);
+        if (has && (!m || Number(m[1]) !== sum)) problems.push(`pilot.html#${p.id}: hero must show ${label} ${sum}`);
+        if (!has && m) problems.push(`pilot.html#${p.id}: nothing logged for ${label}, so the hero shows none`);
+      });
+      if (new RegExp('<th scope="row">(KILLS|HACKS|LOCK-ONS)</th>').test(html)) problems.push(`pilot.html#${p.id}: stats live in the hero, not the pilot file`);
     });
   }
 }

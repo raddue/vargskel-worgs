@@ -47,7 +47,6 @@
  const raw=decodeURIComponent(location.hash.slice(1)).split("/"),id=raw[0],entry=raw[1]||"";
  if(!id){location.replace("pilots.html");return;}
  document.getElementById("dossier").innerHTML=UI.pilotDossier(id);
- UI.wireDossierActions();
  if(entry){const hit=document.getElementById(id+"-x")||document.getElementById(entry);if(hit&&hit.scrollIntoView)hit.scrollIntoView({block:"center"});}
  document.title="Vargskel Worgs | "+((window.CAMPAIGN.pilots.find(p=>p.id===id)||{}).name||id);
 })();

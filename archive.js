@@ -626,14 +626,17 @@ function wireDossierActions(){const cp=el("dossier-copy"),pr=el("dossier-print")
      animation rather than leaving the confirmation invisible */
   const t=el("toast");if(t){t.classList.remove("on");t.innerHTML="LINK COPIED";void t.offsetWidth;t.classList.add("on");}});
  if(pr)pr.addEventListener("click",()=>{if(typeof print==="function")print();});}
+/* Career totals from the ledger, shown in the pilot hero; a stat nobody logged shows nothing. */
+const PILOT_HERO=[["dealt","DAMAGE DEALT"],["taken","DAMAGE TAKEN"],["kills","KILLS"],["hacks","HACKS"],["lockons","LOCK-ONS"],["moves","MOVES"]];
+const pilotStats=id=>{const rows=(C.ledger||[]).filter(e=>e.pilot===id);return PILOT_HERO.filter(([k])=>rows.some(e=>e[k]!=null)).map(([k,l])=>`<div>${l}<strong>${rows.reduce((n,e)=>n+(Number(e[k])||0),0)}</strong></div>`).join("");};
 function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];const p=P[id];if(!p)return notFound("pilot",id);
  const m=p.mech?M[p.mech]:null,mine=pilotOps(id).reverse(),[trig,tal,gear]=pilotRows(p,"#");
- return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span></div>${dossierActions()}</div>`+
+ return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(p.background||"")}</div><h1>${esc(p.name)}</h1><div class="hero-meta"><span>${pill(p.status,"lime")}</span>${pilotStats(id)}</div></div>`+
   (p.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(p.img)}" alt="${esc(p.name)}"></div></div>`:"")+`</section>`+
   `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
   trig+tal+(p.doctrine?th("DOCTRINE",link(p.doctrine,(p.doctrineTitle||"BUILD GUIDE")+" →")):"")+gear+
-  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+((C.ledger||[]).some(e=>e.pilot===id&&e.kills!=null)?th("KILLS",(C.ledger||[]).filter(e=>e.pilot===id).reduce((n,e)=>n+(Number(e.kills)||0),0)):""))+
+  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
   `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name,m.imgFocus):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No chassis assigned.</div>`)+
