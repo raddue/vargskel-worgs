@@ -54,6 +54,9 @@ const thumb=s=>String(s).replace(/\.png$/,"-thumb.webp");
 const pic=(s,alt,focus)=>`<div class="plate"><picture><source srcset="${esc(thumb(s))}" type="image/webp"><img src="${esc(s)}" alt="${esc(alt)}"${focus?` style="object-position:${esc(focus)}"`:""}></picture></div>`;
 function lightbox(){document.addEventListener("click",e=>{const img=e.target.closest(".hero-art img");if(!img)return;const o=document.createElement("div");o.className="lightbox";o.setAttribute("role","dialog");o.setAttribute("aria-label","Portrait full size, tap to close");o.innerHTML=`<img src="${esc(img.getAttribute("src"))}" alt="${esc(img.alt)}">`;o.addEventListener("click",()=>o.remove());document.body.append(o);});}
 const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t).replace(/&lt;(\/?(?:b|i|ul|li)|br\s*\/?)&gt;/gi,"<$1>")}</div>`:"";
+/* lancer-data rank text packs paragraphs as <br> and leaves stray spaces in lists: one note per paragraph, trailing prose out of the last bullet */
+const rankNotes=r=>{const d=String(r.description||"").replace(/<li>\s+/g,"<li>").replace(/\s+<\/li>/g,"</li>").replace(/<br>\s*/g,"<br>").replace(/<br>([^<]*)<\/li><\/ul>/g,"</li></ul><br>$1");
+ return d.split(/<br>(?![^<]*<\/li>)/).map((x,i)=>x.trim()&&dnote(i?x.trim():"R"+r.rank+" "+r.name+": "+x.trim())).join("")};
 const dhead=(n,id)=>`<div class="tag" style="margin-top:10px"${id?` id="${esc(id)}"`:""}>${esc(n)}</div>`;
 const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
 const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
@@ -93,7 +96,7 @@ const pilotRows=(p,pfx)=>{const d=D();
 function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
  /* A talent and a trigger carry their rank or bonus in the record ("Hacker 1", "Hack or Fix
     (+2)"); detail.js keys them without it, so the lookup strips it and the head prints the name. */
- const tal=dnames(p.talents).map(n=>{const key=talentName(n),t=(d.talents||{})[key];if(!t)return "";return dhead(key,pilotEntryId(p,"talent",key))+dnote(t.terse)+(t.ranks||[]).map(r=>dnote("R"+r.rank+" "+r.name+": "+r.description)).join("");}).join("");
+ const tal=dnames(p.talents).map(n=>{const key=talentName(n),t=(d.talents||{})[key];if(!t)return "";return dhead(key,pilotEntryId(p,"talent",key))+dnote(t.terse)+(t.ranks||[]).map(r=>rankNotes(r)).join("");}).join("");
  const sk=dnames(p.triggers).map(s=>{const n=triggerName(s),e=(d.skills||{})[n];return e?dhead(n,pilotEntryId(p,"trigger",n))+dnote(e.description):"";}).join("");
  const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n,pilotEntryId(p,"gear",n))+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
  return dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:11px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}

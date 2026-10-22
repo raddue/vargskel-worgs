@@ -61,6 +61,12 @@ if (process.argv.includes("--selftest")) {
   assert.strictEqual(cards.length, 6, "crew-list should render 6 articles");
   cards.forEach((c, i) => assert.ok(c.includes(">TRIGGERS<"), `crew card ${i} missing TRIGGERS row`));
   assert.ok(mount("pilot.html", "#sten").html("dossier").includes("STEN"), "pilot dossier glue should render from location.hash");
+  /* talent text: no raw markup escaped into view, no <br> left inside a list item or at a paragraph edge */
+  for (const id of ["daemon", "dusty", "sten", "guillaume", "danila", "spook"]) {
+    const h = mount("pilot.html", "#" + id).html("dossier"), a = h.indexOf("<h2>TALENTS"), t = h.slice(a, h.indexOf("<h2>", a + 5));
+    assert.ok(a > 0, `${id}: no TALENTS pane`);
+    assert.ok(!/&lt;|<br>|<li>\s|\s<\/li>|<\/ul><br>/.test(t), `${id}: talent text has stray markup`);
+  }
   /* the page tests feed a fixture build through a global, so the third argument has to arrive */
   /* a page wires its controls with addEventListener; a test has to be able to fire one */
   const wired = mount("loadout.html").nodes["lo-range"];
