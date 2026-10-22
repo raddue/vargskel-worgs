@@ -642,10 +642,8 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
     :`<div class="muted">No chassis assigned.</div>`)+
   (m?`<div class="stack-rows">`+table(chassisRows(m,true))+`</div>`:"")+`</div></div></section></aside></div>`+detailPilot(p);
 }
-/* The mech dossier's aside runs short against the chassis file; the pilot's own rows fill it. */
-const pilotFile=p=>p?`<section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
- th("STATUS",pill(p.status,"lime"))+pilotRows(p,"pilot.html#").join("")+
- th("DEPLOYED",pilotOps(p.id).reverse().map(opLink).join("<br>")||"Never"))+`</div></div></section>`:"";
+/* One pane under the pilot card; deployment is implied by the chassis file beside it. */
+const pilotFile=p=>p?`<div class="stack-rows">`+table(th("STATUS",pill(p.status,"lime"))+pilotRows(p,"pilot.html#").join(""))+`</div>`:"";
 /* Mirror of pilotFile: the mech dossier's own rows, reused as the pilot dossier's aside so both
    columns end level. A pilot's page carries the summary; the mech's own page carries the full file. */
 const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),pfx=summary?"mech.html#":"#";
@@ -670,7 +668,7 @@ function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
   (m.img?`<div class="hero-art"><div class="plate"><img class="hero-mech-img" src="${esc(m.img)}" alt="${esc(m.name)}"${m.imgFocus?` style="object-position:${esc(m.imgFocus)}"`:""}></div></div>`:(m.glyph?`<div class="hero-art"><div class="plate"><span class="mech-silhouette">${esc(m.glyph)}</span></div></div>`:""))+`</section>`+
   `<div class="columns"><div class="primary fill">`+chassisFile(m)+`</div><aside class="aside fill"><section><div class="section-head"><h2>PILOT</h2><span>ASSIGNMENT</span></div><div class="card"><div class="card-pad">`+
   (p?`<div class="crew">${p.img?`<div class="mech-thumb">${pic(p.img,p.name)}</div>`:`<div class="avatar">${esc(initial(p.name))}</div>`}<div><div class="crew-name">${esc(p.name)}</div><div class="crew-role">${esc(p.background||"")}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("pilot.html#"+p.id,"OPEN FILE →")}</div></div></div>`
-    :`<div class="muted">No pilot assigned.</div>`)+`</div></div></section>`+pilotFile(p)+`</aside></div>`+detailMech(m);
+    :`<div class="muted">No pilot assigned.</div>`)+pilotFile(p)+`</div></div></section></aside></div>`+detailMech(m);
 }
 /* Intel console (docs/plans/2026-10-18-intel-console-tabs-design.md). These are pure functions so
    check-all can assert the markup without the map glue, and so the tab shell and the map pane

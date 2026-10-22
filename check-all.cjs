@@ -1577,6 +1577,7 @@ else {
    own page keeps the full chassis file: provenance for the summary a pilot's page carries. */[["pilot.html", pk.id], ["mech.html", tw.id]].forEach(([page, id]) => {
   const html = mount(page, "#" + id).html("dossier");
   if (!/<div class="primary fill">/.test(html) || !/<aside class="aside fill">/.test(html)) problems.push(`${page}#${id}: both dossier columns must carry fill so the shorter panel stretches to the same bottom edge`);
+  if (page === "mech.html") { const as = html.slice(html.indexOf("<aside"), html.indexOf("</aside>")); if ((as.match(/<section>/g) || []).length !== 1 || /<th scope="row">DEPLOYED<\/th>/.test(as)) problems.push(`mech.html#${id}: aside is one pilot pane with no DEPLOYED row`); }
   if (page === "mech.html") ["STATE", "LAST OUTCOME"].forEach(k => { if (!html.slice(html.indexOf("<h2>CHASSIS FILE</h2>"), html.indexOf("<aside")).includes(`<th scope="row">${k}</th>`)) problems.push(`mech.html#${id}: the chassis file lost its ${k} row`); });
 });
 /* #15: both dossier pages offer copy-link and print actions, driven the way a visitor drives
