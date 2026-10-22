@@ -24,7 +24,7 @@ const dupes = key => {
 ["locations", "factions", "personnel", "pilots", "mechs", "ops", "threads", "events"].forEach(dupes);
 
 /* Ledger rows are append-only session logs: a bad row silently skews career totals. */
-const LEDGER_STATS = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "heat", "overcharge", "core", "moves"];
+const LEDGER_STATS = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "lockons", "heat", "overcharge", "core", "moves"];
 const pilotIds = ids("pilots"), opIds = ids("ops");
 if (!Array.isArray(C.ledger)) problems.push("ledger: must be an array of session rows");
 else {
@@ -1155,7 +1155,7 @@ if (!/html\[data-theme="ice"\] \.theme-toggle\{/.test(themeStyleCss))
 /* #28 session-log stepper: the emission is pure, the round trip goes through the CLI's own
    parser, and the stepper is driven under the stub the way a GM clicks it. */
 {
-  const STATS10 = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "heat", "overcharge", "core", "moves"];
+  const STATS10 = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "lockons", "heat", "overcharge", "core", "moves"];
   const S = mount("campaign.html").window.UI;
   const entries = [
     { pilot: "daemon", deployed: true, stats: { dealt: 14, taken: 0, repairs: 3 } },
@@ -1227,7 +1227,7 @@ if (!/html\[data-theme="ice"\] \.theme-toggle\{/.test(themeStyleCss))
   const empty = S2.sessionCards([]);
   if (empty.count || !/No sessions logged yet/.test(empty.html)) problems.push("an empty ledger must render no cards");
   const idx = mount("index.html");
-  if (!idx.nodes["session-cards"] || !/No sessions logged yet/.test(idx.nodes["session-cards"].innerHTML)) problems.push("index DEEDS must say so while the ledger is empty");
+  if (!C.ledger.length && (!idx.nodes["session-cards"] || !/No sessions logged yet/.test(idx.nodes["session-cards"].innerHTML))) problems.push("index DEEDS must say so while the ledger is empty");
 }
 
 /* #16 attendance strip: six cells derived from the ledger alone, plus the last-session line,
@@ -1250,7 +1250,7 @@ if (!/html\[data-theme="ice"\] \.theme-toggle\{/.test(themeStyleCss))
   const none = S3.attendanceStrip([]);
   if (!/No sessions logged yet/.test(none.html)) problems.push("an empty ledger must degrade the strip to the no-sessions state");
   const idx = mount("index.html");
-  if (!idx.nodes["attendance-strip"] || !/No sessions logged yet/.test(idx.nodes["attendance-strip"].innerHTML)) problems.push("index must render the degraded strip while the ledger is empty");
+  if (!C.ledger.length && (!idx.nodes["attendance-strip"] || !/No sessions logged yet/.test(idx.nodes["attendance-strip"].innerHTML))) problems.push("index must render the degraded strip while the ledger is empty");
 }
 const cardsOf = h => h.split("</article>").filter(c => c.includes("<article"));
 const crewPage = mount("pilots.html"), crewCards = cardsOf(crewPage.html("crew-list"));
@@ -1724,6 +1724,25 @@ if (mount) {
   const kills = (C.ledger || []).reduce((n, e) => n + (Number(e.kills) || 0), 0);
   if (!record.includes("<label>KILLS</label>")) problems.push("index.html COMPANY RECORD must show KILLS");
   else if (!record.includes(`<strong>${String(kills).padStart(2, "0")}</strong>`)) problems.push(`index.html COMPANY RECORD: KILLS must show the ledger total ${kills}`);
+}
+
+/* Session 2026-10-21 (Solstice Rain, first game): totals logged from the players' own tallies. */
+{
+  const night = pid => (C.ledger || []).find(e => e.op === "001" && e.date === "2026-10-21" && e.pilot === pid) || {};
+  const want = { sten: { kills: 4 }, spook: { kills: 2 }, dusty: { kills: 1, taken: 9, moves: 27 }, daemon: { dealt: 18, lockons: 6, hacks: 2 } };
+  Object.entries(want).forEach(([pid, stats]) => Object.entries(stats).forEach(([k, v]) => { if (night(pid)[k] !== v) problems.push(`ledger 2026-10-21 ${pid}: ${k} must be ${v}, got ${night(pid)[k]}`); }));
+  if (mount) {
+    const dmg = (C.ledger || []).reduce((n, e) => n + (Number(e.dealt) || 0), 0);
+    const record = mount("index.html").html("stats");
+    if (!record.includes("<label>DAMAGE DEALT</label>")) problems.push("index.html COMPANY RECORD must show DAMAGE DEALT");
+    else if (!record.includes(`<strong>${String(dmg).padStart(2, "0")}</strong>`)) problems.push(`index.html COMPANY RECORD: DAMAGE DEALT must show the ledger total ${dmg}`);
+    C.pilots.forEach(p => {
+      const rows = (C.ledger || []).filter(e => e.pilot === p.id && e.kills != null), k = rows.reduce((n, e) => n + e.kills, 0);
+      const shown = /<th scope="row">KILLS<\/th><td>(\d+)</.exec(mount("pilot.html", "#" + p.id).html("dossier"));
+      if (rows.length && (!shown || Number(shown[1]) !== k)) problems.push(`pilot.html#${p.id}: pilot file must show KILLS ${k}`);
+      if (!rows.length && shown) problems.push(`pilot.html#${p.id}: no logged kills, so no KILLS row`);
+    });
+  }
 }
 
 if (problems.length) {

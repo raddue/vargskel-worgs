@@ -337,7 +337,7 @@ function selftest() {
 
 /* Session-ledger stats. Logged with --log, never derived from an export: COMPCON's
    combat_history and state.stats are hard-coded zeros with no increment site. */
-const STATS = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "heat", "overcharge", "core", "moves"];
+const STATS = ["dealt", "taken", "structure", "repairs", "hacks", "kills", "lockons", "heat", "overcharge", "core", "moves"];
 const flag = (args, name) => { const i = args.indexOf(name); return i < 0 ? "" : args[i + 1] || ""; };
 const ledgerRow = (op, date, pilot, stats) => `    { op: "${op}", date: "${date}", pilot: "${pilot}", ${Object.entries(stats).map(([k, v]) => `${k}: ${v}`).join(", ")} },`;
 

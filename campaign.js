@@ -8,7 +8,12 @@ window.CAMPAIGN = {
   /* Append-only session ledger, one row per pilot per session. campaign.html builds the block
      that logs a session; tools/apply-compcon.cjs applies it. Career totals and record holders
      are derived from these rows. */
-  ledger: [],
+  ledger: [
+    { op: "001", date: "2026-10-21", pilot: "sten", kills: 4 },
+    { op: "001", date: "2026-10-21", pilot: "spook", kills: 2 },
+    { op: "001", date: "2026-10-21", pilot: "dusty", kills: 1, taken: 9, moves: 27 },
+    { op: "001", date: "2026-10-21", pilot: "daemon", dealt: 18, lockons: 6, hacks: 2 },
+  ],
   meta: {
     unit: "VW-01",
     name: "VARGSKEL WORGS",
