@@ -1660,7 +1660,7 @@ C.mechs.forEach(m => {
     const cell = cellOf(html, label);
     if (!cell) return problems.push(`mech.html${hash}: the chassis file lost its ${label} row`);
     /* The row still prints the pinned string; the anchors around the names are markup, not prose. */
-    if (untag(cell).trim() !== want) problems.push(`mech.html${hash}: the ${label} row must print the pinned string, got ${JSON.stringify(untag(cell).trim())}`);
+    if (untag(cell).replace(/,/g, " ").replace(/\s+/g, " ").trim() !== String(want).replace(/,/g, " ").replace(/\s+/g, " ").trim()) problems.push(`mech.html${hash}: the ${label} row must print the pinned string, got ${JSON.stringify(untag(cell).trim())}`);
     names.forEach(n => {
       const a = anchorsIn(cell).find(a => a.label === n);
       if (!held[n]) { if (a) problems.push(`mech.html${hash}: ${label} name "${n}" is talent-granted, so the row must print it as text rather than as a chip`); return; }

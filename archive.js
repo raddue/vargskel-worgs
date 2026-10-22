@@ -27,6 +27,8 @@ const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+
 const talentName=n=>String(n).replace(/\s*\d+$/,"").trim();
 const triggerName=s=>String(s).replace(/\s*\(\+\d+\)$/,"").trim();
 const refLink=(href,label,ok)=>ok&&href?link(href,label):esc(label);
+/* Boxed chips already read as separate; a comma stays only where a plain unboxed name needs one. */
+const joinRefs=a=>a.reduce((o,x,i)=>i?o+(x.startsWith("<a ")&&a[i-1].startsWith("<a ")?" ":", ")+x:x,"");
 const pilotEntryId=(p,kind,key)=>`pilot-${slug(p.id)}-${kind}-${slug(key)}`;
 const mechEntryId=(m,kind,key)=>`mech-${slug(m.id)}-${kind}-${slug(key)}`;
 /* Two of the same weapon on one chassis render one cell each, so only the first takes the id. */
@@ -80,13 +82,13 @@ const entryOwner=(group,name)=>{
 /* The printed strings above stay the pinned text; these wrap each name in a link to its own FIELD
    DETAIL entry with the same separators, so a row's words do not move when it grows a chip. */
 const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`${esc(x.slot)}: ${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}`).join(" · ");};
-const systemMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.systems&&m.systems.length)?"":m.systems.map(n=>{const id=onceId(seen,mechEntryId(m,"system",n));return refLink(id&&pfx+id,n,(d.systems||{})[n])}).join(", ");};
+const systemMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.systems&&m.systems.length)?"":joinRefs(m.systems.map(n=>{const id=onceId(seen,mechEntryId(m,"system",n));return refLink(id&&pfx+id,n,(d.systems||{})[n])}));};
 const ditems=s=>{const out=[];for(const seg of String(s||"").split("·").map(x=>x.trim()).filter(Boolean)){const mm=seg.match(/^[A-Za-z/ ]+:\s*(.+)$/);for(const it of (mm?mm[1]:seg).split("/").map(x=>x.trim()).filter(Boolean))out.push(it);}return out;};
 /* Both dossier pages print the same three name lists, and every name links to the entry that
    explains it: the pilot page's own FIELD DETAIL when the list sits on it, the pilot's when the
    mech page shows the row. */
 const pilotRows=(p,pfx)=>{const d=D();
- const row=(kind,entry,raw,map)=>{const names=dnames(raw);return th(kind,names.length?names.map(n=>{const key=entry==="trigger"?triggerName(n):entry==="talent"?talentName(n):n;return refLink(pfx+pilotEntryId(p,entry,key),n,map[key])}).join(", "):"NOT FILED")};
+ const row=(kind,entry,raw,map)=>{const names=dnames(raw);return th(kind,names.length?joinRefs(names.map(n=>{const key=entry==="trigger"?triggerName(n):entry==="talent"?talentName(n):n;return refLink(pfx+pilotEntryId(p,entry,key),n,map[key])})):"NOT FILED")};
  return [row("TRIGGERS","trigger",p.triggers,d.skills||{}),row("TALENTS","talent",p.talents,d.talents||{}),row("GEAR","gear",p.gear,d.gear||{})];};
 function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
  /* A talent and a trigger carry their rank or bonus in the record ("Hacker 1", "Hack or Fix
