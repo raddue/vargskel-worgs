@@ -237,3 +237,12 @@ html[data-compact="1"] .operation-table th{padding:5px 12px 5px 0}
 html[data-compact="1"] .operation-table td{font-size:14px;padding:5px 0}
 html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 .hero-stats{margin-top:18px}.hero-stats .stat{flex:0 1 150px;min-width:0}
+/* Chip links wrapped across lines had borders touching the next row; keep each chip whole with breathing room. */
+.operation-table td{line-height:1.5}
+.operation-table td .chip{display:inline-block;max-width:100%;margin:3px 2px;line-height:1.35}
+/* Narrow aside: label above value so chips get the full card width. */
+.stack-rows .operation-table tr{display:block;padding:8px 0;border-bottom:1px solid var(--line)}
+.stack-rows .operation-table tr:last-child{border-bottom:0}
+.stack-rows .operation-table th,.stack-rows .operation-table td{display:block;width:auto;padding:0;border:0}
+.stack-rows .operation-table th{margin-bottom:4px}
+.detail ul{margin:4px 0 4px 18px;padding:0}.detail li{margin:2px 0}

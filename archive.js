@@ -51,7 +51,7 @@ const thumb=s=>String(s).replace(/\.png$/,"-thumb.webp");
    imgFocus aims its own thumb the same way the hero uses it. Pilots have no such field. */
 const pic=(s,alt,focus)=>`<div class="plate"><picture><source srcset="${esc(thumb(s))}" type="image/webp"><img src="${esc(s)}" alt="${esc(alt)}"${focus?` style="object-position:${esc(focus)}"`:""}></picture></div>`;
 function lightbox(){document.addEventListener("click",e=>{const img=e.target.closest(".hero-art img");if(!img)return;const o=document.createElement("div");o.className="lightbox";o.setAttribute("role","dialog");o.setAttribute("aria-label","Portrait full size, tap to close");o.innerHTML=`<img src="${esc(img.getAttribute("src"))}" alt="${esc(img.alt)}">`;o.addEventListener("click",()=>o.remove());document.body.append(o);});}
-const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t).replace(/&lt;br\s*\/?&gt;/gi,"<br>")}</div>`:"";
+const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--sans)">${esc(t).replace(/&lt;(\/?(?:b|i|ul|li)|br\s*\/?)&gt;/gi,"<$1>")}</div>`:"";
 const dhead=(n,id)=>`<div class="tag" style="margin-top:10px"${id?` id="${esc(id)}"`:""}>${esc(n)}</div>`;
 const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
 const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
@@ -663,7 +663,7 @@ const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.i
   th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+
   th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
 };
-const chassisFile=(m,summary)=>`<section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
+const chassisFile=(m,summary)=>`<section class="stack-rows"><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
 function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
  const p=m.pilot?P[m.pilot]:null;
  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><h1>${esc(m.name)}</h1><div class="hero-meta"><span>${esc(m.role||"")}</span>${mechPill(m)}</div>${dossierActions()}</div>`+

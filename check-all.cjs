@@ -1748,6 +1748,7 @@ if (mount) {
         if (!has && m) problems.push(`pilot.html#${p.id}: nothing logged for ${label}, so the hero shows none`);
       });
       if (new RegExp('<th scope="row">(KILLS|HACKS|LOCK-ONS)</th>').test(html)) problems.push(`pilot.html#${p.id}: stats live in the hero, not the pilot file`);
+      if (/&lt;\/?(b|i|ul|li|br)\s*\/?&gt;/i.test(html)) problems.push(`pilot.html#${p.id}: rules text shows literal <b>/<ul>/<li> tags`);
     });
   }
 }
