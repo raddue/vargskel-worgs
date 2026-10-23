@@ -1730,7 +1730,7 @@ if (mount) {
 /* Session 2026-10-21 (Solstice Rain, first game): totals logged from the players' own tallies. */
 {
   const night = pid => (C.ledger || []).find(e => e.op === "001" && e.date === "2026-10-21" && e.pilot === pid) || {};
-  const want = { sten: { kills: 4 }, spook: { kills: 2 }, dusty: { kills: 1, taken: 9, moves: 27 }, daemon: { dealt: 18, lockons: 6, hacks: 2 } };
+  const want = { sten: { kills: 4 }, spook: { kills: 2 }, danila: { kills: 2 }, dusty: { kills: 1, taken: 9, moves: 27 }, daemon: { dealt: 18, lockons: 6, hacks: 2 } };
   Object.entries(want).forEach(([pid, stats]) => Object.entries(stats).forEach(([k, v]) => { if (night(pid)[k] !== v) problems.push(`ledger 2026-10-21 ${pid}: ${k} must be ${v}, got ${night(pid)[k]}`); }));
   if (mount) {
     const dmg = (C.ledger || []).reduce((n, e) => n + (Number(e.dealt) || 0), 0);
