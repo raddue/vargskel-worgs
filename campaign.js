@@ -152,7 +152,7 @@ window.CAMPAIGN = {
         ["RESULT", "9 VSAF mechs destroyed. No VW-01 losses."],
         ["MOVEMENT", "VW-01 proceeds to FOB Saber."],
         ["VIPS", "Unlocated. Not yet met up at FOB."],
-        ["CONDITION", "GREEN", "GREEN"],
+        ["CONDITION", "GREEN. Howter-Bowden took 2 damage. Rurik took 10 damage.", "GREEN"],
         ["AMMO", "GREEN", "GREEN"]],
 
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
