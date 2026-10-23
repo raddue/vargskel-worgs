@@ -1612,10 +1612,12 @@ if (!cssText.includes(".hero-actions{display:none!important}")) problems.push("s
    the anchor, the row it sits in, and the entry it lands on. */
 const cellOf = (html, label) => { const m = new RegExp(`<th scope="row">${label}</th><td>([\\s\\S]*?)</td>`).exec(html); return m ? m[1] : ""; };
 const untag = s => String(s).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
-const anchorsIn = s => [...String(s).matchAll(/<a class="chip" href="([^"]+)">([^<]*)<\/a>/g)].map(m => ({ href: m[1], label: m[2], id: m[1].slice(m[1].indexOf("#") + 1) }));
+const anchorsIn = s => [...String(s).matchAll(/<a class="chip" href="([^"]+)">([^<]*)<\/a>/g)].map(m => ({ href: m[1], label: m[2], id: m[1].slice(m[1].lastIndexOf("/") + 1 || m[1].indexOf("#") + 1) }));
+/* Weapons, systems and gear explain themselves in a hover tooltip instead of linking: the chip carries the rule text. */
+const tipsIn = s => [...String(s).matchAll(/<span class="chip tip"[^>]*data-tip="([^"]*)"[^>]*>([^<]*)<\/span>/g)].map(m => ({ label: m[2], tip: m[1] }));
 const entryText = (html, id) => { const m = new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(html); return m ? untag(m[1]).trim() : ""; };
 /* Strip the anchors and whatever is left in a row is a chip that stops at the record it names. */
-const looseNames = s => untag(String(s).replace(/<a class="chip"[\s\S]*?<\/a>/g, "")).replace(/[,\s\u00b7/]+/g, "");
+const looseNames = s => untag(String(s).replace(/<a class="chip"[\s\S]*?<\/a>/g, "").replace(/<span class="chip tip"[\s\S]*?<\/span>/g, "")).replace(/[,\s\u00b7/]+/g, "");
 /* A rank ("Hacker 1") or a trigger bonus ("Hack or Fix (+2)") is the record's own notation, not
    the entry's name, so the label is compared with that suffix removed. */
 const entryName = label => label.replace(/\s*\(\+\d+\)$/, "").replace(/\s*\d+$/, "").trim();
@@ -1638,9 +1640,15 @@ C.pilots.forEach(p => {
       const cell = cellOf(html, label);
       if (!cell) return problems.push(`${page}${hash}: the dossier lost its ${label} row`);
       const loose = looseNames(cell);
-      if (loose) problems.push(`${page}${hash}: ${label} still prints a name that is not a link ("${loose.slice(0, 40)}")`);
+      if (loose) problems.push(`${page}${hash}: ${label} still prints a name that is not a link or tooltip ("${loose.slice(0, 40)}")`);
+      if (label === "GEAR") {
+        if (anchorsIn(cell).length) problems.push(`${page}${hash}: GEAR chips are tooltips, not links`);
+        String(p.gear || "").split(",").map(x => x.trim()).filter(Boolean).forEach(n => { const t = tipsIn(cell).find(x => x.label === n); if (!t || !t.tip.trim()) problems.push(`${page}${hash}: GEAR "${n}" needs a tooltip with its rules text`); });
+        return;
+      }
       anchorsIn(cell).forEach(a => {
-        if (a.href !== prefix + a.id) problems.push(`${page}${hash}: ${label} chip "${a.label}" must link ${prefix + a.id}, got ${a.href}`);
+        /* the record id rides in the hash, so the page redraws that record and scrolls to the entry */
+        if (a.href !== prefix + p.id + "/" + a.id) problems.push(`${page}${hash}: ${label} chip "${a.label}" must link ${prefix + p.id + "/" + a.id}, got ${a.href}`);
         const want = entryName(a.label), got = entryText(dossierOf("pilot.html", "#" + p.id).html("dossier"), a.id);
         if (got !== want) problems.push(`${page}${hash}: ${label} chip "${a.label}" lands on ${JSON.stringify(got)}, which is not "${want}"`);
       });
@@ -1662,11 +1670,10 @@ C.mechs.forEach(m => {
     /* The row still prints the pinned string; the anchors around the names are markup, not prose. */
     if (untag(cell).replace(/,/g, " ").replace(/\s+/g, " ").trim() !== String(want).replace(/,/g, " ").replace(/\s+/g, " ").trim()) problems.push(`mech.html${hash}: the ${label} row must print the pinned string, got ${JSON.stringify(untag(cell).trim())}`);
     names.forEach(n => {
-      const a = anchorsIn(cell).find(a => a.label === n);
+      const a = tipsIn(cell).find(a => a.label === n);
       if (!held[n]) { if (a) problems.push(`mech.html${hash}: ${label} name "${n}" is talent-granted, so the row must print it as text rather than as a chip`); return; }
-      if (!a) return problems.push(`mech.html${hash}: ${label} name "${n}" is not a link`);
-      const got = entryText(html, a.id);
-      if (got !== n) problems.push(`mech.html${hash}: ${label} chip "${n}" lands on ${JSON.stringify(got)}`);
+      if (anchorsIn(cell).length) problems.push(`mech.html${hash}: ${label} chips are tooltips, not links`);
+      if (!a || !a.tip.trim()) problems.push(`mech.html${hash}: ${label} name "${n}" needs a tooltip with its properties`);
     });
   });
   /* A catalogue system the sheet cannot explain would render as a chip that lands nowhere. */

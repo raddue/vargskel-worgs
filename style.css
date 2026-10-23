@@ -251,3 +251,13 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 .mech-card+.stack-rows .operation-table{margin-top:0}
 /* One mount per line in every dossier table, so the dot separator is redundant. */
 .operation-table .mount{display:flex;align-items:baseline}.operation-table .mount-slot{flex:0 0 5.5em}.operation-table .mount-weapons{min-width:0}.operation-table .mount-sep{display:none}
+
+/* Status and condition pills sit in a table cell like chips do: same margin, so every row under a label is the same height. */
+.operation-table td .pill{display:inline-block;margin:3px 2px;line-height:1.35}
+/* Hover/focus tooltip for weapons, systems and gear. Anchored left; the narrow aside anchors right so it opens over the main column. */
+.chip.tip{position:relative;cursor:help}
+.chip.tip::after{content:attr(data-tip);position:absolute;z-index:20;left:0;top:calc(100% + 4px);width:max-content;max-width:min(30em,86vw);white-space:pre-line;background:var(--panel2);border:1px solid var(--cyan);color:var(--text);font:13px/1.45 var(--sans);padding:9px 11px;box-shadow:0 6px 18px rgba(0,0,0,.45);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s}
+.chip.tip:hover::after,.chip.tip:focus::after,.chip.tip:focus-visible::after{opacity:1;visibility:visible}
+@media(min-width:900px){.aside .chip.tip::after{left:auto;right:0}}
+@media print{.chip.tip::after{display:none}}
+@media(prefers-reduced-motion:reduce){.chip.tip::after{transition:none}}

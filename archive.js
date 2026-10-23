@@ -28,13 +28,15 @@ const talentName=n=>String(n).replace(/\s*\d+$/,"").trim();
 const triggerName=s=>String(s).replace(/\s*\(\+\d+\)$/,"").trim();
 const refLink=(href,label,ok)=>ok&&href?link(href,label):esc(label);
 /* Boxed chips already read as separate; a comma stays only where a plain unboxed name needs one. */
-const joinRefs=a=>a.reduce((o,x,i)=>i?o+(x.startsWith("<a ")&&a[i-1].startsWith("<a ")?" ":", ")+x:x,"");
+const isChip=x=>/^<(a|span class="chip) /.test(x);
+const joinRefs=a=>a.reduce((o,x,i)=>i?o+(isChip(x)&&isChip(a[i-1])?" ":", ")+x:x,"");
 const pilotEntryId=(p,kind,key)=>`pilot-${slug(p.id)}-${kind}-${slug(key)}`;
 const mechEntryId=(m,kind,key)=>`mech-${slug(m.id)}-${kind}-${slug(key)}`;
 /* Two of the same weapon on one chassis render one cell each, so only the first takes the id. */
 const onceId=(seen,id)=>seen.has(id)?null:(seen.add(id),id);
 const notFound=(kind,id)=>`<div class="card"><div class="card-pad"><div class="tag">NOT FOUND</div><div class="muted">No ${kind} record for "${esc(id)}".</div></div></div>`;
 const initial=name=>name.replace(/\u201c([^\u201d]*)\u201d/g,"$1").trim()[0]||"\u00b7";
+const opChip=o=>link(o.mission&&o.mission.href||"index.html#op-"+o.id,`OP ${o.id} \u00b7 ${o.title}`);
 const opLink=o=>`<a href="index.html#op-${esc(o.id)}">OP ${esc(o.id)} · ${esc(o.title)}</a>`; /* dossiers have no op cards of their own; land on the archive entry */
 const mechBtn=id=>M[id]?chip("mech",id,M[id].name):"";
 const locBtn=id=>L[id]?chip("loc",id,L[id].name):"";
@@ -57,6 +59,14 @@ const dnote=t=>t?`<div class="detail" style="margin-top:5px;font:15px/1.6 var(--
 /* lancer-data rank text packs paragraphs as <br> and leaves stray spaces in lists: one note per paragraph, trailing prose out of the last bullet */
 const rankNotes=r=>{const d=String(r.description||"").replace(/<li>\s+/g,"<li>").replace(/\s+<\/li>/g,"</li>").replace(/<br>\s*/g,"<br>").replace(/<br>([^<]*)<\/li><\/ul>/g,"</li></ul><br>$1");
  return d.split(/<br>(?![^<]*<\/li>)/).map((x,i)=>x.trim()&&dnote(i?x.trim():"R"+r.rank+" "+r.name+": "+x.trim())).join("")};
+/* Weapons, systems and gear explain themselves on hover/focus instead of linking away: a chip holds the
+   rule text in data-tip and the stylesheet draws it. A name the sheet has no entry for stays plain text. */
+const plain=t=>String(t||"").replace(/<br\s*\/?>/gi,"\n").replace(/<li>/gi,"\u2022 ").replace(/<\/li>/gi,"\n").replace(/<[^>]+>/g,"").replace(/[ \t]+/g," ").replace(/\s*\n\s*/g,"\n").trim();
+const clip=(t,n)=>t.length>n?t.slice(0,n).replace(/\s+\S*$/,"")+"\u2026":t;
+const tipChip=(label,lines)=>{const t=lines.filter(Boolean).join("\n");return t?`<span class="chip tip" tabindex="0" data-tip="${esc(t)}">${esc(label)}</span>`:esc(label)};
+const weaponTip=(n,w)=>w&&tipChip(n,[[w.mount,w.type].filter(Boolean).join(" "),[w.damage,w.range].filter(Boolean).join(" \u00b7 "),w.tags,clip(plain(w.effect),380),...(w.profiles||[]).map(q=>[q.name+":",q.damage,q.range,q.tags].filter(Boolean).join(" \u00b7 "))]);
+const systemTip=(n,y)=>y&&tipChip(n,["SP "+y.sp+(y.tags?" \u00b7 "+y.tags:""),clip(plain(y.effect),420)]);
+const gearTip=(n,g)=>g&&tipChip(n,[[g.type,g.bonuses,g.tags].filter(Boolean).join(" \u00b7 "),clip(plain(g.effect),420)]);
 const dhead=(n,id)=>`<div class="tag" style="margin-top:10px"${id?` id="${esc(id)}"`:""}>${esc(n)}</div>`;
 const dsect=(title,inner)=>inner?`<section><div class="section-head"><h2>${title}</h2><span>FIELD DETAIL</span></div><div class="card"><div class="card-pad">${inner}</div></div></section>`:"";
 const dnames=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
@@ -84,14 +94,14 @@ const entryOwner=(group,name)=>{
 };
 /* The printed strings above stay the pinned text; these wrap each name in a link to its own FIELD
    DETAIL entry with the same separators, so a row's words do not move when it grows a chip. */
-const mstrMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`<span class="mount"><span class="mount-slot">${esc(x.slot)}:</span> <span class="mount-weapons">${x.weapons.map(w=>{const id=onceId(seen,mechEntryId(m,"weapon",w));return refLink(id&&pfx+id,w,(d.weapons||{})[w])}).join(" / ")}</span></span>`).join('<span class="mount-sep"> · </span>');};
-const systemMarkup=(m,pfx)=>{const d=D(),seen=new Set();return !(m&&m.systems&&m.systems.length)?"":joinRefs(m.systems.map(n=>{const id=onceId(seen,mechEntryId(m,"system",n));return refLink(id&&pfx+id,n,(d.systems||{})[n])}));};
+const mstrMarkup=m=>{const d=D();return !(m&&m.mounts&&m.mounts.length)?"":m.mounts.map(x=>`<span class="mount"><span class="mount-slot">${esc(x.slot)}:</span> <span class="mount-weapons">${x.weapons.map(w=>weaponTip(w,(d.weapons||{})[w])||esc(w)).join(" / ")}</span></span>`).join('<span class="mount-sep"> · </span>');};
+const systemMarkup=m=>{const d=D();return !(m&&m.systems&&m.systems.length)?"":joinRefs(m.systems.map(n=>systemTip(n,(d.systems||{})[n])||esc(n)));};
 const ditems=s=>{const out=[];for(const seg of String(s||"").split("·").map(x=>x.trim()).filter(Boolean)){const mm=seg.match(/^[A-Za-z/ ]+:\s*(.+)$/);for(const it of (mm?mm[1]:seg).split("/").map(x=>x.trim()).filter(Boolean))out.push(it);}return out;};
 /* Both dossier pages print the same three name lists, and every name links to the entry that
    explains it: the pilot page's own FIELD DETAIL when the list sits on it, the pilot's when the
    mech page shows the row. */
 const pilotRows=(p,pfx)=>{const d=D();
- const row=(kind,entry,raw,map)=>{const names=dnames(raw);return th(kind,names.length?joinRefs(names.map(n=>{const key=entry==="trigger"?triggerName(n):entry==="talent"?talentName(n):n;return refLink(pfx+pilotEntryId(p,entry,key),n,map[key])})):"NOT FILED")};
+ const row=(kind,entry,raw,map)=>{const names=dnames(raw);return th(kind,names.length?joinRefs(names.map(n=>{const key=entry==="trigger"?triggerName(n):entry==="talent"?talentName(n):n;return entry==="gear"?(gearTip(n,map[key])||esc(n)):refLink(pfx+p.id+"/"+pilotEntryId(p,entry,key),n,map[key])})):"NOT FILED")};
  return [row("TRIGGERS","trigger",p.triggers,d.skills||{}),row("TALENTS","talent",p.talents,d.talents||{}),row("GEAR","gear",p.gear,d.gear||{})];};
 function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
  /* A talent and a trigger carry their rank or bonus in the record ("Hacker 1", "Hack or Fix
@@ -641,7 +651,7 @@ function pilotDossier(id){if(!P[id]&&legacyPilotId[id])id=legacyPilotId[id];cons
   `<div class="columns"><div class="primary fill"><section><div class="section-head"><h2>PILOT FILE</h2><span>PERSONNEL</span></div><div class="card"><div class="card-pad">`+table(
   th("STATUS",pill(p.status,"lime"))+th("CHASSIS",m?link("mech.html#"+m.id,m.name):"None assigned")+
   trig+tal+(p.doctrine?th("DOCTRINE",link(p.doctrine,(p.doctrineTitle||"BUILD GUIDE")+" →")):"")+gear+
-  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never"))+
+  th("DEPLOYED",mine.map(opChip).join(" ")||"Never"))+
   `</div></div></section></div><aside class="aside fill"><section><div class="section-head"><h2>CHASSIS</h2><span>${m?esc(m.role||""):"NONE"}</span></div><div class="card"><div class="card-pad">`+
   (m?`<div class="mech-card"><div class="mech-thumb">${m.img?pic(m.img,m.name,m.imgFocus):`<div class="plate"><span class="mech-silhouette">${esc(m.glyph||"?")}</span></div>`}</div><div><div class="tag">${esc(m.frame)} · SIZE ${esc(msize(m))}</div><div class="mech-title">${esc(m.name)}</div><div class="muted" style="margin-top:6px;font:13px var(--mono)">${link("mech.html#"+m.id,"OPEN FILE →")}</div></div></div>`
     :`<div class="muted">No chassis assigned.</div>`)+
@@ -654,7 +664,7 @@ const pilotFile=p=>p?`<div class="stack-rows">`+table(th("STATUS",pill(p.status,
 const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.id).reverse(),last=filed.filter(o=>o.mechs.includes(m.id)).pop(),at=stationed(m.id),pfx=summary?"mech.html#":"#";
  /* The pilot dossier carries the mech's summary rows, so those names link across to the mech page. */
  const atLoc=at&&L[at]?at:(C.locations.find(l=>l.name===C.meta.station)||{}).id,atName=at&&L[at]?L[at].name:C.meta.station||"—";
- return summary?th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—"):(
+ return summary?th("LOADOUT",mstrMarkup(m)||"—")+th("SYSTEMS",systemMarkup(m)||"—"):(
   th("PILOT",p?link("pilot.html#"+p.id,p.name.replace(/\u201c([^\u201d]*)\u201d/g,"$1")):"UNASSIGNED")+th("STATE",esc(m.state))+(m.conditions?.length?th("CONDITIONS",m.conditions.map(c=>pill(c,"rust")).join("")):"")+
   th("STATIONED",atLoc?link("intel.html#map/"+atLoc,atName):"—")+
   th("HP · ARMOR",m.hp!=null&&m.hp!==""?`${esc(hpNow(m))}/${esc(m.hp)} · ${esc(m.armor??"—")}`:"NOT FILED")+
@@ -663,8 +673,8 @@ const chassisRows=(m,summary)=>{const p=m.pilot?P[m.pilot]:null,mine=mechOps(m.i
   th("HULL · AGI · SYS · ENG",`${esc(m.hull??"—")} · ${esc(m.agi??"—")} · ${esc(m.sys??"—")} · ${esc(m.eng??"—")}`)+
   th("EVA · SPD · E-DEF · SENS · SAVE",`${esc(m.eva??"—")} · ${esc(m.spd??"—")} · ${esc(m.edef??"—")} · ${esc(m.sens??"—")} · ${esc(m.save??"—")}`)+
   th("ATK · TECH · LTD",`${esc(m.attackBonus??"—")} · ${esc(m.tech??"—")} · ${esc(m.limitedBonus??"—")}`)+
-  th("LOADOUT",mstrMarkup(m,pfx)||"—")+th("SYSTEMS",systemMarkup(m,pfx)||"—")+
-  th("DEPLOYED",mine.map(opLink).join("<br>")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
+  th("LOADOUT",mstrMarkup(m)||"—")+th("SYSTEMS",systemMarkup(m)||"—")+
+  th("DEPLOYED",mine.map(opChip).join(" ")||"Never")+th("LAST OUTCOME",last&&last.outcome?esc(last.outcome):"NOT FILED"));
 };
 const chassisFile=(m,summary)=>`<section><div class="section-head"><h2>CHASSIS FILE</h2><span>${esc(m.state)}</span></div><div class="card"><div class="card-pad">`+table(chassisRows(m,summary))+`</div></div></section>`;
 function mechDossier(id){const m=M[id];if(!m)return notFound("mech",id);
