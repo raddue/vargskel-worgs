@@ -137,7 +137,7 @@ window.CAMPAIGN = {
   ],
 
   ops: [
-    { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: "union", status: "UNBRIEFED",
+    { id: "001", title: "SOLSTICE RAIN", type: "PLANNED", loc: "elysia", client: "union", status: "DEPLOYED",
       date: "5016U · D---", crew: ["daemon", "dusty", "sten", "guillaume", "danila", "spook"], mechs: ["averna", "tombstone", "skaldr", "xxxg-01h", "scooteroo", "alba"], rounds: null,
       /* Mission-page conflict history, rendered above the OPORD. Original copy from facts the
       site already publishes: do not lift prose from the Solstice Rain adventure text. */

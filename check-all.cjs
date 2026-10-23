@@ -397,7 +397,7 @@ C.ops.forEach(o => {
   if (o.client) have(fac, "factions", o.client, `op ${o.id}.client`);
   (o.crew || []).forEach(id => have(pilot, "pilots", id, `op ${o.id}.crew`));
   (o.mechs || []).forEach(id => have(mech, "mechs", id, `op ${o.id}.mechs`));
-  if (o.type === "PLANNED" && o.status !== "UNBRIEFED") problems.push(`op ${o.id}: planned op should be UNBRIEFED`);
+  if (o.type === "PLANNED" && !["UNBRIEFED", "DEPLOYED"].includes(o.status)) problems.push(`op ${o.id}: planned op should be UNBRIEFED or DEPLOYED`);
 });
 C.threads.forEach(t => have(op, "ops", t.op, `thread ${t.id}.op`));
 C.events.forEach(e => { if (e.op) have(op, "ops", e.op, `event ${e.id}.op`); });
