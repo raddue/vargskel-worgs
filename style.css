@@ -261,3 +261,5 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 @media(min-width:900px){.aside .chip.tip::after{left:auto;right:0}}
 @media print{.chip.tip::after{display:none}}
 @media(prefers-reduced-motion:reduce){.chip.tip::after{transition:none}}
+
+#status-update th{text-align:left}#status-update td.lvl{font:15px var(--mono);letter-spacing:.1em}#status-update td.lvl-green{color:var(--lime)}#status-update td.lvl-yellow{color:#e8c547}#status-update td.lvl-red{color:#e5534b}#status-update td.lvl-black{color:var(--muted)}

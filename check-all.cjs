@@ -1716,13 +1716,17 @@ C.ops.forEach(o => {
   const host = { dataset: { op: mount[1] }, innerHTML: "" }, hist = { dataset: { op: mount[1] }, innerHTML: "" };
   if (!page.includes('id="conflict-history"')) problems.push(`${o.mission.href}: conflict-history host missing`);
   if (!Array.isArray(o.history) || !o.history.length || o.history.some(h => typeof h !== "string" || !h.length)) problems.push(`op ${o.id}: conflict history must be a non-empty list of paragraphs`);
-  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : null), querySelectorAll: () => [], addEventListener: () => {} };
+  const stat = { dataset: { op: mount[1] }, innerHTML: "" };
+  if (!page.includes('id="status-update"')) problems.push(`${o.mission.href}: status-update host missing`);
+  if (!Array.isArray(o.statusUpdate) || !o.statusUpdate.length || o.statusUpdate.some(r => !Array.isArray(r) || !r[0] || !r[1] || (r[2] && !["GREEN", "YELLOW", "RED", "BLACK"].includes(r[2])))) problems.push(`op ${o.id}: statusUpdate must be [label, text, GREEN|YELLOW|RED|BLACK?] rows`);
+  sandbox.document = { getElementById: id => (id === "opord" ? host : id === "conflict-history" ? hist : id === "status-update" ? stat : null), querySelectorAll: () => [], addEventListener: () => {} };
   sandbox.matchMedia = () => ({ matches: true });
   vm.runInContext(ui, sandbox, { filename: "archive.js" });
   const html = host.innerHTML;
   SMEAC.forEach((t, i) => { if (!html.includes(`${i + 1}. ${t}`)) problems.push(`op ${o.id}: rendered OPORD missing heading "${i + 1}. ${t}"`); });
   if (!html.includes("ANNEX A")) problems.push(`op ${o.id}: rendered OPORD missing its first annex`);
   if (html.split(o.opord.class).length !== 3) problems.push(`op ${o.id}: classification banner must sit above and below the order`);
+  if (o.statusUpdate && o.statusUpdate.length && !stat.innerHTML.includes(o.statusUpdate[0][0])) problems.push(`op ${o.id}: rendered status update is missing its first line`);
   if (o.history && o.history.length && !hist.innerHTML.includes(o.history[0])) problems.push(`op ${o.id}: rendered conflict history is missing its opening paragraph`);
 });
 

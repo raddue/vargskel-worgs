@@ -513,6 +513,10 @@ function opordDoc(o){const d=o.opord,br=a=>(a||[]).map(esc).join("<br>"),letter=
  `<div class="card"><div class="card-pad">`+d.paras.map((p,i)=>`<div class="opord-para" id="${esc(pid)}-p${i+1}"><h4>${i+1}. ${esc(p[0])}</h4>${opBody(p[1])}</div>`).join("")+`</div></div>`+
  d.annexes.map((a,i)=>opAnnex(letter(i),a[0],`<ol class="opord-lines">${a[1].map(opLine).join("")}</ol>`,`${pid}-a${i+1}`)).join("")+
  `<div class="opord-class">${esc(d.class)}</div>`;}
+/* Mission-page status update: op record carries [label,text,level] rows. */
+const statHost=el("status-update");
+if(statHost){const o=C.ops.find(x=>String(x.id)===statHost.dataset.op);
+statHost.innerHTML=o&&o.statusUpdate&&o.statusUpdate.length?`<div class="card"><div class="card-pad"><table class="operation-table">`+o.statusUpdate.map(r=>`<tr><th>${esc(r[0])}</th><td${r[2]?` class="lvl lvl-${esc(String(r[2]).toLowerCase())}"`:""}>${esc(r[1])}</td></tr>`).join("")+`</table></div></div>`:"";}
 /* Mission-page conflict history: the op record carries the copy, the page carries the head. */
 const histHost=el("conflict-history");
 if(histHost){const o=C.ops.find(x=>String(x.id)===histHost.dataset.op);

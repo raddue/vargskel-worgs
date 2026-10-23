@@ -143,6 +143,17 @@ window.CAMPAIGN = {
       site already publishes: do not lift prose from the Solstice Rain adventure text. */
       history: ["Cressidium sits on the periphery, one inhabited world at the far edge of Union's reach, dark to the charts long enough that its recontact is still recent. What Union found on its return was a world already split: the Vestan Sovereignty holding the cities and the industrial districts, the Leandric States Alliance holding the coast and the trade lanes, and no patience left on either side. Nov Elysia is the seam between them, a frontier city under Vestan control and the only real foothold Union has on the planet.",
         "Union came back to talk rather than to fight. A delegation went down with the UNS Rio Grande in orbit behind it, to put both sides at a table and bring Cressidium into some settled relationship with the wider human sphere, and those talks were the only thing holding the peace. When they collapsed, they collapsed into open war: VSAF moving on the city, Leandric units holding inside it, and two Union principals missing in the central district before anyone could reach them. The Worgs are on contract because Union would rather pay a lance than commit a fleet to a periphery world."],
+      /* Mission-page STATUS UPDATE, rendered above the conflict history. Rows are
+         [label, text, level?]; level is GREEN/YELLOW/RED/BLACK and colours the line.
+         Present tense: edit as play moves. */
+      statusUpdate: [
+        ["SITUATION", "Kingfisher 2-2 shot down. Ship destroyed, all crew KIA. VW-01 on the ground, off-course."],
+        ["CONTACT", "VSAF mechs engage. Open hostilities."],
+        ["RESULT", "9 VSAF mechs destroyed. No VW-01 losses."],
+        ["MOVEMENT", "VW-01 proceeds to FOB Saber."],
+        ["VIPS", "Unlocated. Not yet met up at FOB."],
+        ["CONDITION", "GREEN", "GREEN"],
+        ["AMMO", "GREEN", "GREEN"]],
 
       summary: "Union-backed peace talks on Cressidium collapsed into open war. The Worgs deploy with the UNS Rio Grande to Nov Elysia, a city under Vestan siege.",
       mission: { title: "M1 · THE DROP", href: "solstice-rain.html" },
