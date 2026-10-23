@@ -9,7 +9,7 @@ window.CAMPAIGN = {
      that logs a session; tools/apply-compcon.cjs applies it. Career totals and record holders
      are derived from these rows. */
   ledger: [
-    { op: "001", date: "2026-10-21", pilot: "sten", kills: 4 },
+    { op: "001", date: "2026-10-21", pilot: "sten", kills: 4, taken: 9 },
     { op: "001", date: "2026-10-21", pilot: "spook", kills: 2 },
     { op: "001", date: "2026-10-21", pilot: "danila", kills: 2 },
     { op: "001", date: "2026-10-21", pilot: "dusty", kills: 1, taken: 9, moves: 27 },
