@@ -11,9 +11,9 @@ window.CAMPAIGN = {
   ledger: [
     { op: "001", date: "2026-10-21", pilot: "sten", kills: 4, taken: 9 },
     { op: "001", date: "2026-10-21", pilot: "spook", kills: 2 },
-    { op: "001", date: "2026-10-21", pilot: "danila", kills: 2 },
+    { op: "001", date: "2026-10-21", pilot: "danila", kills: 2, taken: 2 },
     { op: "001", date: "2026-10-21", pilot: "dusty", kills: 1, taken: 9, moves: 27 },
-    { op: "001", date: "2026-10-21", pilot: "daemon", dealt: 18, lockons: 6, hacks: 2 },
+    { op: "001", date: "2026-10-21", pilot: "daemon", dealt: 18, taken: 10, lockons: 6, hacks: 2 },
   ],
   meta: {
     unit: "VW-01",
