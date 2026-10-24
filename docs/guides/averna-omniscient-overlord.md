@@ -1,11 +1,11 @@
 # THE OMNISCIENT OVERLORD
 
-**GMS CHOMOLUNGMA · HORUS GOBLIN · SSC SWALLOWTAIL · electronic warfare and command build**
+**GMS CHOMOLUNGMA · HORUS GOBLIN · SSC SWALLOWTAIL · three frames, one pilot progression**
 
 | | |
 |---|---|
 | **Designation** | AVERNA |
-| **Frame** | GMS CHOMOLUNGMA (retained, never reframed) |
+| **Frame** | GMS CHOMOLUNGMA by default; HORUS GOBLIN from LL2; SSC SWALLOWTAIL from LL5 |
 | **Pilot** | RURIK "DAEMON" VARGSKEL · LL0 · Fixer |
 | **Role** | ECM & C3, squad central nervous system |
 | **Licenses** | HORUS GOBLIN I–III · SSC SWALLOWTAIL I–III |
@@ -17,24 +17,28 @@
 
 ## Quick Guide
 
-Ride the **GMS CHOMOLUNGMA**. Take the **HORUS GOBLIN** and **SSC SWALLOWTAIL** ranks for their
-systems, never for their chassis. Mark what the squad is about to shoot, and the Autopod pays you
-back in free damage.
+Ride the **GMS CHOMOLUNGMA** by default. Goblin and Swallowtail are optional frame prints once
+unlocked. All three tabs share the same pilot, license ranks, talents, mech skills, and core bonuses;
+choose one licensed mech to print at a Full Repair. Mark what the squad is about to shoot, then
+spend your Autopod reaction when an ally attacks and consumes the mark.
 
 ### The levels, LL0 to LL6
 
 | LL | License rank | Talent rank | Core bonus |
 |---|---|---|---|
-| **LL0** | none yet | **Hacker I** · **Spotter I** · **Leader I** | not yet |
+| **LL0** | none yet | **Drone Commander I** · **Spotter I** · **Leader I** | not yet |
 | **LL1** | **GOBLIN I** | **Spotter II** | not yet |
 | **LL2** | **GOBLIN II** | **Spotter III** | not yet |
-| **LL3** | **GOBLIN III** | **Hacker II** | **Integrated Weapon** |
-| **LL4** | **SWALLOWTAIL I** | **Leader II** |  |
-| **LL5** | **SWALLOWTAIL II** | **Leader III** | |
-| **LL6** | **SWALLOWTAIL III** | **Hacker III** | a second core bonus |
+| **LL3** | **GOBLIN III** | **Leader II** | **Improved Armament** |
+| **LL4** | **SWALLOWTAIL I** | **Leader III** |  |
+| **LL5** | **SWALLOWTAIL II** | **Skirmisher I** | |
+| **LL6** | **SWALLOWTAIL III** | **Technophile I** | **The Lesson of the Held Image** |
 
-The two licenses are three ranks each and interleave freely from LL1 on. This order is the one the
-SP budget below can afford. **Plan B** spends LL4 to LL6 on **Technophile I-III** instead.
+The licenses are three ranks each. Goblin frame unlocks at Goblin II (LL2), Swallowtail at
+Swallowtail II (LL5). Skirmisher I at LL5 grants soft cover at turn start until you attack or force
+a save; Lock On retains it, Invade does not. Technophile I at LL6 is a story and future-growth
+choice, not cascade protection yet. To reach Technophile III by LL6, take its ranks at LL4–6
+instead of Leader III, Skirmisher I, and the listed Technophile I.
 
 **SP budget:** SP = frame SP **7** + **1 per two points of SYSTEMS** + **GRIT**. That is **8 at LL0**
 (7 + 1), **9 at LL1**, **10 at LL2**, **11 at LL3**. The fielded load is exactly **8**, with no slack.
@@ -45,7 +49,7 @@ SP budget below can afford. **Plan B** spends LL4 to LL6 on **Technophile I-III*
 LOCK ON a target within Sensors 15 (quick action, no attack roll, never fails)
    an ally attacks it and consumes the mark for +1 Accuracy
       AUTONOMOUS ASSAULT fires, 1/round, target within Range 15
-         automatic hit, 3 Kinetic, no action, no roll
+         automatic hit, 3 Kinetic, reaction, no roll
 ```
 
 **The systems that do the work:** **Autopod** (GOBLIN I, 1 SP) for the free 3 Kinetic · **H0R_OS
@@ -64,7 +68,8 @@ survive on a hull that is still standing at the end of the fight.
   hit it takes **2 Heat** and you add one option (Fragment Signal, or Puppet System, or Eject Power
   Cores).
 - **Let the Autopod fire.** A striker attacks the marked target and consumes the mark, so
-  **Autonomous Assault** hits that target for **3 Kinetic** automatically. No action, no roll.
+  **Autonomous Assault** hits that target for **3 Kinetic** automatically. It spends your reaction,
+not a quick action or an attack roll.
 
 ---
 
@@ -72,8 +77,8 @@ survive on a hull that is still standing at the end of the fight.
 
 ### The Framework: "Chomolung-lin"
 
-Ride the **GMS CHOMOLUNGMA**. Load every piece of **HORUS** and **SSC** electronic warfare you can
-afford onto it. Never trade the chassis away.
+Ride the **GMS CHOMOLUNGMA** for durability. Goblin and Swallowtail frames are mission-specific
+alternatives described in their tabs; the pilot progression stays the same.
 
 The honest version of that argument, now that the frame blocks are on the table:
 
@@ -86,8 +91,8 @@ The honest version of that argument, now that the frame blocks are on the table:
 - **The CHOMOLUNGMA is the durable hull.** **10 HP**, **4 Repairs**, **Replaceable Parts** (rest
   repairs at 1 Repair per point of structure damage instead of 2), **two mounts** instead of one, and
   a core system that hands over the two best Invade options in the game.
-- **Licenses buy systems, not frames.** GOBLIN and SWALLOWTAIL ranks are taken for **Autopod**,
-  **H0R_OS upgrades**, **Lotus Projector** and **ATHENA**, not for their chassis blocks.
+- **Licenses unlock systems and frames.** GOBLIN and SWALLOWTAIL ranks grant **Autopod**,
+  **H0R_OS upgrades**, **Lotus Projector** and **ATHENA**. Their frames unlock at rank II.
 
 > **Doctrine:** a support mech that dies on turn 2 contributes nothing on turn 6. Stay in GMS metal,
 > take the ranks, and let the enemy spend their turn failing to kill the mech that is dismantling them.
@@ -100,8 +105,8 @@ The build's identity: **damage output that costs no actions.**
 LOCKS ON (own action)  →  an ALLY attacks that target and consumes Lock On for +1 Accuracy
                                     │
                                     ▼
-                   AUTOPOD's Autonomous Assault reaction fires FREE
-                   automatic hit, 3 Kinetic, Range 15, 1/round, no action spent
+                   AUTOPOD's Autonomous Assault spends your reaction
+                   automatic hit, 3 Kinetic, Range 15, 1/round, no attack roll
 ```
 
 **Component A · CHOMOLUNGMA trait: Data Siphon**
@@ -123,14 +128,14 @@ makes **no attack roll**. It grants the **Autonomous Assault** reaction:
 | **Trigger** | Another character attacks a target within Range 15 of you and **consumes Lock On** |
 | **Effect** | You may **automatically hit** their target with the Autopod |
 
-**Why the loop works:** the Autopod auto-hits, so its 3 Kinetic arrives with no action and no roll; **Seeking** makes cover and line of sight irrelevant; and the trigger belongs to an ally, so their +1 Accuracy and your free damage land in the same attack. The full comparison is in Appendix A.
+**Why the loop works:** the Autopod auto-hits for 3 Kinetic as your reaction, without an attack roll. **Seeking** ignores cover and line of sight if a path can be drawn. An ally can spend the mark for +1 Accuracy while your reaction hits the same target. The full comparison is in Appendix A.
 
 **Costs and tensions to manage:**
 
 - **Range 15 and 1/round.** Park inside 15 of the fight, not in the next postcode.
-- **Lock On is a shared resource.** Only one consumer per mark. If a striker wants the +1 Accuracy,
-  they consume it, and that is exactly what fires the Autopod. If **Hacker I (Snow Crash)** consumes
-  it instead, you get 2 Heat or a 3-space push in place of the free damage.
+- **Lock On is shared.** One consumer per mark. Let a striker consume it to trigger Autopod;
+  Rurik's own attack consuming it would deny that trigger. You get one reaction per turn, and
+  Autopod's reaction is limited to once per round.
 - **Free damage is not a kill.** Autopod chips; the lance still has to shoot.
 
 ---
@@ -187,9 +192,8 @@ WAYWARD, SCOOTEROO, ALBA.
 - **Mount rules:** a **Main/Aux** mount takes one Main *and* one Auxiliary (or two Auxiliary). A
   **Flex** mount takes **either one Main or up to two Auxiliary**. So Main/Aux holds the Hunter-Killer
   (Main) plus the Light (Aux), and the Flex holds **two** Missile Racks. Legal as fielded.
-- **Smart is the quiet monster.** A Smart weapon's attacks, melee and ranged, **use the target's
-  E-Defense instead of Evasion**. AVERNA's whole EW stat line is also her gun line: **Tech Attack +3**
-  fires the launchers, and enemies with poor E-Defense cannot dodge her.
+- **Smart targets E-Defense.** The Nexuses remain weapon attacks using **GRIT**, not Tech Attack.
+  Missile Racks are not Smart and attack Evasion.
 - **Loading** means each Missile Rack fires every other turn unless reloaded with **Stabilize**. Two
   racks keep area fire online while the other reloads.
 ---
@@ -210,7 +214,8 @@ licenses below are three ranks each; they can be interleaved in any order from L
 | **I** | SSC SWALLOWTAIL I | **Lotus Projector** · **Markerlight** | Map-wide sensor truth; stealth stops working |
 | **II** | SSC SWALLOWTAIL II | **Retractable Profile** | Profile control and redundancy |
 | **III** | SSC SWALLOWTAIL III | **ATHENA-Class NHP** · **LB/OC Cloaking Field** | The Omniscient Overlord itself |
-| **—** | GMS core bonus | **Integrated Weapon** | An extra integrated Aux weapon; fires 1/round as a free action when you fire another weapon |
+| **LL3** | GMS core bonus | **Improved Armament** | Adds a Flex mount to each of the three frames |
+| **LL6** | HORUS core bonus | **The Lesson of the Held Image** | Reaction Lock On at start of an ally's turn, once per round |
 
 ### Goblin I: Autopod + H0R_OS System Upgrade I
 
@@ -257,15 +262,14 @@ licenses below are three ranks each; they can be interleaved in any order from L
 - **ATHENA-Class NHP** (rank III, 3 SP), see Section 4. **LB/OC Cloaking Field** (rank III) comes
   with it.
 
-### Core Bonus: Integrated Weapon
+### Core Bonuses: Improved Armament and Held Image
 
-- **Core bonuses arrive every three license levels** (LL3, LL6, LL9, LL12). The **GMS list is always
-  available**; a bonus from any other manufacturer requires **three license ranks** in that
-  manufacturer.
-- **Integrated Weapon (GMS)**: your mech gains an **integrated mount for one Auxiliary weapon**. It can
-  be fired **1/round as a free action when you fire any other weapon**, and cannot be modified.
-- **Spend it on a third Nexus (Light).** Smart, Auxiliary, and it rides along free whenever the
-  Hunter-Killer or the Missile Racks fire.
+- **LL3 Improved Armament (GMS)** adds one Flex mount to each frame here; each has fewer than three
+  ordinary mounts. Goblin can carry Autopod and two Missile Racks at once.
+- **LL6 The Lesson of the Held Image (HORUS)** requires three HORUS ranks. Once per round, at the
+  start of an ally's turn, you may Lock On to a character within Sensors and line of sight as a
+  reaction. You get one reaction per **turn**, not per round; Held Image and Autopod cannot both
+  be used on the same turn. Autopod remains 1/round.
 
 ---
 
@@ -275,24 +279,24 @@ licenses below are three ranks each; they can be interleaved in any order from L
 rank**, either improve an existing talent (I → II → III) or open a new one at rank I. Ranks must be
 improved in order, so **Technophile III requires Technophile I and II first**.
 
-That is **nine talent ranks by LL6**: three fielded now, six to spend. Six is exactly enough to finish
-the three starting trees, and exactly not enough to also reach **Technophile III**. Choose one.
+That is **nine talent ranks by LL6**: three at LL0, then six to spend. The shared progression
+prioritizes Spotter III and Leader III, then adds cover and an optional NHP.
 
-#### Recommended: Plan A, "The Relay"
+#### Shared progression: "The Relay"
 
 | LL | Talent rank | What it unlocks | Why this order |
 |---|---|---|---|
-| **0** | **Hacker I · Spotter I · Leader I** | Snow Crash · Particularize · Field Commander | Fielded already |
-| **1** | **Spotter II · Panopticon** | End your turn **without moving** after a Lock On quick tech → **one extra Lock On as a free action**; also reveals Armor, Speed, Evasion, E-Defense, Mech Skills and HP of anything you mark, shareable with allies | Doubles your marking per turn and hands the lance free intelligence. Upgrade the engine first |
-| **2** | **Spotter III · Bentham/Foucault Elimination** | Quick action when you Lock On: nominate an **adjacent ally**, who may **immediately take any quick action** as a reaction, consuming the mark | The strongest rank in the build: you turn one of your actions into an ally's whole action. This is the "absolute action economy" claim, actually delivered |
-| **3** | **Hacker II · Safe Cracker** | Three new **Invade** options: **Hack./Slash** (target cannot take Quick or Full Tech actions until it reboots or shuts down), **Disable Life Support** (**+1 Difficulty on all saves**), **Jam Cockpit** (cannot Mount or Dismount) | **Disable Life Support is your save-hardener.** This is how the build makes enemies fail saves, not a "+2 Save Target" system. Hack./Slash is the anti-hacker answer |
-| **4** | **Leader II · Open Channels** | **5 Leadership Dice**; issue a command as a **reaction at the start of any other player's turn**, any number of times per round | Converts Leadership from a pool into a reaction economy across the whole squad |
-| **5** | **Leader III · Inspiring Presence** | **6 dice**; allies spend them for **−1d6 damage taken** or **+1d6 damage dealt** | Keeps the strikers alive and hitting. Pure force multiplication |
-| **6** | **Hacker III · Last Argument of Kings** | **Full Tech**: tech attack within Sensors and line of sight; on hit, **Burn equal to the target's current Heat**, resolving before they reset Heat Cap | The finisher. Stack heat with **System Crusher** and **Wide-Area Code Pulse**, then convert the whole pile into Burn |
+| **0** | **Drone Commander I · Spotter I · Leader I** | Shepherd strengthens and repositions Turret Drones; Particularize doubles an adjacent ally's Lock On attack roll; Field Commander issues dice | Ally-triggered support, no own mark consumption |
+| **1** | **Spotter II · Panopticon** | Stationary Lock On turn grants one more mark at end of turn and reveals target stats | Mark two targets without attacking |
+| **2** | **Spotter III · Bentham/Foucault Elimination** | Spend a quick action when you Lock On to give an adjacent ally an immediate quick action as their reaction, consuming the mark | An attack can trigger Autopod; a non-attack cannot |
+| **3** | **Leader II · Open Channels** | 5 Leadership Dice and commands as reactions at start of another player's turn | Share accuracy; one reaction per turn still applies |
+| **4** | **Leader III · Inspiring Presence** | 6 dice; allies can reduce damage by 1d6 or add 1d6 on a hit | Squad payoff |
+| **5** | **Skirmisher I · Integrated Chaff Launchers** | Soft cover at turn start until you attack or force a save | Lock On retains it; Invade is an attack and drops it |
+| **6** | **Technophile I · Servant Fragment** | Optional 0-SP Servant-Class NHP | Story and future growth; rank I alone does not prevent cascade |
 
-#### Alternative: Plan B, "Shackled ATHENA"
+#### Alternative: cascade-proof ATHENA
 
-Same first three ranks, then spend LL4–LL6 on **Technophile I → II → III**:
+Keep LL0–3 as above; spend LL4–LL6 on **Technophile I → II → III** instead:
 
 - **Technophile I · Servant Fragment**: you develop a custom **Servant-Class NHP** that can speak with
   you, though it cannot act independently.
@@ -301,15 +305,15 @@ Same first three ranks, then spend LL4–LL6 on **Technophile I → II → III**
 - **Technophile III · Enlightenment**: **AIs installed in your mech cannot enter cascade unless you
   choose to let them go**, and cascading or unshackled NHPs stop viewing you with indifference.
 
-**Take this if** your GM leans on Cascade, or if you want ATHENA to be a character rather than a
-system. The cost is real: no **Last Argument of Kings** finisher, no **Leader III** dice for the squad.
+**Take this if** cascade prevention matters more than Leader III and Skirmisher I. Technophile III's
+NHP does not count toward the AI limit, so ATHENA can also be installed.
 
 #### Swaps worth knowing
 
 | Talent | Why it fits this build |
 |---|---|
-| **Stormbringer I · Seismic Deluge** | 1/round, hit with a **Launcher** and consume Lock On → also **knock Prone**. AVERNA carries three Launchers, the **Autopod** and two **Missile Racks**, and wants marks cashed |
-| **Stormbringer II · Stormbending** | 1/round on a Launcher hit: **Lightning** (target makes a **Hull save** or is knocked 3 spaces away) or **Thunder** (**Agility save** on a Burst 2). The cheapest way to make AVERNA force saves against her **Save Target** |
+| **Stormbringer I · Seismic Deluge** | Requires **your** Launcher attack to consume Lock On, so it misses the ally-fed Autopod loop. Stormbending II can ride a Launcher hit, but first costs this weak rank; confirm Autopod auto-hit interaction with GM. |
+| **Stormbringer II · Stormbending** | 1/round on a Launcher hit: Lightning forces a Hull save or knockback 3; Thunder forces Agility saves in Burst 2, excluding primary target. Autopod auto-hit may qualify, subject to GM reading; two ranks displace two support picks. |
 | **Grease Monkey II · Machine Bond** | When you **Stabilize**, clear **Impaired, Jammed, Immobilized, Slowed and Lock On** conditions that you did not cause yourself. On a **6 Heat Cap** hull facing enemy hackers, this is the reset button. Grease Monkey I is the cost of entry |
 | **Combined Arms I · Shield of Blades** | While **Engaged**, you and adjacent allies count as having **soft cover**. Pairs with the Spotter adjacency requirement, but it does invite melee |
 
@@ -319,8 +323,8 @@ Every level also hands you **+1 mech skill point**, **+1 talent rank** and **+1 
 but **GRIT is not a per-level gain**: it is **half your LL, rounded up**, so it only steps up at
 **LL1, LL3, LL5** (and flat at LL2, LL4, LL6).
 
-- **Push SYSTEMS.** Each point is **+1 Tech Attack** (your Invades *and* your Smart launchers) and
-  **+1 E-Defense**, plus **+1 SP per two points**. AVERNA runs SYSTEMS 2 now; SYSTEMS 4 or 6 makes her
+- **Push SYSTEMS.** Each point is **+1 Tech Attack** on Invades and **+1 E-Defense**, plus
+  **+1 SP per two points**. Smart weapons use E-Defense but attack with GRIT, not Tech Attack. AVERNA runs SYSTEMS 2 now; SYSTEMS 4 or 6 makes her
   the hardest mech in the lance to hack and the most accurate one in it.
 - **HULL only for HP** (+2 HP per point, **+1 Repair Cap per two points**). Worth considering on a 10 HP
   frame, but every point of HULL is a point not spent on the build's spine.
@@ -356,9 +360,10 @@ SP."*
 
 **Fitting Goblin I (Autopod 1 + H0R_OS I 2 = 3 SP):**
 
-- **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact.
-- **H0R_OS I lands at LL3** (budget 11 = 8 + 1 + 2). To take it a level earlier at LL2 you must free
-  1 SP — the lever is **Custom Paint Job** or **Turret Drones**.
+- **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact. Replace the Main Hunter-Killer
+  Nexus in Main/Aux, retaining the Light Nexus; Flex keeps both Missile Racks.
+- **H0R_OS I fits at LL3** (budget 11 = 8 + 1 + 2). To take it at LL2, free 1 SP by removing
+  Custom Paint Job or another system.
 - **Keep the Type-3 Projected Shield.** It taxes only melee and ranged attacks, and tech attacks are
   neither — 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
 - **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options —
@@ -474,7 +479,8 @@ Blade) adjacent to her. Tech Attack **+3**. Save Target **11**. Autopod armed.
 
 - SKALDR attacks the mech AVERNA marked and **consumes the Lock On** for **+1 Accuracy**.
 - **Autonomous Assault** fires: another character attacked a target within **Range 15** of AVERNA and
-  consumed the mark, so AVERNA **automatically hits that target for 3 Kinetic**, no action, no roll.
+  consumed the mark, so AVERNA spends her **Autopod reaction** to automatically hit for 3 Kinetic,
+  with no attack roll.
 - **Stack the passives:** SKALDR is **adjacent**, so **Spotter I (Particularize)** lets him **roll
   twice**. A **Leadership Die** from Issue Order goes on the roll that matters. Nothing here cost
   AVERNA a second action.
@@ -486,13 +492,13 @@ says so.
 
 | Roll | Who rolls | Against | Notes |
 |---|---|---|---|
-| **Tech attack** (Invade, Smart weapons) | Attacker | **E-Defense** | Smart weapons, like both Nexuses, use E-Defense instead of Evasion |
-| **Attack** (everything else) | Attacker | **Evasion** | |
+| **Tech attack** (Invade) | Attacker, Tech Attack bonus | **E-Defense** | Data Siphon also Scans a hostile target |
+| **Smart weapon attack** (both Nexuses) | Attacker, GRIT bonus | **E-Defense** | Smart changes defense, not the attack type or bonus |
+| **Other weapon attack** (Missile Racks) | Attacker, GRIT bonus | **Evasion** | |
 | **Save** | **The defender**, 1d20 + **GRIT** | The source's **Save Target** | Met or beaten = the save succeeds; ties favour the defender |
 
-- **AVERNA's Save Target is 11**, the frame base, plus **GRIT** as she levels (**+1 at LL1, +1 per
-  level after, half LL rounded up**). It is the difficulty of every effect *she* forces. It is never
-  added to her own rolls.
+- **AVERNA's Save Target is 11**, the Chomolungma frame base, plus **GRIT**, which increases at LL1,
+  LL3 and LL5. It is the difficulty of effects she forces, not a bonus to her own saves.
 - **Her own saves** are **1d20 + GRIT** versus whatever enemy's Save Target is in play. She does not
   add Sensors or E-Defense to her own save; GRIT is the statistic bonus in mech combat.
 - **Save-forcing effects in this kit:** **False Idol** (Systems save before attacking the real target),
@@ -584,7 +590,7 @@ the brief was wrong:
 | "Data Sync grants free Lock Ons on tech hits" | The trait is **Data Siphon**: a tech attack also **Scans** the target. Lock On is its own Quick Tech action; **Brilliance** (1/scene) grants one free |
 | "Autopod fires 3 Kinetic free across the map, zero actions" | Real, but **Range 15**, **1/round**, and the trigger is **another character** consuming Lock On within that range |
 | "HORUS H0r_OS I / II / III" | **H0R_OS System Upgrade I / II / III**, 2 SP each, Unique |
-| "Lesson: Open Door, +2 Save Target" | No such system. Goblin rank III is **H0R_OS III** + **OSIRIS-Class NHP**. Save Target rises with **GRIT**, not a system |
+| "Lesson: Open Door, +2 Save Target" | **The Lesson of the Open Door** is a HORUS core bonus, available once you have three HORUS ranks, not a Goblin III system. This build takes Improved Armament instead. |
 | "Wide-Area Code Pulse inflicts bonus heat" | It is a **Full action Invade** against any number of targets, ignoring Invisible and line of sight; **miss = Impaired**. The bonus heat is the **System Crusher** Invade option |
 | "Nexus launchers: Smart, Seeking" | They are **Smart only**. Smart = attacks use the target's **E-Defense** instead of Evasion. **Seeking** is on the **Autopod** |
 | "Dual Nexus in Flex" | The **Hunter-Killer is a Main weapon**, so a Main+Aux pair does not fit a Flex mount, a Flex mount takes **one Main or up to two Auxiliary**. As fielded the Nexuses sit in **Main/Aux** and the missile racks take the Flex |
@@ -592,3 +598,57 @@ the brief was wrong:
 | "SSC Core Bonus: Integrated Weapon" | **Integrated Weapon is a GMS core bonus.** Core bonuses arrive **every three LLs**; non-GMS ones need **three ranks** in that manufacturer |
 | "ATHENA ignores walls / wall-ignoring line of sight" | **Simulacrum** grants full **visibility** in a Blast 3 within **Range 50**, explicitly **not line of sight**. It also strips cover and blocks Hide/Invisible |
 | "12 HP hull" | Both numbers are right: the frame is **10 HP** and **Personalizations** adds **+2**, for **12 as fielded**. SYSTEMS adds no HP (**HULL** is +2 HP/point), and **HULL 1 is impossible at LL0**, where the budget is only 2 mech-skill points |
+
+## Goblin Build
+
+The Goblin frame unlocks at **LL2**, after Goblin II. Before that, use the Chomolungma loadout in its tab. This is the same pilot and same license/talent progression, not a second set of ranks. Print one frame at a Full Repair; the previously printed mech ceases functioning.
+
+### Why print Goblin?
+
+Sensors **20**, Tech Attack **+2** before SYSTEMS, and **+1 Accuracy on tech attacks** from Liturgicode make it the sharper hacker. Speed **5**, Evasion **10**, E-Defense **12**, and base SP **8** beat Chomolungma's corresponding 4, 8, 10, and 7. Reactive Code lets you take a Quick Tech against a tech attacker as a reaction when their attack hits, once per round. None of these bonuses improve ordinary weapon attack rolls: Smart changes the target defense, not the attack statistic.
+
+You pay with **6 HP**, **4 Heat Cap**, **2 Repairs**, +1 Difficulty on Hull checks and saves from Fragile, and one Flex mount before Improved Armament. The core power **Symbiosis** attaches to a willing adjacent larger ally as a quick action, once per mission. The host may use your SYSTEMS, E-Defense and Tech Attack; from next round you act on its turn and no longer take your own turn. You gain hard cover but can still be targeted, and share host heat and conditions. This is not general damage immunity. You lose Chomolungma's Brilliance, Data Siphon, and Replaceable Parts.
+
+### Goblin LL0–LL6 field plan
+
+| LL | Frame and ranks | SP and fielded systems | Mounts and play |
+|---|---|---|---|
+| **0** | Chomolungma; Drone Commander I, Spotter I, Leader I | 8: Personalizations 1, Turret Drones 2, Jump Jets 2, Type-3 Shield 2, Paint 1 | Main/Aux Hunter-Killer + Light Nexus; Flex two Missile Racks. Lock On for ally. |
+| **1** | Chomolungma; Goblin I, Spotter II | 9: same 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. Goblin I also unlocks H0R_OS I, but it does not fit yet. |
+| **2** | **Goblin unlocked**; Goblin II, Spotter III; SYSTEMS 4 | **11**: original 8 + Autopod 1 + H0R_OS I 2 | Only Flex: Autopod alone. No Nexus or Missile Racks on this frame yet. Spotter III feeds adjacent ally's attack, then Autopod reacts. H0R_OS I adds Puppet System and Eject Power Cores. |
+| **3** | Goblin III, Leader II, **Improved Armament**; GRIT 2 | **12**: original 8 + Autopod 1 + H0R_OS I 2 = 11, 1 SP spare | Original Flex Autopod; new Flex two Missile Racks. |
+| **4** | Swallowtail I, Leader III | **12**: same load as LL3 | Lotus and Markerlight unlock; to install a 2-SP option, remove a 1-SP system or replace another 2-SP system. |
+| **5** | Swallowtail II, Skirmisher I; GRIT 3 | **13**: remove Paint; original 7 + Autopod 1 + H0R_OS I 2 + Lotus Projector 2 = 12, 1 SP spare | Two Flex mounts unchanged. Lotus spots hidden targets. Skirmisher cover survives Lock On but ends on Invade. |
+| **6** | Swallowtail III, Technophile I, **Held Image** | **13**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3 = 13. Remove Shield and Paint. | ATHENA marks hostiles ending turns in its area. Held Image marks on an ally's turn; Autopod uses a separate reaction if available. Do not install the Technophile NHP alongside ATHENA at rank I: one AI system per mech. |
+
+**HASE:** SYSTEMS 2 at LL0, then 3 at LL1 and 4 at LL2. The remaining LL3–6 points may go to HULL for HP and Repair Cap; the SP figures above hold SYSTEMS at 4. Goblin's base 8 SP gives **11 at LL2**, **12 at LL3–4**, **13 at LL5–6**. Its lower Heat Cap makes Shield heat and Symbiosis heat-sharing risky. Stabilize as a full action and spend 1 Repair to restore full HP, but lost Structure needs a rest.
+
+**New Goblin II tools:** H0R_OS II (2 SP) makes Ideal Image, an adjacent Size 2 hard-cover obstruction, or False Idol, a decoy within Sensors that forces a Systems save before hostile action against its original. These are Quick Tech, **not Invade options**. Metahook (2 SP) lets you use a linked ally's Sensors and line of sight for tech actions, but each shares the other's heat and conditions. Swap either into the load by cutting equal SP. Goblin III also unlocks H0R_OS III and OSIRIS; neither is assumed installed. OSIRIS and ATHENA cannot share the single AI slot.
+
+## Swallowtail Build
+
+The Swallowtail frame unlocks at **LL5**, after Swallowtail II. LL0–1 use Chomolungma, and LL2–4 can use Goblin or Chomolungma. No earlier Swallowtail print is legal on this shared license path.
+
+### Why print Swallowtail?
+
+**Prophetic Scanners**: once per round when you inflict Lock On, target also becomes **Shredded until end of its next turn**. Shredded ignores Armor and Resistance for all damage during that window; it does not double damage. Sensors **20**, Speed **6**, Evasion **10**, and two original mounts reward mobile reconnaissance. **Integrated Cloak** makes you Invisible at end of a turn if you did not move, until you move, take a reaction, or start your next turn. Autopod's reaction breaks that cloak. Spotter II likewise rewards not moving, but neither protects a moving turn.
+
+Its base **6 HP, 4 Heat Cap, 6 SP** leave little margin. Tech Attack **+1**, Repair Cap **5**, and the same pilot SYSTEMS give competent hacking, but Goblin is better at landing tech attacks and Chomolungma takes hits better. This is a mark-and-Shred specialist, not a sturdier Goblin.
+
+### Swallowtail LL0–LL6 field plan
+
+| LL | Frame and ranks | SP and fielded systems | Mounts and play |
+|---|---|---|---|
+| **0** | Chomolungma; Drone Commander I, Spotter I, Leader I | 8; see Chomolungma starting load | No Swallowtail license yet. |
+| **1** | Chomolungma; Goblin I, Spotter II | 9: starting 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. |
+| **2** | Chomolungma or Goblin; Goblin II, Spotter III | Chomolungma 10; Goblin 11 | Goblin alternative is described in its tab. |
+| **3** | Same choice; Goblin III, Leader II, **Improved Armament** | Chomolungma 11; Goblin 12 | Extra Flex on either frame. |
+| **4** | Same choice; Swallowtail I, Leader III | Chomolungma 11; Goblin 12 | Lotus Projector and Markerlight unlock now. Swallowtail frame does not. |
+| **5** | **Swallowtail unlocked**; Swallowtail II, Skirmisher I; SYSTEMS 4, GRIT 3 | **11**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Shield 2 + Paint 1 + Autopod 1 + Lotus 2 | Flex Autopod; Aux/Aux two Missile Racks; Improved Armament Flex Hunter-Killer Nexus. Lock On Shreds, ally consumes for Autopod. |
+| **6** | Swallowtail III, Technophile I, **Held Image** | **11**: remove Paint 1 and Shield 2; Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + Lotus 2 + ATHENA 3 | Same mounts. ATHENA creates a Blast 3 surveillance field within Range 50; enemies ending turns inside gain Lock On. Technophile I's optional AI cannot coexist with ATHENA yet. |
+
+**SP:** Swallowtail base 6 + 2 from SYSTEMS 4 + 3 GRIT = **11 at LL5–6**. Weapons cost 0 SP except Autopod's 1. It has a Flex and an Aux/Aux mount before the LL3 bonus; Improved Armament adds a second Flex. The Main Autopod cannot fit Aux/Aux. If you would rather retain the Light Nexus instead of two Missile Racks, fit Light Nexus in Aux/Aux and leave the other Aux empty, or rearrange both Auxiliary weapons there. The listed load favors launcher coverage and Turret Drone support.
+
+**Reaction timing:** Held Image triggers at start of an ally's turn and Autopod triggers when another character attacks and consumes Lock On. One reaction **per turn**: if that same ally immediately attacks and consumes your new mark, you cannot fire Autopod on that turn. Mark on one ally's turn for a later ally to consume, or use a mark placed on your own turn. Spotter III's adjacent ally spends **their** reaction, while Autopod spends **yours**. Leader II's command also competes for your reaction on that turn. Prophetic Scanners works when Swallowtail itself inflicts Lock On, including Held Image; it does not apply from ATHENA's automatic Lock On unless GM rules that ATHENA's field counts as the Swallowtail inflicting it.
+
+**Print limit:** Full Repair can print a different licensed mech, but only one of your printed mechs functions at once. These are three loadouts for one pilot, not three simultaneous deployed frames.
