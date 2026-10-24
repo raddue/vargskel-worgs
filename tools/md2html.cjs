@@ -42,10 +42,9 @@ const tocNav = toc => !toc.length ? "" :
   toc.map(([id, t, lvl]) => `<li${lvl ? ' class="sub"' : ""}><a href="#${id}">${t}</a></li>`).join("") +
   `</ol></div></div>`;
 
-function blocks(lines) {
+function blocks(lines, firstOpen = true) {
   const H = [], toc = [];
   let sec = false, afterH1 = false, title = "";
-  seenIds.clear();
   for (let i = 0; i < lines.length; i++) {
     const L = lines[i];
     if (/^```/.test(L)) {                                  // fenced block
@@ -92,7 +91,7 @@ function blocks(lines) {
       if (h[1].length === 2) {                             // h2 opens a native collapsible section
         if (sec) H.push("</details>");
         const id = slug(h[2]);
-        H.push(`<details class="gsec" id="${id}"${sec ? "" : " open"}><summary><h2>${t}</h2><span class="gcaret"></span></summary>`);
+        H.push(`<details class="gsec" id="${id}"${sec || !firstOpen ? "" : " open"}><summary><h2>${t}</h2><span class="gcaret"></span></summary>`);
         toc.push([id, t, 0]);
         sec = true;
       } else if (h[1].length === 3) {
@@ -195,9 +194,61 @@ function glossary(toc) {
     `</tbody></table></div></details>`;
 }
 
+function levelJourney(id, rows) {
+  const timeline = `<nav class="level-timeline" aria-label="${id} level timeline">` +
+    rows.map((r, n) => `<a href="#${id}-ll${n}" title="${esc(r.tip)}"><b>LL${n}</b><span>${esc(r.short)}</span></a>`).join("") + `</nav>`;
+  const levels = rows.map((r, n) => `<section class="level-entry" id="${id}-ll${n}" aria-labelledby="${id}-ll${n}-title">` +
+    `<h3 id="${id}-ll${n}-title">LL${n} · ${esc(r.title)}</h3>` +
+    `<div class="level-synopsis"><span>FIELD BRIEF / LL${n}</span><p>${esc(r.synopsis)}</p></div>` +
+    `<div class="level-detail"><h4>Loadout and unlocks</h4><p>${esc(r.detail)}</p></div>` +
+    `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`).join("\n");
+  return `<div class="level-journey"><h2>Level timeline</h2><p>Choose a level to jump to its field brief. Hover or focus a point for its unlock.</p>${timeline}${levels}</div>`;
+}
+
+const LEVELS = {
+  chomolungma: [
+    ["Starting relay", "Spotter I · Leader I · Drone Commander I", "Eight SP fill the sturdy Chomolungma. Rurik starts with ally-fed Lock On, Leadership Dice and Turret Drones, not Hacker.", "SYSTEMS 2; Main/Aux Hunter-Killer and Light Nexus, Flex two Missile Racks. Personalizations 1, Turret Drones 2, Jump Jets 2, Shield 2 and Paint 1 fill 8 SP. Drone Commander I strengthens and moves a turret.", "Mark the target your adjacent striker will attack. Spotter I doubles their roll when they consume Lock On. Deploy a turret where its line of sight can follow allied hits."],
+    ["Autopod online", "Goblin I · Autopod · Spotter II", "The loop gains its 3-damage Autopod reaction. A stationary marking turn can place a second Lock On at its end.", "SYSTEMS 3 and GRIT 1 give 9 SP. Install Autopod 1 in Main/Aux instead of Hunter-Killer, keep Light Nexus and both Flex Missile Racks. H0R_OS I unlocks but needs 2 SP not available in the unchanged load.", "Stay within Range 15 of the target. Lock On, stay still to use Panopticon, then let an ally consume one mark and spend your reaction on Autopod."],
+    ["Ally action", "Goblin II · Spotter III", "Goblin frame is now printable, but this tab keeps Chomolungma. Spotter III trades a quick action for an adjacent ally's immediate quick action.", "SYSTEMS 4, GRIT 1, SP 10. The 8-SP original systems plus Autopod cost 9; replace Paint 1 to fit H0R_OS I 2 if you want Puppet System and Eject Power Cores now. Goblin II also unlocks H0R_OS II and Metahook.", "Lock On, then use Bentham/Foucault with an adjacent striker. Their attack consumes the mark and can trigger your Autopod; a non-attack quick action does not."],
+    ["Third mount", "Goblin III · Leader II · Improved Armament", "Improved Armament adds a Flex mount, so the support hull can retain guns while mounting Autopod and tech.", "SYSTEMS 4, GRIT 2, SP 11. Original systems 8 + Autopod 1 + H0R_OS I 2 fit exactly. Main/Aux Autopod and Light Nexus, original Flex two Missile Racks, new Flex Hunter-Killer Nexus. Leader II grants five dice and reaction commands.", "Mark and hack with two quick actions; on an ally's turn choose whether Leader's command or another reaction earns more. Each turn permits only one reaction."],
+    ["Sensor kit", "Swallowtail I · Leader III", "Lotus Projector unlocks and Leader III gives the squad six dice with damage offense or defense.", "SYSTEMS 4, GRIT 2, SP 11. For Lotus Projector 2, remove a 2-SP system such as Jump Jets, Shield or Turret Drones from the LL3 load. Markerlight is another 2-SP Full Tech option, not a free mark.", "Deploy Lotus against hidden targets; spend Leadership Dice for an ally's decisive hit or incoming damage. Autopod still needs another character to consume Lock On."],
+    ["Frame option", "Swallowtail II · Skirmisher I", "Swallowtail becomes printable, but Chomolungma remains the safer chassis. Skirmisher I favors marking turns over Invades.", "SYSTEMS 4, GRIT 3, SP 12. The LL4 Lotus load uses 11 SP and leaves 1 spare; change systems at Full Repair if another tool matters more. Skirmisher grants soft cover at turn start, lost when you attack or force a save.", "Lock On without attacking to retain soft cover. An Invade is a tech attack and ends that cover; plan the turn's exposure."],
+    ["ATHENA relay", "Swallowtail III · Technophile I · Held Image", "ATHENA can create a lasting sensor zone. Held Image can mark at an ally's turn start, though it competes with Autopod for that turn's reaction.", "SYSTEMS 4, GRIT 3, SP 12. Keep Personalizations 1, Turret Drones 2, Paint 1, Autopod 1, H0R_OS I 2, Lotus 2 and ATHENA 3; remove Jump Jets and Shield. Technophile I's optional Servant AI cannot be installed with ATHENA yet.", "Place ATHENA's area where hostiles end turns. Use Held Image for a later ally's attack, or keep your reaction for Autopod when an ally consumes an existing mark."],
+  ],
+  goblin: [
+    ["Chomolungma start", "LL0 · no Goblin license", "Goblin is not printable yet. Start with the same 8-SP Chomolungma support kit and three shared talents.", "SYSTEMS 2. Main/Aux Hunter-Killer plus Light Nexus; Flex two Missile Racks. Personalizations, Turret Drones, Jump Jets, Shield and Paint use all 8 SP.", "Mark for the adjacent striker. Drone Commander I moves and toughens a turret; Leader I passes an Accuracy die."],
+    ["Autopod license", "Goblin I · Autopod · Spotter II", "Goblin I unlocks Autopod and H0R_OS I, not the Goblin frame. Use Chomolungma for one more level.", "SP 9: original 8 plus Autopod 1. Replace Hunter-Killer with Autopod on Main/Aux; keep Light Nexus and both Missile Racks. H0R_OS I waits or requires removing 2 SP.", "Mark, stay still for Spotter II's second mark, and spend your reaction when a striker consumes one."],
+    ["Print Goblin", "Goblin II · Spotter III", "Goblin arrives: stronger, longer-ranged tech attacks, but one Flex mount and a fragile 6-HP frame.", "SYSTEMS 4, GRIT 1, SP 11. Original 8-SP systems + Autopod 1 + H0R_OS I 2 fit. Only Flex carries Autopod, so no Nexuses or racks yet. H0R_OS II and Metahook also unlock but are not installed.", "Lock On within Sensors 20, but Autopod still reaches only 15. Put an adjacent striker to work via Spotter III; use Puppet System when forced movement matters."],
+    ["Second Flex", "Goblin III · Leader II · Improved Armament", "Improved Armament solves the single-mount squeeze, though it does not fix Goblin's HP or Heat Cap.", "SP 12. Original systems 8 + Autopod 1 + H0R_OS I 2 use 11. One Flex holds Autopod, new Flex holds two Missile Racks. Leader II grants five dice and reaction commands.", "Keep a line within 15 for Autopod and turret. Use Reactive Code when a hostile tech attack hits; it spends your reaction on that turn."],
+    ["Leadership peak", "Swallowtail I · Leader III", "Lotus Projector unlocks while Goblin remains the chosen hacker frame. Leader III adds damage and protection dice.", "SP 12. To fit Lotus 2 alongside the LL3 load using its 1 spare SP, remove a 1-SP system. Metahook's shared heat is dangerous on Heat Cap 4.", "Use Lotus to deny hiding and fire tech through Sensors 20. Do not expose the 6-HP hull just to land an Autopod reaction."],
+    ["Cover discipline", "Swallowtail II · Skirmisher I", "Swallowtail frame becomes an alternative, while Goblin gets soft cover on turns spent marking rather than attacking.", "SP 13. Drop Paint from original systems to fit Autopod 1, H0R_OS I 2 and Lotus 2 at 12 SP, leaving 1 spare. Two Flex mounts retain Autopod and racks.", "Lock On and remain behind cover. Invade drops Skirmisher's soft cover; Stabilize can restore all HP for 1 of Goblin's limited Repairs."],
+    ["ATHENA hacker", "Swallowtail III · Technophile I · Held Image", "ATHENA makes marks and reveals a zone, while Held Image grants a reaction mark at an ally's turn start.", "SP 13: Personalizations 1, Turret Drones 2, Jump Jets 2, Autopod 1, H0R_OS I 2, Lotus 2 and ATHENA 3. Remove Shield and Paint. Technophile I's Servant AI cannot coexist with ATHENA.", "Let ATHENA place marks; reserve a reaction for Autopod on a later turn. Symbiosis is a once-per-mission alternative when an ally can shelter the Goblin."],
+  ],
+  swallowtail: [
+    ["Chomolungma start", "LL0 · no Swallowtail license", "The scout frame is four license ranks away. Start on Chomolungma with the shared support talents.", "SYSTEMS 2, SP 8. Use the Hunter-Killer plus Light Nexus and two Missile Racks. Turret Drones, Jump Jets, Shield, Personalizations and Paint fill SP.", "Mark for adjacent allies; Spotter I improves their consuming attack, while the turret supports allied hits."],
+    ["Autopod begins", "Goblin I · Spotter II", "Autopod closes the ally-fed damage loop on Chomolungma; Swallowtail is not yet available.", "SP 9. Fit Autopod 1 instead of Hunter-Killer in Main/Aux; keep Light Nexus and two racks. Spotter II adds a stationary free Lock On at end of turn.", "Park inside 15, mark two targets if stationary, and let an ally consume one to trigger Autopod."],
+    ["Spotter action", "Goblin II · Spotter III", "Goblin becomes printable, but this route can continue in Chomolungma while awaiting Swallowtail.", "Chomolungma SP 10, or Goblin SP 11. Spotter III lets an adjacent ally act as a reaction after your Lock On and a further quick action.", "Offer the action to a striker; if their quick action attacks and consumes the mark, spend your Autopod reaction."],
+    ["More mounts", "Goblin III · Leader II · Improved Armament", "Both available frames gain a Flex mount; Swallowtail is still locked. Leader II expands reaction commands.", "Chomolungma SP 11, Goblin SP 12 with SYSTEMS 4 and GRIT 2. Choose frame and fit its mount budget; H0R_OS I is optional 2 SP.", "Coordinate marks and Leadership Dice, but one reaction per turn means a command can displace Autopod on that turn."],
+    ["Swallowtail gear", "Swallowtail I · Leader III", "Lotus Projector and Markerlight unlock now, but Swallowtail frame itself requires rank II.", "Chomolungma SP 11 or Goblin SP 12. Swap a 2-SP system for Lotus, or use Markerlight as a separate 2-SP Full Tech install. Leader III gives six dice.", "Scout hidden enemies with Lotus. Leader III's dice protect allies or add damage on hits."],
+    ["Print Swallowtail", "Swallowtail II · Skirmisher I", "Prophetic Scanners makes one target you Lock On Shredded each round. This is the frame's distinct payoff.", "SYSTEMS 4, GRIT 3, SP 11. Personalizations 1, Turret Drones 2, Jump Jets 2, Shield 2, Paint 1, Autopod 1, Lotus 2. Flex Autopod; Aux/Aux two Missile Racks; bonus Flex Hunter-Killer Nexus.", "Inflict Lock On to strip Armor and Resistance until target's next turn ends; allied attacks and Autopod benefit. Stay still for cloak, but Autopod reaction ends Invisibility."],
+    ["ATHENA scout", "Swallowtail III · Technophile I · Held Image", "ATHENA's area reveals enemies and auto-marks those ending a turn inside. Held Image can apply your own mark and Shred on an ally's turn.", "SP 11. Drop Shield and Paint; keep Personalizations 1, Turret Drones 2, Jump Jets 2, Autopod 1, Lotus 2 and ATHENA 3. Technophile I's Servant AI cannot be installed alongside ATHENA.", "Inflict Lock On yourself for Prophetic Scanners. ATHENA's automatic mark may not count as yours; ask GM. Held Image and Autopod both need your reaction, so sequence marks across turns."],
+  ]
+};
+for (const [id, rows] of Object.entries(LEVELS)) LEVELS[id] = rows.map(([title, short, synopsis, detail, play]) => ({ title, short, synopsis, detail, play, tip: `${short}: ${synopsis}` }));
+
 function render() {
   seenIds.clear(); /* ids are per-render, so the selftest can render twice and compare */
-  const { H, toc } = blocks(fs.readFileSync(SRC, "utf8").split("\n"));
+  const source = fs.readFileSync(SRC, "utf8");
+  const [chomolungma, goblin, swallowtail] = source.split(/(?=^## (?:Goblin|Swallowtail) Build$)/m);
+  if (!chomolungma || !goblin || !swallowtail) throw new Error("three frame sections required");
+  const chomo = blocks(chomolungma.split("\n"));
+  const gob = blocks(goblin.split("\n"), false);
+  const swallow = blocks(swallowtail.split("\n"), false);
+  const hero = chomo.H.shift();
+  const panels = [
+    ["chomolungma", "CHOMOLUNGMA", chomo], ["goblin", "GOBLIN", gob],
+    ["swallowtail", "SWALLOWTAIL", swallow]
+  ];
   const p = x => "../../" + x;
   return `<!doctype html>
 <html lang="en">
@@ -253,6 +304,27 @@ function render() {
 .guide .gcaret::before{content:"\\25B8"}
 .guide details.gsec[open] .gcaret::before{content:"\\25BE"}
 .guide abbr[title]{text-decoration:underline dotted;text-underline-offset:3px;cursor:help;border:0}
+.guide .build-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0;border-bottom:1px solid var(--line);padding-bottom:9px}
+.guide .build-tabs button{font:13px var(--mono);letter-spacing:.08em;padding:9px 12px;color:var(--text);background:var(--panel);border:1px solid var(--line);cursor:pointer}
+.guide .build-tabs button[aria-selected="true"]{color:var(--cyan);border-color:var(--cyan)}
+.guide .build-tabs button:focus-visible,.guide .level-timeline a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.guide .level-journey{margin:18px 0 28px}.guide .level-journey>h2{font:17px var(--mono);letter-spacing:.1em;color:var(--cyan)}
+.guide .level-timeline{display:grid;grid-template-columns:repeat(7,minmax(95px,1fr));gap:6px;overflow-x:auto;padding:12px 2px 18px;margin-bottom:8px}
+.guide .level-timeline a{min-height:70px;padding:10px;border:1px solid var(--line);background:var(--panel);text-decoration:none;color:var(--text)}
+.guide .level-timeline a:hover{border-color:var(--cyan);background:var(--holo-bg)}
+.guide .level-timeline b{display:block;color:var(--cyan);font:600 16px var(--mono)}
+.guide .level-timeline span{display:block;color:var(--text-soft);font:11px/1.35 var(--mono);margin-top:6px}
+.guide .level-entry{scroll-margin-top:15px;border-top:1px solid var(--line);padding:16px 0 22px}
+.guide .level-entry h3{margin:0 0 12px}
+.guide .level-synopsis,.guide .level-play{padding:15px 18px;border:1px solid var(--cyan);background:var(--holo-bg)}
+.guide .level-synopsis{border-left:5px solid var(--cyan)}
+.guide .level-play{border-color:var(--rust-light);border-left:5px solid var(--rust-light);background:var(--panel)}
+.guide .level-synopsis span,.guide .level-play span{font:11px var(--mono);letter-spacing:.16em;color:var(--cyan)}
+.guide .level-play span{color:var(--rust-light)}
+.guide .level-synopsis p,.guide .level-play p{margin:7px 0 0}
+.guide .level-detail{padding:12px 18px}.guide .level-detail h4{margin:0;font:13px var(--mono);color:var(--text)}
+.guide .level-detail p{margin:7px 0}
+[hidden]{display:none!important}
 </style>
 <script src="${p("offline.js")}"></script>
 <script src="${p("theme.js")}"></script>
@@ -267,15 +339,49 @@ ${chrome.nav("../../")}
 ${chrome.status("ACTIVE")}
 ${chrome.compactToggle()}
 </header>
-<main class="guide"><div class="columns"><div class="primary fill">${tooltips(H.join("\n"))}\n${glossary(toc)}</div>
-<aside class="aside fill">${tocNav(toc)}</aside></div></main>
+<main class="guide"><div class="columns"><div class="primary fill">${hero}
+<div class="build-tabs" role="tablist" aria-label="AVERNA frame builds">${panels.map(([id, label], i) => `<button type="button" role="tab" id="tab-${id}" aria-controls="panel-${id}" aria-selected="${!i}" tabindex="${i ? -1 : 0}" data-build="${id}">${label}</button>`).join("")}</div>
+${panels.map(([id, , section], i) => `<section role="tabpanel" id="panel-${id}" aria-labelledby="tab-${id}"${i ? " hidden" : ""}>${levelJourney(id, LEVELS[id])}${tooltips(section.H.join("\n"))}${i ? "" : glossary(section.toc)}</section>`).join("\n")}</div>
+<aside class="aside fill">${panels.map(([id, , section], i) => `<div class="build-rail" data-build="${id}"${i ? " hidden" : ""}>${tocNav(section.toc)}</div>`).join("")}</aside></div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
-<script>/* sections below the first start collapsed; a rail link must open the one it points into */
+<script>
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function showBuild(id, focus = false) {
+  tabs.forEach(tab => {
+    const active = tab.dataset.build === id;
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.getElementById("panel-" + tab.dataset.build).hidden = !active;
+    document.querySelector('.build-rail[data-build="' + tab.dataset.build + '"]').hidden = !active;
+    if (active && focus) tab.focus();
+  });
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener("click", () => showBuild(tab.dataset.build));
+  tab.addEventListener("keydown", e => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    e.preventDefault();
+    const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 :
+      (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+    showBuild(tabs[next].dataset.build, true);
+  });
+});
+function openAnchor() {
+  const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (!target) return;
+  const panel = target.closest('[role="tabpanel"]');
+  if (panel) showBuild(panel.id.slice(6));
+  const details = target.closest("details");
+  if (details) details.open = true;
+}
 document.querySelectorAll(".aside a[href^='#']").forEach(a => a.addEventListener("click", () => {
-  const t = document.getElementById(a.hash.slice(1));
-  if (t) { const d = t.closest("details"); if (d) d.open = true; }
-}));</script>
+  const target = document.getElementById(a.hash.slice(1));
+  if (target) { const details = target.closest("details"); if (details) details.open = true; }
+}));
+window.addEventListener("hashchange", openAnchor);
+openAnchor();
+</script>
 </body>
 </html>
 `;
@@ -294,6 +400,14 @@ if (process.argv.includes("--check")) {
   const page = render();
   assert.ok(/<script>[\s\S]*closest\("details"\)/.test(page),
     "a rail link must open the collapsed section it points into");
+  for (const id of ["chomolungma", "goblin", "swallowtail"]) {
+    assert.ok(page.includes(`id="panel-${id}"`) && page.includes(`id="tab-${id}"`), `missing ${id} tab`);
+    assert.equal(LEVELS[id].length, 7, `${id} needs LL0–LL6`);
+    for (let ll = 0; ll <= 6; ll++) {
+      assert.ok(page.includes(`href="#${id}-ll${ll}"`) && page.includes(`id="${id}-ll${ll}"`), `${id} LL${ll} timeline link`);
+      assert.ok(page.includes(`PLAY PATTERN / LL${ll}`) && page.includes(`FIELD BRIEF / LL${ll}`), `${id} LL${ll} panes`);
+    }
+  }
   assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
   const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));
   assert.ok(!unglossed.length, "every hovered term must appear in the glossary, missing: " + unglossed.join(", "));
