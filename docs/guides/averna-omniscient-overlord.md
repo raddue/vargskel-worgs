@@ -57,7 +57,7 @@ LOCK ON a target within Sensors 15 (quick action, no attack roll, never fails)
 ```
 
 **The systems that do the work:** **Autopod** (GOBLIN I, 1 SP) for the free 3 Kinetic · **H0R_OS
-System Upgrade I** (2 SP, at LL3) for Puppet System and Eject Power Cores · **Lotus Projector**
+System Upgrade I** (2 SP, installed at LL1) for Puppet System and Eject Power Cores · **Lotus Projector**
 (SWALLOWTAIL I) for sensor truth in a Burst 2 · **ATHENA-Class NHP** (SWALLOWTAIL III, 3 SP) for
 Simulacrum. The rest of the ranks are depth, and each has its own section below.
 
@@ -365,14 +365,13 @@ SP."*
 | Nexus (Hunter-Killer) · Nexus (Light) · Missile Rack ×2 | 0 | Weapons |
 | **Total** | **8** | no slack at LL0 |
 
-**Fitting Goblin I (Autopod 1 + H0R_OS I 2 = 3 SP):**
+**Fitting Goblin I at LL1 (Autopod 1 + H0R_OS I 2 = 3 SP):**
 
-- **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact. Replace the Main Hunter-Killer
-  Nexus in Main/Aux, retaining the Light Nexus; Flex keeps both Missile Racks.
-- **H0R_OS I fits at LL3** (budget 11 = 8 + 1 + 2). To take it at LL2, free 1 SP by removing
-  Custom Paint Job or another system. SYSTEMS 6 adds another SP at LL4.
-- **Keep the Type-3 Projected Shield.** It taxes only melee and ranged attacks, and tech attacks are
-  neither — 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
+- Remove **Custom Paint Job (1 SP)** and **Type-3 Projected Shield (2 SP)** from the LL0 load.
+  Keep Personalizations (1), Turret Drones (2) and Jump Jets (2); add Autopod (1) and H0R_OS I
+  (2). Total **8/9 SP**, leaving one spare. Removing Paint alone would leave 10/9 SP.
+- Replace the Main Hunter-Killer Nexus with Autopod in Main/Aux, retaining Light Nexus. Flex keeps
+  both Missile Racks. Puppet System and Eject Power Cores are available immediately at LL1.
 - **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options —
   II adds Quick Tech **Ideal Image** and **False Idol**, III adds Invade **Dimensional Emblems** and
   **Celestial Shackles**. Nothing in the data requires H0R_OS I to be installed for them to work.
@@ -449,7 +448,8 @@ a rule, not just a story:
 **Table consequences for AVERNA:**
 
 - **Structure and stress damage are cascade rolls.** The hull is not just an HP pool; it is the
-  containment system. Keep **Repairs** in the budget and keep the **Type-3 Projected Shield** online.
+  containment system. Keep **Repairs** in the budget; the LL1 H0R_OS load removes the
+  Type-3 Projected Shield.
 - **You cannot talent your way out of it.** AIs cannot benefit from talents, Cascade is not something
   Leadership Dice fix.
 - Decide the lance's answer **before** the drop, not while it is happening.
@@ -621,12 +621,12 @@ You pay with **6 HP**, **4 Heat Cap**, **2 Repairs**, +1 Difficulty on Hull chec
 | LL | Frame and ranks | SP and fielded systems | Mounts and play |
 |---|---|---|---|
 | **0** | Chomolungma; Drone Commander I, Spotter I, Leader I | 8: Personalizations 1, Turret Drones 2, Jump Jets 2, Type-3 Shield 2, Paint 1 | Main/Aux Hunter-Killer + Light Nexus; Flex two Missile Racks. Lock On for ally. |
-| **1** | Chomolungma; Goblin I, Spotter II | 9: same 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. Goblin I also unlocks H0R_OS I, but it does not fit yet. |
-| **2** | **Goblin unlocked**; Goblin II, Spotter III; SYSTEMS 4 | **11**: original 8 + Autopod 1 + H0R_OS I 2 | Only Flex: Autopod alone. No Nexus or Missile Racks on this frame yet. Spotter III feeds adjacent ally's attack, then Autopod reacts. H0R_OS I adds Puppet System and Eject Power Cores. |
-| **3** | Goblin III, Leader II, **Improved Armament**; GRIT 2 | **12**: original 8 + Autopod 1 + H0R_OS I 2 = 11, 1 SP spare | Original Flex Autopod; new Flex two Missile Racks. |
-| **4** | Swallowtail I, Leader III; SYSTEMS 6 | **13**: LL3 load uses 11; add Lotus Projector 2 for 13. Markerlight also unlocks as an alternate 2-SP system. | More sensor reach without cutting a system. |
-| **5** | Swallowtail II, Skirmisher I; AGILITY 1, GRIT 3 | **14**: LL4 load uses 13, 1 SP spare | Two Flex mounts unchanged. Lotus spots hidden targets. Skirmisher cover survives Lock On but ends on Invade. |
-| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **14**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3 = 13, 1 SP spare. Remove Shield and Paint. | ATHENA marks hostiles ending turns in its area. Held Image marks on an ally's turn; Autopod uses a separate reaction if available. Do not install the Technophile NHP alongside ATHENA at rank I: one AI system per mech. |
+| **1** | Chomolungma; Goblin I, Spotter II | **8/9**: remove Paint 1 and Shield 2; add Autopod 1 and H0R_OS I 2 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. Puppet System and Eject Power Cores available now. |
+| **2** | **Goblin unlocked**; Goblin II, Spotter III; SYSTEMS 4 | **8/11**: LL1 load unchanged, 3 SP spare | Only Flex: Autopod alone. No Nexus or Missile Racks on this frame yet. Spotter III feeds adjacent ally's attack, then Autopod reacts. |
+| **3** | Goblin III, Leader II, **Improved Armament**; SYSTEMS 5, GRIT 2 | **8/12**: LL1 load unchanged, 4 SP spare | Original Flex Autopod; new Flex two Missile Racks. |
+| **4** | Swallowtail I, Leader III; SYSTEMS 6 | **10/13**: LL1 load 8 + Lotus Projector 2, 3 SP spare. Markerlight also unlocks as an alternate 2-SP system. | More sensor reach without cutting a system. |
+| **5** | Swallowtail II, Skirmisher I; AGILITY 1, GRIT 3 | **10/14**: LL4 load unchanged, 4 SP spare | Two Flex mounts unchanged. Lotus spots hidden targets. Skirmisher cover survives Lock On but ends on Invade. |
+| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **13/14**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3. Shield and Paint remain off. | ATHENA marks hostiles ending turns in its area. Held Image marks on an ally's turn; Autopod uses a separate reaction if available. Do not install the Technophile NHP alongside ATHENA at rank I: one AI system per mech. |
 
 **HASE:** SYSTEMS 2 at LL0, then one SYSTEMS point each LL1–4, followed by AGILITY at LL5–6. Goblin's base 8 SP gives **11 at LL2**, **12 at LL3**, **13 at LL4**, and **14 at LL5–6**. AGILITY 2 adds 2 Evasion and 1 Speed; it does not add HP or Repairs. Its lower Heat Cap makes Shield heat and Symbiosis heat-sharing risky. Stabilize as a full action and spend 1 Repair to restore full HP, but lost Structure needs a rest.
 
@@ -647,12 +647,12 @@ Its base **6 HP, 4 Heat Cap, 6 SP** leave little margin. Tech Attack **+1**, Rep
 | LL | Frame and ranks | SP and fielded systems | Mounts and play |
 |---|---|---|---|
 | **0** | Chomolungma; Drone Commander I, Spotter I, Leader I | 8; see Chomolungma starting load | No Swallowtail license yet. |
-| **1** | Chomolungma; Goblin I, Spotter II | 9: starting 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. |
+| **1** | Chomolungma; Goblin I, Spotter II | **8/9**: remove Paint 1 and Shield 2; add Autopod 1 and H0R_OS I 2 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. |
 | **2** | Chomolungma or Goblin; Goblin II, Spotter III | Chomolungma 10; Goblin 11 | Goblin alternative is described in its tab. |
 | **3** | Same choice; Goblin III, Leader II, **Improved Armament** | Chomolungma 11; Goblin 12 | Extra Flex on either frame. |
 | **4** | Same choice; Swallowtail I, Leader III; SYSTEMS 6 | Chomolungma 12; Goblin 13 | Lotus Projector and Markerlight unlock now. Swallowtail frame does not. |
-| **5** | **Swallowtail unlocked**; Swallowtail II, Skirmisher I; SYSTEMS 6, AGILITY 1, GRIT 3 | **12**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Shield 2 + Paint 1 + Autopod 1 + Lotus 2 = 11, 1 SP spare | Flex Autopod; Aux/Aux two Missile Racks; Improved Armament Flex Hunter-Killer Nexus. Lock On Shreds, ally consumes for Autopod. |
-| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **12**: remove Paint 1 and Shield 2; Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + Lotus 2 + ATHENA 3 = 11, 1 SP spare | Same mounts. ATHENA creates a Blast 3 surveillance field within Range 50; enemies ending turns inside gain Lock On. Technophile I's optional AI cannot coexist with ATHENA yet. |
+| **5** | **Swallowtail unlocked**; Swallowtail II, Skirmisher I; SYSTEMS 6, AGILITY 1, GRIT 3 | **10/12**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2; Shield and Paint remain off | Flex Autopod; Aux/Aux two Missile Racks; Improved Armament Flex Hunter-Killer Nexus. Lock On Shreds, ally consumes for Autopod. |
+| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **11/12**: Personalizations 1 + Turret Drones 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3; Jump Jets come off, Shield and Paint remain off | Same mounts. ATHENA creates a Blast 3 surveillance field within Range 50; enemies ending turns inside gain Lock On. Technophile I's optional AI cannot coexist with ATHENA yet. |
 
 **SP:** Swallowtail base 6 + 3 from SYSTEMS 6 + 3 GRIT = **12 at LL5–6**. Weapons cost 0 SP except Autopod's 1. It has a Flex and an Aux/Aux mount before the LL3 bonus; Improved Armament adds a second Flex. The Main Autopod cannot fit Aux/Aux. If you would rather retain the Light Nexus instead of two Missile Racks, fit Light Nexus in Aux/Aux and leave the other Aux empty, or rearrange both Auxiliary weapons there. The listed load favors launcher coverage and Turret Drone support.
 
