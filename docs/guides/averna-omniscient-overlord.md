@@ -34,6 +34,10 @@ spend your Autopod reaction when an ally attacks and consumes the mark.
 | **LL5** | **SWALLOWTAIL II** | **Skirmisher I** | |
 | **LL6** | **SWALLOWTAIL III** | **Technophile I** | **The Lesson of the Held Image** |
 
+**HASE path:** H0/A0/S2/E0 at LL0; add SYSTEMS at LL1–4, then AGILITY at LL5–6.
+Final H0/A2/S6/E0 gives +2 Evasion, +1 Speed, and one more SP than SYSTEMS 4.
+Each frame's base stats still differ.
+
 The licenses are three ranks each. Goblin frame unlocks at Goblin II (LL2), Swallowtail at
 Swallowtail II (LL5). Skirmisher I at LL5 grants soft cover at turn start until you attack or force
 a save; Lock On retains it, Invade does not. Technophile I at LL6 is a story and future-growth
@@ -324,8 +328,8 @@ but **GRIT is not a per-level gain**: it is **half your LL, rounded up**, so it 
 **LL1, LL3, LL5** (and flat at LL2, LL4, LL6).
 
 - **Push SYSTEMS.** Each point is **+1 Tech Attack** on Invades and **+1 E-Defense**, plus
-  **+1 SP per two points**. Smart weapons use E-Defense but attack with GRIT, not Tech Attack. AVERNA runs SYSTEMS 2 now; SYSTEMS 4 or 6 makes her
-  the hardest mech in the lance to hack and the most accurate one in it.
+  **+1 SP per two points**. Smart weapons use E-Defense but attack with GRIT, not Tech Attack.
+  AVERNA runs SYSTEMS 2 now and reaches SYSTEMS 6 at LL4 for stronger hacks and one more SP.
 - **HULL only for HP** (+2 HP per point, **+1 Repair Cap per two points**). Worth considering on a 10 HP
   frame, but every point of HULL is a point not spent on the build's spine.
 - **GRIT is not a mech skill.** GRIT is **half your LL rounded up** (first point at **LL1**), and the
@@ -344,7 +348,10 @@ SP."*
 | **LL0** | 2 | 0 | **8** | 7 frame + 1 from SYSTEMS |
 | **LL1** | 3 | 1 | **9** | GRIT starts paying into the budget |
 | **LL2** | 4 | 1 | **10** | second SYSTEMS point lands |
-| **LL3** | 4 | 2 | **11** | H0R_OS I fits with no further cuts |
+| **LL3** | 5 | 2 | **11** | SYSTEMS 5 improves Tech Attack; no new SP yet |
+| **LL4** | 6 | 2 | **12** | SYSTEMS 6 adds one SP |
+| **LL5** | 6 | 3 | **13** | AGILITY 1, GRIT adds SP |
+| **LL6** | 6 | 3 | **13** | AGILITY 2 adds Speed, not SP |
 
 **Current load — 8 SP, exactly the budget:**
 
@@ -363,7 +370,7 @@ SP."*
 - **Autopod fits at LL1.** Budget 9; load 8 + 1 = 9, exact. Replace the Main Hunter-Killer
   Nexus in Main/Aux, retaining the Light Nexus; Flex keeps both Missile Racks.
 - **H0R_OS I fits at LL3** (budget 11 = 8 + 1 + 2). To take it at LL2, free 1 SP by removing
-  Custom Paint Job or another system.
+  Custom Paint Job or another system. SYSTEMS 6 adds another SP at LL4.
 - **Keep the Type-3 Projected Shield.** It taxes only melee and ranged attacks, and tech attacks are
   neither — 1 Heat to make a shooter's life hard is cheap insurance on a 10 HP frame.
 - **H0R_OS II and III are not upgrades of I.** Each is a separate **2 SP** system with its own options —
@@ -617,11 +624,11 @@ You pay with **6 HP**, **4 Heat Cap**, **2 Repairs**, +1 Difficulty on Hull chec
 | **1** | Chomolungma; Goblin I, Spotter II | 9: same 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. Goblin I also unlocks H0R_OS I, but it does not fit yet. |
 | **2** | **Goblin unlocked**; Goblin II, Spotter III; SYSTEMS 4 | **11**: original 8 + Autopod 1 + H0R_OS I 2 | Only Flex: Autopod alone. No Nexus or Missile Racks on this frame yet. Spotter III feeds adjacent ally's attack, then Autopod reacts. H0R_OS I adds Puppet System and Eject Power Cores. |
 | **3** | Goblin III, Leader II, **Improved Armament**; GRIT 2 | **12**: original 8 + Autopod 1 + H0R_OS I 2 = 11, 1 SP spare | Original Flex Autopod; new Flex two Missile Racks. |
-| **4** | Swallowtail I, Leader III | **12**: same load as LL3 | Lotus and Markerlight unlock; to install a 2-SP option, remove a 1-SP system or replace another 2-SP system. |
-| **5** | Swallowtail II, Skirmisher I; GRIT 3 | **13**: remove Paint; original 7 + Autopod 1 + H0R_OS I 2 + Lotus Projector 2 = 12, 1 SP spare | Two Flex mounts unchanged. Lotus spots hidden targets. Skirmisher cover survives Lock On but ends on Invade. |
-| **6** | Swallowtail III, Technophile I, **Held Image** | **13**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3 = 13. Remove Shield and Paint. | ATHENA marks hostiles ending turns in its area. Held Image marks on an ally's turn; Autopod uses a separate reaction if available. Do not install the Technophile NHP alongside ATHENA at rank I: one AI system per mech. |
+| **4** | Swallowtail I, Leader III; SYSTEMS 6 | **13**: LL3 load uses 11; add Lotus Projector 2 for 13. Markerlight also unlocks as an alternate 2-SP system. | More sensor reach without cutting a system. |
+| **5** | Swallowtail II, Skirmisher I; AGILITY 1, GRIT 3 | **14**: LL4 load uses 13, 1 SP spare | Two Flex mounts unchanged. Lotus spots hidden targets. Skirmisher cover survives Lock On but ends on Invade. |
+| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **14**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + H0R_OS I 2 + Lotus 2 + ATHENA 3 = 13, 1 SP spare. Remove Shield and Paint. | ATHENA marks hostiles ending turns in its area. Held Image marks on an ally's turn; Autopod uses a separate reaction if available. Do not install the Technophile NHP alongside ATHENA at rank I: one AI system per mech. |
 
-**HASE:** SYSTEMS 2 at LL0, then 3 at LL1 and 4 at LL2. The remaining LL3–6 points may go to HULL for HP and Repair Cap; the SP figures above hold SYSTEMS at 4. Goblin's base 8 SP gives **11 at LL2**, **12 at LL3–4**, **13 at LL5–6**. Its lower Heat Cap makes Shield heat and Symbiosis heat-sharing risky. Stabilize as a full action and spend 1 Repair to restore full HP, but lost Structure needs a rest.
+**HASE:** SYSTEMS 2 at LL0, then one SYSTEMS point each LL1–4, followed by AGILITY at LL5–6. Goblin's base 8 SP gives **11 at LL2**, **12 at LL3**, **13 at LL4**, and **14 at LL5–6**. AGILITY 2 adds 2 Evasion and 1 Speed; it does not add HP or Repairs. Its lower Heat Cap makes Shield heat and Symbiosis heat-sharing risky. Stabilize as a full action and spend 1 Repair to restore full HP, but lost Structure needs a rest.
 
 **New Goblin II tools:** H0R_OS II (2 SP) makes Ideal Image, an adjacent Size 2 hard-cover obstruction, or False Idol, a decoy within Sensors that forces a Systems save before hostile action against its original. These are Quick Tech, **not Invade options**. Metahook (2 SP) lets you use a linked ally's Sensors and line of sight for tech actions, but each shares the other's heat and conditions. Swap either into the load by cutting equal SP. Goblin III also unlocks H0R_OS III and OSIRIS; neither is assumed installed. OSIRIS and ATHENA cannot share the single AI slot.
 
@@ -643,11 +650,11 @@ Its base **6 HP, 4 Heat Cap, 6 SP** leave little margin. Tech Attack **+1**, Rep
 | **1** | Chomolungma; Goblin I, Spotter II | 9: starting 8 + Autopod 1 | Main/Aux Autopod + Light Nexus; Flex two Missile Racks. |
 | **2** | Chomolungma or Goblin; Goblin II, Spotter III | Chomolungma 10; Goblin 11 | Goblin alternative is described in its tab. |
 | **3** | Same choice; Goblin III, Leader II, **Improved Armament** | Chomolungma 11; Goblin 12 | Extra Flex on either frame. |
-| **4** | Same choice; Swallowtail I, Leader III | Chomolungma 11; Goblin 12 | Lotus Projector and Markerlight unlock now. Swallowtail frame does not. |
-| **5** | **Swallowtail unlocked**; Swallowtail II, Skirmisher I; SYSTEMS 4, GRIT 3 | **11**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Shield 2 + Paint 1 + Autopod 1 + Lotus 2 | Flex Autopod; Aux/Aux two Missile Racks; Improved Armament Flex Hunter-Killer Nexus. Lock On Shreds, ally consumes for Autopod. |
-| **6** | Swallowtail III, Technophile I, **Held Image** | **11**: remove Paint 1 and Shield 2; Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + Lotus 2 + ATHENA 3 | Same mounts. ATHENA creates a Blast 3 surveillance field within Range 50; enemies ending turns inside gain Lock On. Technophile I's optional AI cannot coexist with ATHENA yet. |
+| **4** | Same choice; Swallowtail I, Leader III; SYSTEMS 6 | Chomolungma 12; Goblin 13 | Lotus Projector and Markerlight unlock now. Swallowtail frame does not. |
+| **5** | **Swallowtail unlocked**; Swallowtail II, Skirmisher I; SYSTEMS 6, AGILITY 1, GRIT 3 | **12**: Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Shield 2 + Paint 1 + Autopod 1 + Lotus 2 = 11, 1 SP spare | Flex Autopod; Aux/Aux two Missile Racks; Improved Armament Flex Hunter-Killer Nexus. Lock On Shreds, ally consumes for Autopod. |
+| **6** | Swallowtail III, Technophile I, **Held Image**; AGILITY 2 | **12**: remove Paint 1 and Shield 2; Personalizations 1 + Turret Drones 2 + Jump Jets 2 + Autopod 1 + Lotus 2 + ATHENA 3 = 11, 1 SP spare | Same mounts. ATHENA creates a Blast 3 surveillance field within Range 50; enemies ending turns inside gain Lock On. Technophile I's optional AI cannot coexist with ATHENA yet. |
 
-**SP:** Swallowtail base 6 + 2 from SYSTEMS 4 + 3 GRIT = **11 at LL5–6**. Weapons cost 0 SP except Autopod's 1. It has a Flex and an Aux/Aux mount before the LL3 bonus; Improved Armament adds a second Flex. The Main Autopod cannot fit Aux/Aux. If you would rather retain the Light Nexus instead of two Missile Racks, fit Light Nexus in Aux/Aux and leave the other Aux empty, or rearrange both Auxiliary weapons there. The listed load favors launcher coverage and Turret Drone support.
+**SP:** Swallowtail base 6 + 3 from SYSTEMS 6 + 3 GRIT = **12 at LL5–6**. Weapons cost 0 SP except Autopod's 1. It has a Flex and an Aux/Aux mount before the LL3 bonus; Improved Armament adds a second Flex. The Main Autopod cannot fit Aux/Aux. If you would rather retain the Light Nexus instead of two Missile Racks, fit Light Nexus in Aux/Aux and leave the other Aux empty, or rearrange both Auxiliary weapons there. The listed load favors launcher coverage and Turret Drone support.
 
 **Reaction timing:** Held Image triggers at start of an ally's turn and Autopod triggers when another character attacks and consumes Lock On. One reaction **per turn**: if that same ally immediately attacks and consumes your new mark, you cannot fire Autopod on that turn. Mark on one ally's turn for a later ally to consume, or use a mark placed on your own turn. Spotter III's adjacent ally spends **their** reaction, while Autopod spends **yours**. Leader II's command also competes for your reaction on that turn. Prophetic Scanners works when Swallowtail itself inflicts Lock On, including Held Image; it does not apply from ATHENA's automatic Lock On unless GM rules that ATHENA's field counts as the Swallowtail inflicting it.
 
