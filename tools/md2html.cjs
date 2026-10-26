@@ -195,7 +195,7 @@ function levelJourney(id, rows) {
     `<div class="level-synopsis"><span>LICENSE / TALENT / CORE</span><p>${esc(r.license)} · ${esc(r.talent)} · ${esc(r.core)}</p></div>` +
     `<div class="level-detail"><h4>HASE</h4><p class="hase-line">${esc(r.hase)}</p>` +
     `<h4>Installed systems and weapon SP (${r.used}/${r.sp})</h4><ul>${r.installed.map(item => `<li>${esc(item)}</li>`).join("")}</ul>` +
-    `<h4>Mounts</h4><p>${esc(r.weapon)}</p></div>` +
+    `<h4>Mounts</h4><ul>${r.weapon.split("; ").map(m => `<li>${esc(m)}</li>`).join("")}</ul></div>` +
     `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`).join("\n");
   return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2><p>Each level is a complete print. The license, talent, HASE, core bonus, systems, mounts and play pattern belong to this tab only.</p>${timeline}${levels}</div>`;
 }
