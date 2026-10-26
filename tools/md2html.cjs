@@ -34,14 +34,6 @@ const slug = s => {
   return id;
 };
 
-/* Contents rail: the site's own sidebar pattern (section-head + card) so it sits on the
-   right the way every other page's aside does. */
-const tocNav = toc => !toc.length ? "" :
-  `<div class="section-head"><h2>SECTIONS</h2><span>BUILD GUIDE</span></div>` +
-  `<div class="card"><div class="card-pad gtoc"><ol>` +
-  toc.map(([id, t, lvl]) => `<li${lvl ? ' class="sub"' : ""}><a href="#${id}">${t}</a></li>`).join("") +
-  `</ol></div></div>`;
-
 function blocks(lines, firstOpen = true) {
   const H = [], toc = [];
   let sec = false, afterH1 = false, title = "";
@@ -246,7 +238,6 @@ function render() {
 /* prose layer: the site ships component classes only, so a doc page brings its own type scale */
 .guide{max-width:1180px}
 .guide .columns>.primary{min-width:0}
-.guide .columns>.aside{position:sticky;top:18px;align-self:flex-start}
 .guide h1{font:500 clamp(30px,4.4vw,52px)/1.05 var(--mono);letter-spacing:-.04em;margin:16px 0 8px}
 .guide .lede{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 22px}
 .guide h3{font:15px var(--mono);letter-spacing:.12em;color:var(--cyan);margin:24px 0 9px}
@@ -261,10 +252,6 @@ function render() {
 .guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
 .guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
 .guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
-.guide .gtoc ol{margin:0;padding:0;list-style:none}
-.guide .gtoc li{font:13px var(--mono);margin:0 0 6px;color:var(--text)}
-.guide .gtoc li.sub{padding-left:15px;color:var(--muted)}
-.guide .gtoc a:hover,.guide .gtoc a:focus-visible{color:var(--cyan)}
 .guide details.gsec{border-top:1px solid var(--line);padding:0}
 .guide details.gsec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 4px}
 .guide details.gsec>summary::-webkit-details-marker{display:none}
@@ -281,7 +268,7 @@ function render() {
 .guide .build-tabs button[aria-selected="true"]{color:var(--cyan);border-color:var(--cyan)}
 .guide .build-tabs button:focus-visible,.guide .level-timeline a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .guide .level-journey{margin:18px 0 28px}.guide .level-journey>h2{font:17px var(--mono);letter-spacing:.1em;color:var(--cyan)}
-.guide .level-timeline{display:grid;grid-template-columns:repeat(13,minmax(95px,1fr));gap:6px;overflow-x:auto;padding:12px 2px 18px;margin-bottom:8px}
+.guide .level-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:6px;padding:12px 2px 18px;margin-bottom:8px}
 .guide .level-timeline a{min-height:70px;padding:10px;border:1px solid var(--line);background:var(--panel);text-decoration:none;color:var(--text)}
 .guide .level-timeline a:hover{border-color:var(--cyan);background:var(--holo-bg)}
 .guide .level-timeline b{display:block;color:var(--cyan);font:600 16px var(--mono)}
@@ -316,7 +303,7 @@ ${chrome.compactToggle()}
 <main class="guide"><div class="columns"><div class="primary fill">${hero}
 <div class="build-tabs" role="tablist" aria-label="AVERNA frame builds">${panels.map(([id, label], i) => `<button type="button" role="tab" id="tab-${id}" aria-controls="panel-${id}" aria-selected="${!i}" tabindex="${i ? -1 : 0}" data-build="${id}">${label}</button>`).join("")}</div>
 ${panels.map(([id, , section], i) => `<section role="tabpanel" id="panel-${id}" aria-labelledby="tab-${id}"${i ? " hidden" : ""}>${levelJourney(id, LEVELS[id])}${tooltips(section.H.join("\n"))}${i ? "" : glossary(section.toc)}</section>`).join("\n")}</div>
-<aside class="aside fill">${panels.map(([id, , section], i) => `<div class="build-rail" data-build="${id}"${i ? " hidden" : ""}>${tocNav(section.toc)}</div>`).join("")}</aside></div></main>
+</div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
 <script>
@@ -327,7 +314,6 @@ function showBuild(id, focus = false) {
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
     document.getElementById("panel-" + tab.dataset.build).hidden = !active;
-    document.querySelector('.build-rail[data-build="' + tab.dataset.build + '"]').hidden = !active;
     if (active && focus) tab.focus();
   });
 }
@@ -349,10 +335,6 @@ function openAnchor() {
   const details = target.closest("details");
   if (details) details.open = true;
 }
-document.querySelectorAll(".aside a[href^='#']").forEach(a => a.addEventListener("click", () => {
-  const target = document.getElementById(a.hash.slice(1));
-  if (target) { const details = target.closest("details"); if (details) details.open = true; }
-}));
 window.addEventListener("hashchange", openAnchor);
 openAnchor();
 </script>
