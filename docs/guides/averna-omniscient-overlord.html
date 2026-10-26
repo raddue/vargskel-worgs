@@ -22,7 +22,6 @@
 /* prose layer: the site ships component classes only, so a doc page brings its own type scale */
 .guide{max-width:1180px}
 .guide .columns>.primary{min-width:0}
-.guide .columns>.aside{position:sticky;top:18px;align-self:flex-start}
 .guide h1{font:500 clamp(30px,4.4vw,52px)/1.05 var(--mono);letter-spacing:-.04em;margin:16px 0 8px}
 .guide .lede{font:13px var(--mono);letter-spacing:.14em;color:var(--cyan);margin:0 0 22px}
 .guide h3{font:15px var(--mono);letter-spacing:.12em;color:var(--cyan);margin:24px 0 9px}
@@ -37,10 +36,6 @@
 .guide .tbl{overflow-x:auto;margin:0 0 18px;background:var(--panel);border:1px solid var(--line);padding:15px}
 .guide blockquote.report{margin:0 0 18px;font:14px/1.65 var(--sans)}
 .guide hr{border:0;border-top:1px solid var(--line);margin:28px 0}
-.guide .gtoc ol{margin:0;padding:0;list-style:none}
-.guide .gtoc li{font:13px var(--mono);margin:0 0 6px;color:var(--text)}
-.guide .gtoc li.sub{padding-left:15px;color:var(--muted)}
-.guide .gtoc a:hover,.guide .gtoc a:focus-visible{color:var(--cyan)}
 .guide details.gsec{border-top:1px solid var(--line);padding:0}
 .guide details.gsec>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 4px}
 .guide details.gsec>summary::-webkit-details-marker{display:none}
@@ -57,7 +52,7 @@
 .guide .build-tabs button[aria-selected="true"]{color:var(--cyan);border-color:var(--cyan)}
 .guide .build-tabs button:focus-visible,.guide .level-timeline a:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .guide .level-journey{margin:18px 0 28px}.guide .level-journey>h2{font:17px var(--mono);letter-spacing:.1em;color:var(--cyan)}
-.guide .level-timeline{display:grid;grid-template-columns:repeat(13,minmax(95px,1fr));gap:6px;overflow-x:auto;padding:12px 2px 18px;margin-bottom:8px}
+.guide .level-timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:6px;padding:12px 2px 18px;margin-bottom:8px}
 .guide .level-timeline a{min-height:70px;padding:10px;border:1px solid var(--line);background:var(--panel);text-decoration:none;color:var(--text)}
 .guide .level-timeline a:hover{border-color:var(--cyan);background:var(--holo-bg)}
 .guide .level-timeline b{display:block;color:var(--cyan);font:600 16px var(--mono)}
@@ -152,7 +147,7 @@
 <section class="level-entry" id="swallowtail-ll12" aria-labelledby="swallowtail-ll12-title"><h3 id="swallowtail-ll12-title">LL12 · SSC Swallowtail</h3><div class="level-synopsis"><span>LICENSE / TALENT / CORE</span><p>Lich II · Sysop I · The Lesson of the Open Door</p></div><div class="level-detail"><h4>HASE</h4><p class="hase-line">H4 / A4 / S6 / E0</p><h4>Installed systems and weapon SP (15/15)</h4><ul><li>Lotus Projector 2</li><li>ATHENA-Class NHP 3</li><li>Shahnameh 3</li><li>H0R_OS System Upgrade I 2</li><li>Omnibus Plate 1</li><li>Wandering Nightmare 1</li><li>Unhinge Chronology 2</li><li>Autopod 1</li></ul><h4>Mounts</h4><p>Flex: Autopod; Aux/Aux: two Missile Racks; bonus Flex: Hunter-Killer Nexus</p></div><div class="level-play"><span>PLAY PATTERN / LL12</span><p>Unhinge Chronology grants movement support; Open Door sharpens your save effects. Keep the Lock On/Shredded target inside Autopod 15.</p></div></section></div><details class="gsec" id="swallowtail-build"><summary><h2>Swallowtail Build</h2><span class="gcaret"></span></summary>
 <p>The scout tab prints original Swallowtail at LL3 after Goblin I and Swallowtail I–II. This gets <abbr title="GOBLIN I weapon (1 SP, Main Launcher, Seeking, Unique, Range 15, 3 Kinetic). It makes no attack roll; it grants the Autonomous Assault reaction.">Autopod</abbr> at LL1 and the <abbr title="Does not benefit from Armor or Resistance.">Shredded</abbr> frame trait as early as LL3. <abbr title="A hostile character can consume it for +1 Accuracy on their next attack against this character.">Lock On</abbr> from its own quick tech is reliable; neither a teammate's mark nor ATHENA's passive marking should be assumed to trigger Prophetic Scanners without a GM ruling. ATHENA costs 3 SP and occupies the <abbr title="One AI system per mech. AIs cannot benefit from talents, and have a small chance of cascading when they take structure or stress damage.">AI</abbr> slot. Full Subjectivity Sync adds 2 <abbr title="How hard this mech is to hit with ranged and melee attacks.">Evasion</abbr> at LL6, while House Guard I lets the scout keep the adjacent-ally Spotter benefit within Range 2, if the GM applies its adjacency wording to Spotter I. The path retains the 15-space <abbr title="GOBLIN I weapon (1 SP, Main Launcher, Seeking, Unique, Range 15, 3 Kinetic). It makes no attack roll; it grants the Autonomous Assault reaction.">Autopod</abbr> reach despite <abbr title="Your mech's sensor range: the reach of tech actions, Lock On and most systems.">Sensors</abbr> 20.</p>
 </details></section></div>
-<aside class="aside fill"><div class="build-rail" data-build="chomolungma"><div class="section-head"><h2>SECTIONS</h2><span>BUILD GUIDE</span></div><div class="card"><div class="card-pad gtoc"><ol><li><a href="#quick-guide">Quick Guide</a></li><li class="sub"><a href="#choose-a-route">Choose a route</a></li><li class="sub"><a href="#why-replace-hacker-i">Why replace Hacker I?</a></li><li class="sub"><a href="#lock-on-and-reactions">Lock On and reactions</a></li><li class="sub"><a href="#equipment-limits">Equipment limits</a></li><li class="sub"><a href="#other-frames-ranked">Other frames, ranked</a></li><li class="sub"><a href="#sources-and-scope">Sources and scope</a></li><li><a href="#glossary">Glossary</a></li></ol></div></div></div><div class="build-rail" data-build="goblin" hidden><div class="section-head"><h2>SECTIONS</h2><span>BUILD GUIDE</span></div><div class="card"><div class="card-pad gtoc"><ol><li><a href="#goblin-build">Goblin Build</a></li></ol></div></div></div><div class="build-rail" data-build="swallowtail" hidden><div class="section-head"><h2>SECTIONS</h2><span>BUILD GUIDE</span></div><div class="card"><div class="card-pad gtoc"><ol><li><a href="#swallowtail-build">Swallowtail Build</a></li></ol></div></div></div></aside></div></main>
+</div></main>
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
 <script>
@@ -163,7 +158,6 @@ function showBuild(id, focus = false) {
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
     document.getElementById("panel-" + tab.dataset.build).hidden = !active;
-    document.querySelector('.build-rail[data-build="' + tab.dataset.build + '"]').hidden = !active;
     if (active && focus) tab.focus();
   });
 }
@@ -185,10 +179,6 @@ function openAnchor() {
   const details = target.closest("details");
   if (details) details.open = true;
 }
-document.querySelectorAll(".aside a[href^='#']").forEach(a => a.addEventListener("click", () => {
-  const target = document.getElementById(a.hash.slice(1));
-  if (target) { const details = target.closest("details"); if (details) details.open = true; }
-}));
 window.addEventListener("hashchange", openAnchor);
 openAnchor();
 </script>
