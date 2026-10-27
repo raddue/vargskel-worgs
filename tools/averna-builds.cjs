@@ -4,8 +4,8 @@ const relay = ['Personalizations 1', 'Turret Drones 2', 'Rapid Burst Jump Jet Sy
 const chomoLL3 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Autopod 1','OSIRIS-Class NHP 3'];
 const chomoLL4 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','Custom Paint Job 1'];
 const chomoLL5 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3'];
-const chomoLL6 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','ATHENA-Class NHP 3'];
-const chomoLL7 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2',"Dominion's Breadth 2",'OSIRIS-Class NHP 3','ATHENA-Class NHP 3'];
+const chomoLL6 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','ATHENA-Class NHP 3','Enlightenment-Class NHP 0'];
+const chomoLL7 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2',"Dominion's Breadth 2",'OSIRIS-Class NHP 3','ATHENA-Class NHP 3','Enlightenment-Class NHP 0'];
 const chomoLL9 = [...chomoLL7,'Blackspot Targeting Laser 1'];
 const chomoLL10 = chomoLL9.map(item => item === 'Lotus Projector 2' ? 'Unhinge Chronology 2' : item);
 const systems = {
@@ -66,7 +66,7 @@ const paths = {
       'Replace Turret Drones with OSIRIS and replace Servant. Improved Armament adds a Flex to restore both Missile Racks.',
       'Swap H0R_OS II for Lotus Projector; Paint Job fills the spare SP. Keep Jump Jets and both weapon groups.',
       'Drop Paint Job and reinstall H0R_OS II. Retractable Profile remains unlocked but uninstalled.',
-      'Drop H0R_OS II and Personalizations for ATHENA. Lesson of Shaping lets it coexist with OSIRIS.',
+      'Drop H0R_OS II and Personalizations for ATHENA. Lesson of Shaping lets it coexist with OSIRIS; Technophile III replaces Student with the 0-SP Enlightenment NHP, which does not count against the AI limit.',
       'Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex. House Guard is deferred for Skirmisher I.',
       'Kidd I unlocks Blackspot but it waits for LL9 SP. Keep the LL7 loadout and mounts.',
       'Blackspot replaces Assault Rifle. Integrated Weapon adds a free Light Nexus shot once per round when another weapon fires; keep the rack pair.',

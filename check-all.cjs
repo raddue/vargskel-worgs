@@ -276,8 +276,9 @@ chomoLevels.forEach((level, ll) => {
     problems.push(`guide: LL${ll} license or SP is invalid`);
   const ranks = [...level.trigger.matchAll(/\+(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
   if (ranks !== 8 + 2 * ll) problems.push(`guide: LL${ll} trigger points are invalid`);
-  if (level.installed.filter(item => /Class NHP/.test(item)).length !== (ll >= 6 ? 2 : 1))
-    problems.push(`guide: LL${ll} AI count is invalid`);
+  const nhps = level.installed.filter(item => /Class NHP/.test(item));
+  if (nhps.length !== (ll >= 6 ? 3 : 1) || (ll >= 6 && !nhps.includes("Enlightenment-Class NHP 0")))
+    problems.push(`guide: LL${ll} NHP print is invalid`);
 });
 if (navPages.includes(guideRel)) {
   const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");
