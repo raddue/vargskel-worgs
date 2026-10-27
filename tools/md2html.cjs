@@ -191,7 +191,11 @@ const abilityGroups = require("./averna-abilities.cjs");
 function abilityPanel(row, ll, talents) {
   const ranks = [...talents].map(([name, value]) => [name, value.slice(name.length + 1)]);
   const groups = abilityGroups(row, ll, ranks);
-  return `<details class="level-abilities"><summary>Abilities <span aria-hidden="true">▸</span></summary><div class="ability-groups">` +
+  const stats = groups.Passives[0][1];
+  const speed = stats.match(/Speed (\d+)/)[1];
+  const bonuses = groups.Passives[1][1];
+  return `<details class="level-abilities"><summary>Abilities <span aria-hidden="true">▸</span></summary>` +
+    `<div class="ability-glance">SPEED ${speed} · TECH ${bonuses.match(/tech attacks (\+\d+)/)[1]} · WEAPON ${bonuses.match(/Weapon attacks (\+\d+)/)[1]} · SENSORS 15</div><div class="ability-groups">` +
     Object.entries(groups).map(([name, cards]) => `<section><h4>${esc(name)}</h4><div class="ability-cards">` +
       cards.map(([title, detail]) => `<article><strong>${esc(title)}</strong><p>${esc(detail)}</p></article>`).join('') +
       `</div></section>`).join('') + `</div></details>`;
@@ -309,6 +313,7 @@ function render() {
 .guide .level-abilities>summary::-webkit-details-marker{display:none}.guide .level-abilities>summary::marker{content:""}
 .guide .level-abilities>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .guide .level-abilities[open]>summary span{transform:rotate(90deg)}
+.guide .ability-glance{padding:10px 14px;color:var(--lime);font:12px/1.6 var(--mono);border-top:1px solid var(--line);overflow-wrap:anywhere}
 .guide .ability-groups{padding:4px 14px 16px;display:grid;gap:18px}
 .guide .ability-groups h4{margin:0 0 8px;color:var(--lime);font:12px var(--mono);letter-spacing:.12em}
 .guide .ability-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px}
@@ -401,6 +406,10 @@ if (process.argv.includes("--check")) {
     for (const label of ['Quick actions', 'Full actions', 'Reactions', 'On foot', 'Weapons', 'Passives'])
       assert.ok(section.includes(label), `LL${ll} missing ${label}`);
     assert.ok(!/<details class="level-abilities" open/.test(section), `LL${ll} abilities must start closed`);
+    const stats = section.match(/<div class="ability-glance">SPEED (\d+) · TECH \+(\d+) · WEAPON \+(\d+) · SENSORS 15<\/div>/);
+    assert.ok(stats, `LL${ll} missing glance stats`);
+    assert.ok(section.includes(`Boost</strong><p>Move ${stats[1]} spaces`), `LL${ll} Boost must show actual movement`);
+    assert.ok(section.includes(`+${stats[2]} vs E-Defense`) && section.includes(`+${stats[3]} vs E-Defense`), `LL${ll} attacks must show bonuses`);
   }
   assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
   const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));
