@@ -1,4 +1,6 @@
 # vargskel-worgs — repo memory
+## Subagent models
+When launching subagents, pass `model: "9router/cx/gpt-6-luna[1m]"` explicitly. The unsuffixed `9router/cx/gpt-6-luna` configured on some agents is not in the Pi registry and fails at launch.
 
 ## TDD, always
 
