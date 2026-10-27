@@ -1,12 +1,12 @@
 # THE OMNISCIENT OVERLORD
 
-**AVERNA · Rurik "Daemon" Vargskel · chosen Chomolungma build and two older chassis alternatives**
+**AVERNA · Rurik "Daemon" Vargskel**
 
 ## Quick Guide
 
-Choose one tab. Chomolungma is Rurik’s chosen LL0–LL12 path; Goblin and Swallowtail are older alternate chassis guides awaiting rebuild. Each level in the Chomolungma tab is a complete proposed print. At LL0, Hunter-Killer and Light Nexus share Main/Aux, two Missile Racks occupy Flex, and Personalizations, Turret Drones, Jump Jets, Shield, Paint, and Servant-Class NHP use 8/8 SP. Rurik starts with Spotter I, Leader I, and Technophile I instead of the roster’s older Hacker I. Confirm respecs and publication against the current COMP/CON export.
+Choose one tab. Each level is a complete proposed print. In the Chomolungma tab at LL0, Hunter-Killer and Light Nexus share Main/Aux, two Missile Racks occupy Flex, and Personalizations, Turret Drones, Jump Jets, Shield, Paint, and Servant-Class NHP use 8/8 SP. Rurik starts with Spotter I, Leader I, and Technophile I instead of the roster’s older Hacker I. Confirm respecs and publication against the current COMP/CON export.
 
-The Chomolungma path is the chosen build. The Goblin and Swallowtail tabs remain separate, unreviewed alternatives. Reprint and rebuild at Full Repair when changing loadout, subject to GM approval of respecs.
+Reprint and rebuild at Full Repair when changing loadout, subject to GM approval of respecs.
 
 ### Choose a route
 
@@ -48,7 +48,7 @@ Chomolungma starts at Sensors 15, 10 HP, 7 base SP and two mounts. Goblin unlock
 
 ### Equipment limits
 
-SP is frame base + floor(SYSTEMS/2) + GRIT. GRIT is ceil(LL/2). Core bonuses arrive at LL3, LL6, LL9 and LL12. Improved Armament adds a Flex only to a frame with fewer than three non-integrated mounts. A Main/Aux takes a Main plus an Aux; a Flex takes a Main or two Aux; Aux/Aux takes two Aux. On the chosen Chomolungma path, Hunter-Killer and Light Nexus share Main/Aux. Autopod takes the original Flex at LL1, while Improved Armament restores the Missile Rack pair on its bonus Flex at LL3. At LL7, Assault Rifle replaces Autopod; Blackspot replaces Assault Rifle at LL9. Integrated Weapon adds a separate Light Nexus at LL9. Never mount Hunter-Killer on Aux/Aux. The Chomolungma print installs Servant until LL2, OSIRIS from LL3, OSIRIS with ATHENA and Enlightenment from LL6, and Unstable from LL7. Enlightenment and Unstable do not use regular AI slots; The Lesson of Shaping permits OSIRIS and ATHENA together. You may choose a different available system after a Full Repair. The Chomolungma print shows one SP-checked installed set at each level; the other two tabs await rebuild.
+SP is frame base + floor(SYSTEMS/2) + GRIT. GRIT is ceil(LL/2). Core bonuses arrive at LL3, LL6, LL9 and LL12. Improved Armament adds a Flex only to a frame with fewer than three non-integrated mounts. A Main/Aux takes a Main plus an Aux; a Flex takes a Main or two Aux; Aux/Aux takes two Aux. On the Chomolungma path, Hunter-Killer and Light Nexus share Main/Aux. Autopod takes the original Flex at LL1, while Improved Armament restores the Missile Rack pair on its bonus Flex at LL3. At LL7, Assault Rifle replaces Autopod; Blackspot replaces Assault Rifle at LL9. Integrated Weapon adds a separate Light Nexus at LL9. Never mount Hunter-Killer on Aux/Aux. The Chomolungma print installs Servant until LL2, OSIRIS from LL3, OSIRIS with ATHENA and Enlightenment from LL6, and Unstable from LL7. Enlightenment and Unstable do not use regular AI slots; The Lesson of Shaping permits OSIRIS and ATHENA together. You may choose a different available system after a Full Repair. The Chomolungma print shows one SP-checked installed set at each level; the other two tabs await rebuild.
 
 ### Chassis choices
 
@@ -60,12 +60,8 @@ Mechanics checked against [Massif Press core player data](https://github.com/mas
 
 ## Goblin Build
 
-This alternate chassis path is an older proposal and has not been rebuilt against Rurik’s chosen Chomolungma progression. Do not combine its levels with that path.
-
 The tech-control tab prints Goblin at LL2. It trades Chomolungma's HP and mounts for better hacking. H0R_OS I adds Puppet System and Eject Power Cores; H0R_OS II adds constructs. Wandering Nightmare costs a Full Tech action and suppresses **all** reactions inside its zone, so keep it clear of allies relying on reaction attacks. Unhinge Chronology's Haste grants a free Boost 1/round until the beneficiary takes damage. OSIRIS is the late installed AI; ATHENA is unlocked at Swallowtail III but remains a swap, not a second AI. The build keeps Autopod on one Flex and adds a second Flex through Improved Armament.
 
 ## Swallowtail Build
-
-This alternate chassis path is an older proposal and has not been rebuilt against Rurik’s chosen Chomolungma progression. Do not combine its levels with that path.
 
 The scout tab prints original Swallowtail at LL3 after Goblin I and Swallowtail I–II. This gets Autopod at LL1 and the Shredded frame trait as early as LL3. Lock On from its own quick tech is reliable; neither a teammate's mark nor ATHENA's passive marking should be assumed to trigger Prophetic Scanners without a GM ruling. ATHENA costs 3 SP and occupies the AI slot. Full Subjectivity Sync adds 2 Evasion at LL6, while House Guard I lets the scout keep the adjacent-ally Spotter benefit within Range 2, if the GM applies its adjacency wording to Spotter I. The path retains the 15-space Autopod reach despite Sensors 20.
