@@ -32,7 +32,7 @@ The Chomolungma path is the chosen build. The Goblin and Swallowtail tabs remain
 
 ### Why replace Hacker I?
 
-Hacker I's SNOW_CRASH requires a tech attack that consumes Lock On. Rurik chose Technophile I instead and installs its 0-SP Servant-Class NHP at LL0. OSIRIS replaces Servant at LL3; The Lesson of Shaping makes room for ATHENA alongside OSIRIS at LL6. Spotter I helps an adjacent ally spending Lock On, and Leader I contributes Leadership Dice. House Guard I extends adjacency-based effects to Range 2 at LL10.
+Hacker I's SNOW_CRASH requires a tech attack that consumes Lock On. Rurik chose Technophile I instead and installs its 0-SP Servant-Class NHP at LL0. OSIRIS replaces Servant at LL3. At LL6, Technophile III grants the 0-SP Enlightenment-Class NHP, which does not count against the AI limit; The Lesson of Shaping allows OSIRIS and ATHENA to occupy two regular AI slots. Spotter I helps an adjacent ally spending Lock On, and Leader I contributes Leadership Dice. House Guard I extends adjacency-based effects to Range 2 at LL10.
 
 ### Lock On and reactions
 
@@ -42,7 +42,7 @@ Chomolungma starts at Sensors 15, 10 HP, 7 base SP and two mounts. Goblin unlock
 
 ### Equipment limits
 
-SP is frame base + floor(SYSTEMS/2) + GRIT. GRIT is ceil(LL/2). Core bonuses arrive at LL3, LL6, LL9 and LL12. Improved Armament adds a Flex only to a frame with fewer than three non-integrated mounts. A Main/Aux takes a Main plus an Aux; a Flex takes a Main or two Aux; Aux/Aux takes two Aux. On the chosen Chomolungma path, Hunter-Killer and Light Nexus share Main/Aux. Autopod takes the original Flex at LL1, while Improved Armament restores the Missile Rack pair on its bonus Flex at LL3. At LL7, Assault Rifle replaces Autopod; Blackspot replaces Assault Rifle at LL9. Integrated Weapon adds a separate Light Nexus at LL9. Never mount Hunter-Killer on Aux/Aux. The Chomolungma print installs Servant until LL2, OSIRIS from LL3, and OSIRIS with ATHENA from LL6 via The Lesson of Shaping. You may choose a different available system after a Full Repair. The Chomolungma print shows one SP-checked installed set at each level; the other two tabs await rebuild.
+SP is frame base + floor(SYSTEMS/2) + GRIT. GRIT is ceil(LL/2). Core bonuses arrive at LL3, LL6, LL9 and LL12. Improved Armament adds a Flex only to a frame with fewer than three non-integrated mounts. A Main/Aux takes a Main plus an Aux; a Flex takes a Main or two Aux; Aux/Aux takes two Aux. On the chosen Chomolungma path, Hunter-Killer and Light Nexus share Main/Aux. Autopod takes the original Flex at LL1, while Improved Armament restores the Missile Rack pair on its bonus Flex at LL3. At LL7, Assault Rifle replaces Autopod; Blackspot replaces Assault Rifle at LL9. Integrated Weapon adds a separate Light Nexus at LL9. Never mount Hunter-Killer on Aux/Aux. The Chomolungma print installs Servant until LL2, OSIRIS from LL3, and OSIRIS with ATHENA and Enlightenment from LL6. Enlightenment does not use a regular AI slot; The Lesson of Shaping permits OSIRIS and ATHENA together. You may choose a different available system after a Full Repair. The Chomolungma print shows one SP-checked installed set at each level; the other two tabs await rebuild.
 
 ### Chassis choices
 
