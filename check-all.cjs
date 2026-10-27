@@ -281,6 +281,15 @@ chomoLevels.forEach((level, ll) => {
 });
 if (navPages.includes(guideRel)) {
   const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");
+  const chomoPrints = [...guideSrc.matchAll(/<section class="level-entry" id="chomolungma-ll(\d+)"[\s\S]*?<\/section>/g)];
+  if (chomoPrints.length !== 13) problems.push("guide: Chomolungma must print all 13 levels");
+  chomoPrints.forEach(([html, ll]) => {
+    const talents = [...html.matchAll(/<li class="level-talent">([^<]+)(?: <span class="talent-gain">\+1<\/span>)?<\/li>/g)];
+    const owned = new Set(chomoLevels.slice(0, Number(ll) + 1).flatMap((level, n) =>
+      (n ? [level.talent] : level.talent.split(' / ')).map(t => t.replace(/ (?:I|II|III)$/, ''))));
+    if (talents.length !== owned.size || (html.match(/class="talent-gain">\+1<\/span>/g) || []).length !== (Number(ll) ? 1 : 3))
+      problems.push(`guide: LL${ll} must show each owned talent on its own line and mark new ranks +1`);
+  });
   const gsecs = guideSrc.split('<details class="gsec"').slice(1);
   const firstSec = gsecs[0] || "";
   if (!/^ id="[^"]*" open>/.test(firstSec) || !/quick guide/i.test(firstSec.split("</summary>")[0]))

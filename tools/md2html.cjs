@@ -188,16 +188,22 @@ function glossary(toc) {
 
 const LEVELS = require("./averna-builds.cjs");
 function levelJourney(id, rows) {
+  const talents = new Map();
   const timeline = `<nav class="level-timeline" aria-label="${id} level timeline">` +
     rows.map((r, n) => `<a href="#${id}-ll${n}" title="${esc(r.license + ": " + r.talent)}"><b>LL${n}</b><span>${esc(r.license)}</span></a>`).join("") + `</nav>`;
-  const levels = rows.map((r, n) => `<section class="level-entry" id="${id}-ll${n}" aria-labelledby="${id}-ll${n}-title">` +
+  const levels = rows.map((r, n) => {
+    const gained = n ? [r.talent] : r.talent.split(' / ');
+    for (const talent of gained) talents.set(talent.replace(/ (?:I|II|III)$/, ''), talent);
+    return `<section class="level-entry" id="${id}-ll${n}" aria-labelledby="${id}-ll${n}-title">` +
     `<h3 id="${id}-ll${n}-title">LL${n} · ${esc(r.frame)}</h3>` +
-    `<div class="level-synopsis"><span>LICENSE / TALENT / CORE</span><p>${esc(r.license)} · ${esc(r.talent)} · ${esc(r.core)}</p></div>` +
+    `<div class="level-synopsis"><span>LICENSE / CORE</span><p>${esc(r.license)} · ${esc(r.core)}</p>` +
+    `<span>TALENTS</span><ul class="level-talents">${[...talents.values()].map(t => `<li class="level-talent">${esc(t)}${gained.includes(t) ? ' <span class="talent-gain">+1</span>' : ''}</li>`).join('')}</ul></div>` +
     `<div class="level-detail"><h4>HASE</h4><p class="hase-line">${esc(r.hase)}</p>` +
     (r.trigger ? `<h4>Pilot triggers</h4><p>${esc(r.trigger)}</p>` : '') +
     `<h4>Installed systems and weapon SP (${r.used}/${r.sp})</h4><ul>${r.installed.map(item => `<li>${esc(item)}</li>`).join("")}</ul>` +
     `<h4>Mounts</h4><ul>${r.weapon.split("; ").map(m => `<li>${esc(m)}</li>`).join("")}</ul></div>` +
-    `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`).join("\n");
+    `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`;
+  }).join("\n");
   return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2><p>${id === 'chomolungma' ? 'Chosen Chomolungma progression. Each level shows the proposed pilot and mech print; confirm against COMP/CON before fielding.' : 'Older alternate chassis proposal, pending rebuild. Do not combine its levels with the chosen Chomolungma path.'}</p>${timeline}${levels}</div>`;
 }
 
@@ -282,6 +288,8 @@ function render() {
 .guide .level-synopsis span,.guide .level-play span{font:11px var(--mono);letter-spacing:.16em;color:var(--cyan)}
 .guide .level-play span{color:var(--rust-light)}
 .guide .level-synopsis p,.guide .level-play p{margin:7px 0 0}
+.guide .level-talents{list-style:none;margin:7px 0 0;padding:0}.guide .level-talent{margin:3px 0}
+.guide .level-synopsis .talent-gain{color:var(--lime);font:12px var(--mono);margin-left:7px}
 .guide .level-detail{padding:12px 18px}.guide .level-detail h4{margin:5px 0;font:13px var(--mono);color:var(--text)}
 .guide .level-detail h4 small{font-weight:400;color:var(--cyan)}
 .guide .level-detail .hase-line{font:13px var(--mono);color:var(--lime);margin:7px 0 15px}
