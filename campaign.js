@@ -79,7 +79,7 @@ window.CAMPAIGN = {
   pilots: [
     { id: "daemon", name: "RURIK “DAEMON” VARGSKEL", background: "PILOT · LL0 · FIXER", ll: 0, licences: [], status: "ACTIVE", mech: "averna", img: "assets/rurik_vargskel.png",
       triggers: "Act Unseen or Unheard (+2), Get a Hold of Something (+2), Hack or Fix (+2), Lead or Inspire (+2)",
-      talents: "Hacker 1, Leader 1, Spotter 1",
+      talents: "Technophile 1, Leader 1, Spotter 1",
       doctrine: "docs/guides/averna-omniscient-overlord.html", doctrineTitle: "THE OMNISCIENT OVERLORD",
       gear: "Assault Hardsuit, Medium Signature, Light Signature, Dataplating, SSC Sylph Undersuit, Personal Drone" },
     { id: "dusty",  name: "HANSEN “DUSTY” MCGRAW", background: "PILOT · LL0 · OUTLAW", ll: 0, licences: [], status: "ACTIVE", mech: "tombstone", img: "assets/dusty.png",
@@ -108,7 +108,7 @@ window.CAMPAIGN = {
     { id: "averna", name: "AVERNA", frame: "GMS CHOMOLUNGMA", pilot: "daemon", role: "ECM & C3", glyph: "◢▰◣", img: "assets/averna.png",
       state: "OPERATIONAL", size: 1, hp: 12, structure: 4, stress: 4, armor: 0, repair: 4, repairsNow: 3, heat: 6, hull: 0, agi: 0, sys: 2, eng: 0, eva: 8, spd: 4, tech: "+3", edef: 12, sens: 15, save: 11, attackBonus: 0, limitedBonus: 0,
       mounts: [{"slot":"Main/Aux","weapons":["Nexus (Hunter-Killer)","Nexus (Light)"]},{"slot":"Flex","weapons":["Missile Rack","Missile Rack"]}],
-      systems: ["Personalizations","Turret Drones","Rapid Burst Jump Jet System","Type-3 Projected Shield","Custom Paint Job"] },
+      systems: ["Personalizations","Turret Drones","Rapid Burst Jump Jet System","Type-3 Projected Shield","Custom Paint Job","Servant-Class NHP"] },
     { id: "tombstone", name: "TOMBSTONE", frame: "GMS EVEREST", pilot: "dusty", role: "SKIRMISHER", glyph: "▰▱", img: "assets/tombstone.png",
       state: "OPERATIONAL", size: 1, hp: 10, structure: 4, stress: 4, armor: 0, repair: 5, repairsNow: 4, heat: 6,
       hull: 0, agi: 2, sys: 0, eng: 0, eva: 10, spd: 5, tech: "+0", edef: 8, sens: 10, save: 10, attackBonus: 0, limitedBonus: 0,

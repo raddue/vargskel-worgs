@@ -700,6 +700,13 @@ window.CATALOGUE = {
    "license_level": 0,
    "tg_unique": false,
    "tg_ai": false
+  },
+  "Servant-Class NHP": {
+   "sp": 0,
+   "license": "GMS",
+   "license_level": 0,
+   "tg_unique": true,
+   "tg_ai": true
   }
  },
  "frames": {

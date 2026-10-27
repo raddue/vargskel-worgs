@@ -227,19 +227,15 @@ window.DETAIL = {
    "tags": "Unique",
    "license": "GMS LL0",
    "effect": "Precise interaction with built and natural environments, soft targets, and hazardous materials is part of the daily routine for support-class mechs. This is made possible by manipulators – added multi-digit “hands” with haptic sensors. Your mech has an extra set of limbs. They are too small to have any combat benefit, but allow the mech to interact with objects that would otherwise be too small or sensitive (e.g., pilot-sized touch pads)."
+  },
+  "Servant-Class NHP": {
+   "sp": 0,
+   "tags": "AI, Unique",
+   "license": "GMS LL0",
+   "effect": "<span class='horus--subtle'>[an eager student].</span><br>Gained from the <i>Technophile: Rank I</i> pilot talent. Your mech gains the AI tag.<br>You have developed a custom NHP. This NHP can speak to you and has a personality, but they are less advanced than most NHPs and are incapable of independent thought, relying on you for direction. When acting alone, they will follow the last direction given and defend themself as needed; however, they have limited initiative and don’t benefit from your talents."
   }
  },
  "talents": {
-  "Hacker": {
-   "terse": "Improve your tech attacks and unlock special Invade options",
-   "ranks": [
-    {
-     "rank": 1,
-     "name": "SNOW_CRASH",
-     "description": "When you hit with a tech attack that consumes Lock On, your target must choose to either take 2 Heat or be pushed 3 spaces in a direction of your choice."
-    }
-   ]
-  },
   "Leader": {
    "terse": "Improve your allies' rolls during combat with Leadership Dice",
    "ranks": [
@@ -377,6 +373,16 @@ window.DETAIL = {
      "rank": 1,
      "name": "Stable, Steady",
      "description": "As a protocol, you may <b>steady your aim</b>. If you do, you become Immobilized until the start of your next turn but gain +1 Accuracy on all attacks you make with Rifles."
+    }
+   ]
+  },
+  "Technophile": {
+   "terse": "Gain an AI of increasing intelligence that can reroll skill checks",
+   "ranks": [
+    {
+     "rank": 1,
+     "name": "Servant Fragment",
+     "description": "You have developed a custom NHP. This NHP can speak to you and has a personality, but they are less advanced than most NHPs and are incapable of independent thought, relying on you for direction. When acting alone, they will follow the last direction given and defend themself as needed; however, they have limited initiative and don’t benefit from your talents.<br>You may choose for your mech to gain the <b>Servant-Class NHP</b> System"
     }
    ]
   }
