@@ -187,6 +187,15 @@ function glossary(toc) {
 }
 
 const LEVELS = require("./averna-builds.cjs");
+const abilityGroups = require("./averna-abilities.cjs");
+function abilityPanel(row, ll, talents) {
+  const ranks = [...talents].map(([name, value]) => [name, value.slice(name.length + 1)]);
+  const groups = abilityGroups(row, ll, ranks);
+  return `<details class="level-abilities"><summary>Abilities <span aria-hidden="true">▸</span></summary><div class="ability-groups">` +
+    Object.entries(groups).map(([name, cards]) => `<section><h4>${esc(name)}</h4><div class="ability-cards">` +
+      cards.map(([title, detail]) => `<article><strong>${esc(title)}</strong><p>${esc(detail)}</p></article>`).join('') +
+      `</div></section>`).join('') + `</div></details>`;
+}
 function levelJourney(id, rows) {
   const talents = new Map();
   const timeline = `<nav class="level-timeline" aria-label="${id} level timeline">` +
@@ -202,7 +211,8 @@ function levelJourney(id, rows) {
     (r.trigger ? `<h4>Pilot triggers</h4><p>${esc(r.trigger)}</p>` : '') +
     `<h4>Installed systems and weapon SP (${r.used}/${r.sp})</h4><ul>${r.installed.map(item => `<li>${esc(item)}</li>`).join("")}</ul>` +
     `<h4>Mounts</h4><ul>${r.weapon.split("; ").map(m => `<li>${esc(m)}</li>`).join("")}</ul></div>` +
-    `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`;
+    `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div>` +
+    (id === 'chomolungma' ? abilityPanel(r, n, talents) : '') + `</section>`;
   }).join("\n");
   return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2>${timeline}${levels}</div>`;
 }
@@ -294,6 +304,16 @@ function render() {
 .guide .level-detail h4 small{font-weight:400;color:var(--cyan)}
 .guide .level-detail .hase-line{font:13px var(--mono);color:var(--lime);margin:7px 0 15px}
 .guide .level-detail ul{margin:7px 0 12px;padding-left:20px}.guide .level-detail li{margin-bottom:5px}
+.guide .level-abilities{margin-top:12px;border:1px solid var(--line);background:var(--panel)}
+.guide .level-abilities>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--cyan);font:13px var(--mono);letter-spacing:.12em}
+.guide .level-abilities>summary::-webkit-details-marker{display:none}.guide .level-abilities>summary::marker{content:""}
+.guide .level-abilities>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.guide .level-abilities[open]>summary span{transform:rotate(90deg)}
+.guide .ability-groups{padding:4px 14px 16px;display:grid;gap:18px}
+.guide .ability-groups h4{margin:0 0 8px;color:var(--lime);font:12px var(--mono);letter-spacing:.12em}
+.guide .ability-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px}
+.guide .ability-cards article{min-width:0;border:1px solid var(--line);border-left:3px solid var(--cyan);background:var(--holo-bg);padding:10px 12px}
+.guide .ability-cards strong{font:600 13px var(--mono)}.guide .ability-cards p{font:13px/1.5 var(--sans);margin:5px 0 0;overflow-wrap:anywhere}
 [hidden]{display:none!important}
 </style>
 <script src="${p("offline.js")}"></script>
@@ -373,6 +393,14 @@ if (process.argv.includes("--check")) {
       const section = page.slice(page.indexOf(`id="${id}-ll${ll}"`), page.indexOf(`</section>`, page.indexOf(`id="${id}-ll${ll}"`)));
       assert.ok(section.includes(`PLAY PATTERN / LL${ll}`) && section.includes(LEVELS[id][ll].hase), `${id} LL${ll} content`);
     }
+  }
+  for (let ll = 0; ll <= 12; ll++) {
+    const start = page.indexOf(`id="chomolungma-ll${ll}"`);
+    const section = page.slice(start, page.indexOf('</details></section>', start) + '</details>'.length);
+    assert.match(section, /<details class="level-abilities"><summary>Abilities <span aria-hidden="true">▸<\/span><\/summary>/, `LL${ll} must have a collapsed abilities panel`);
+    for (const label of ['Quick actions', 'Full actions', 'Reactions', 'On foot', 'Weapons', 'Passives'])
+      assert.ok(section.includes(label), `LL${ll} missing ${label}`);
+    assert.ok(!/<details class="level-abilities" open/.test(section), `LL${ll} abilities must start closed`);
   }
   assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
   const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));
