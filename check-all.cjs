@@ -276,9 +276,14 @@ chomoLevels.forEach((level, ll) => {
     problems.push(`guide: LL${ll} license or SP is invalid`);
   const ranks = [...level.trigger.matchAll(/\+(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
   if (ranks !== 8 + 2 * ll) problems.push(`guide: LL${ll} trigger points are invalid`);
-  const nhps = level.installed.filter(item => /Class NHP/.test(item));
-  if (nhps.length !== (ll >= 6 ? 3 : 1) || (ll >= 6 && !nhps.includes("Enlightenment-Class NHP 0")))
+  const nhps = level.installed.filter(item => /(?:Class|Unstable) NHP/.test(item));
+  const expected = ll >= 7 ? ["OSIRIS-Class NHP 3", "ATHENA-Class NHP 3", "Enlightenment-Class NHP 0", "Unstable NHP 0"]
+    : ll >= 6 ? ["OSIRIS-Class NHP 3", "ATHENA-Class NHP 3", "Enlightenment-Class NHP 0"]
+    : ll >= 3 ? ["OSIRIS-Class NHP 3"] : ["Servant-Class NHP 0"];
+  if (nhps.length !== expected.length || expected.some(item => !nhps.includes(item)))
     problems.push(`guide: LL${ll} NHP print is invalid`);
+  if (ll >= 7 && level.talent !== `Iconoclast ${["I", "II", "III"][Math.min(ll - 7, 2)]}` && ll <= 9)
+    problems.push(`guide: LL${ll} Iconoclast progression is invalid`);
 });
 if (navPages.includes(guideRel)) {
   const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");

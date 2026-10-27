@@ -5,7 +5,7 @@ const chomoLL3 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS S
 const chomoLL4 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','Custom Paint Job 1'];
 const chomoLL5 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3'];
 const chomoLL6 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','ATHENA-Class NHP 3','Enlightenment-Class NHP 0'];
-const chomoLL7 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2',"Dominion's Breadth 2",'OSIRIS-Class NHP 3','ATHENA-Class NHP 3','Enlightenment-Class NHP 0'];
+const chomoLL7 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2',"Dominion's Breadth 2",'OSIRIS-Class NHP 3','ATHENA-Class NHP 3','Enlightenment-Class NHP 0','Unstable NHP 0'];
 const chomoLL9 = [...chomoLL7,'Blackspot Targeting Laser 1'];
 const chomoLL10 = chomoLL9.map(item => item === 'Lotus Projector 2' ? 'Unhinge Chronology 2' : item);
 const systems = {
@@ -49,7 +49,7 @@ const paths = {
   chomolungma: {
     name: 'Durable command', frameAt: 0, baseSP: 7,
     licenses: ['None','Goblin I','Goblin II','Goblin III','Swallowtail I','Swallowtail II','Swallowtail III','Emperor I','Kidd I','Lich I','Lich II','Napoleon I','Monarch I'],
-    talents: ['Spotter I / Leader I / Technophile I','Spotter II','Spotter III','Leader II','Leader III','Technophile II','Technophile III','Skirmisher I','Skirmisher II','Skirmisher III','House Guard I','House Guard II','House Guard III'],
+    talents: ['Spotter I / Leader I / Technophile I','Spotter II','Spotter III','Leader II','Leader III','Technophile II','Technophile III','Iconoclast I','Iconoclast II','Iconoclast III','Skirmisher I','Skirmisher II','Skirmisher III'],
     cores: {3:'Improved Armament',6:'The Lesson of Shaping',9:'Integrated Weapon',12:'Full Subjectivity Sync'},
     hase: n => [Math.min(6,2+n), n >= 8 ? 2 : n >= 7 ? 1 : 0, 0, n < 5 ? 0 : n < 7 ? n-4 : n < 9 ? 2 : n-6], // S,H,E,A
     triggers: [
@@ -67,12 +67,12 @@ const paths = {
       'Swap H0R_OS II for Lotus Projector; Paint Job fills the spare SP. Keep Jump Jets and both weapon groups.',
       'Drop Paint Job and reinstall H0R_OS II. Retractable Profile remains unlocked but uninstalled.',
       'Drop H0R_OS II and Personalizations for ATHENA. Lesson of Shaping lets it coexist with OSIRIS; Technophile III replaces Student with the 0-SP Enlightenment NHP, which does not count against the AI limit.',
-      'Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex. House Guard is deferred for Skirmisher I.',
-      'Kidd I unlocks Blackspot but it waits for LL9 SP. Keep the LL7 loadout and mounts.',
-      'Blackspot replaces Assault Rifle. Integrated Weapon adds a free Light Nexus shot once per round when another weapon fires; keep the rack pair.',
-      'Swap Lotus for Unhinge Chronology. Haste grants an ally a free Boost each round until they take damage.',
-      'Stasis Bolt fills the new SP. Charge it as a quick action for a contested ranged-attack defense of an ally within Range 5.',
-      'Monarch I unlocks Sharanga Missiles as an alternate print. Keep the two Missile Racks; Full Subjectivity Sync adds 2 Evasion.'
+      'Iconoclast I installs the 0-SP Unstable NHP: four NHPs aboard. Memetic Spark costs a quick action, 1/round, for 5 AP Energy damage within Range 3. Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex.',
+      'Iconoclast II adds Transmuting Spark: after an OSIRIS or ATHENA action, project a Line 3 for 2 AP Energy as a free action. Each NHP can trigger it once per round. Kidd I unlocks Blackspot, but it waits for LL9 SP.',
+      'Iconoclast III charges Transcension with Transmuting Sparks. In the transcendent state, Memetic Spark deals 9 AP Energy at Range 8; it still costs a quick action and is 1/round. Blackspot replaces Assault Rifle; Integrated Weapon adds a Light Nexus.',
+      'Skirmisher I grants soft cover at the start of your turn until you attack or force a save. Swap Lotus for Unhinge Chronology; Haste grants an ally a free Boost until damaged.',
+      'Skirmisher II moves you 2 spaces before or after Skirmish without provoking reactions. Stasis Bolt fills the new SP for ranged-attack defense.',
+      'Skirmisher III makes the first reaction attack against you each round miss. Monarch I unlocks Sharanga as an alternate; keep the Missile Racks. Full Subjectivity Sync adds 2 Evasion.'
     ]
   },
   goblin: {
