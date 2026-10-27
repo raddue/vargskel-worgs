@@ -264,7 +264,21 @@ else {
    and the only one open, it carries every level from LL0 to LL6, and every term the page hovers
    is also defined in the visible glossary. GLOSSARY is generated from the TERMS map in
    md2html.cjs, so the hover text and the table cannot drift; this pins the shape around it. */
+const daemon = C.pilots.find(p => p.id === "daemon");
+const averna = C.mechs.find(m => m.id === "averna");
+if (daemon?.talents !== "Technophile 1, Leader 1, Spotter 1" || !averna?.systems.includes("Servant-Class NHP"))
+  problems.push("live LL0 Averna must show Technophile I and Servant-Class NHP");
 const guideRel = "docs/guides/averna-omniscient-overlord.html";
+const chomoLevels = require("./tools/averna-builds.cjs").chomolungma;
+const chomoLicenses = ["None", "Goblin I", "Goblin II", "Goblin III", "Swallowtail I", "Swallowtail II", "Swallowtail III", "Emperor I", "Kidd I", "Lich I", "Lich II", "Napoleon I", "Monarch I"];
+chomoLevels.forEach((level, ll) => {
+  if (level.license !== chomoLicenses[ll] || level.sp !== 7 + Math.floor(Number(level.hase.match(/S(\d+)/)[1]) / 2) + Math.ceil(ll / 2) || level.used > level.sp)
+    problems.push(`guide: LL${ll} license or SP is invalid`);
+  const ranks = [...level.trigger.matchAll(/\+(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
+  if (ranks !== 8 + 2 * ll) problems.push(`guide: LL${ll} trigger points are invalid`);
+  if (level.installed.filter(item => /Class NHP/.test(item)).length !== (ll >= 6 ? 2 : 1))
+    problems.push(`guide: LL${ll} AI count is invalid`);
+});
 if (navPages.includes(guideRel)) {
   const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");
   const gsecs = guideSrc.split('<details class="gsec"').slice(1);

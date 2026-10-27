@@ -1,11 +1,19 @@
 /* Independent AVERNA progressions. Each row is a complete print at that LL, not a shared plan. */
 const base = ['Personalizations 1', 'Turret Drones 2', 'Rapid Burst Jump Jet System 2', 'Type-3 Projected Shield 2', 'Custom Paint Job 1'];
 const relay = ['Personalizations 1', 'Turret Drones 2', 'Rapid Burst Jump Jet System 2', 'H0R_OS System Upgrade I 2', 'Autopod 1'];
+const chomoLL3 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Autopod 1','OSIRIS-Class NHP 3'];
+const chomoLL4 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','Custom Paint Job 1'];
+const chomoLL5 = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3'];
+const chomoLL6 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','ATHENA-Class NHP 3'];
+const chomoLL7 = ['Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2','Lotus Projector 2',"Dominion's Breadth 2",'OSIRIS-Class NHP 3','ATHENA-Class NHP 3'];
+const chomoLL9 = [...chomoLL7,'Blackspot Targeting Laser 1'];
+const chomoLL10 = chomoLL9.map(item => item === 'Lotus Projector 2' ? 'Unhinge Chronology 2' : item);
 const systems = {
   chomolungma: [
-    base, relay, [...relay, 'H0R_OS System Upgrade II 2'], [...relay, 'H0R_OS System Upgrade II 2'],
-    ['Personalizations 1','Turret Drones 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2',"Dominion's Breadth 2",'Autopod 1'],
-    ['Personalizations 1','Turret Drones 2','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2',"Dominion's Breadth 2",'Shahnameh 3','Autopod 1'],
+    [...base,'Servant-Class NHP 0'], [...relay,'Custom Paint Job 1','Servant-Class NHP 0'],
+    [...relay,'H0R_OS System Upgrade II 2','Servant-Class NHP 0'], chomoLL3,
+    chomoLL4, chomoLL5, chomoLL6, chomoLL7, chomoLL7,
+    chomoLL9, chomoLL10, [...chomoLL10,'Stasis Bolt 1'], [...chomoLL10,'Stasis Bolt 1'],
   ],
   goblin: [
     base, relay, [...relay, 'H0R_OS System Upgrade II 2'], [...relay, 'H0R_OS System Upgrade II 2'],
@@ -21,14 +29,6 @@ const systems = {
     ['Lotus Projector 2','ATHENA-Class NHP 3',"Dominion's Breadth 2",'Shahnameh 3','Autopod 1'],
   ],
 };
-systems.chomolungma.push(
-  systems.chomolungma[5], systems.chomolungma[5],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','Autopod 1'],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','Autopod 1'],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','PEBCAC 2','Autopod 1'],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','PEBCAC 2','Autopod 1'],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','PEBCAC 2','Wandering Nightmare 1','Autopod 1'],
-  ['H0R_OS System Upgrade I 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','ATHENA-Class NHP 3','Wandering Nightmare 1','Unhinge Chronology 2','Autopod 1']);
 systems.goblin.push(
   systems.goblin[6],
   ['Personalizations 1','Turret Drones 2','H0R_OS System Upgrade I 2','Wandering Nightmare 1','Unhinge Chronology 2',"Dominion's Breadth 2",'Shahnameh 3','Autopod 1'],
@@ -48,24 +48,31 @@ systems.swallowtail.push(
 const paths = {
   chomolungma: {
     name: 'Durable command', frameAt: 0, baseSP: 7,
-    licenses: ['None','Goblin I','Goblin II','Goblin III','Emperor I','Emperor II','Swallowtail I','Swallowtail II','Swallowtail III','Kidd I','Kidd II','Lich I','Lich II'],
-    talents: ['Spotter I / Leader I / Drone Commander I','Spotter II','Spotter III','Leader II','Leader III','House Guard I','Technophile I','Technophile II','Technophile III','Field Analyst I','Field Analyst II','Sysop I','Sysop II'],
-    cores: {3:'Improved Armament',6:'The Lesson of the Held Image',9:'Universal Compatibility',12:'The Lesson of the Open Door'},
-    hase: n => [Math.min(6,2+n),0,Math.min(4,Math.max(0,n-4)),Math.min(4,Math.max(0,n-8))], // S,H,E,A reordered below
+    licenses: ['None','Goblin I','Goblin II','Goblin III','Swallowtail I','Swallowtail II','Swallowtail III','Emperor I','Kidd I','Lich I','Lich II','Napoleon I','Monarch I'],
+    talents: ['Spotter I / Leader I / Technophile I','Spotter II','Spotter III','Leader II','Leader III','Technophile II','Technophile III','Skirmisher I','Skirmisher II','Skirmisher III','House Guard I','House Guard II','House Guard III'],
+    cores: {3:'Improved Armament',6:'The Lesson of Shaping',9:'Integrated Weapon',12:'Full Subjectivity Sync'},
+    hase: n => [Math.min(6,2+n), n >= 8 ? 2 : n >= 7 ? 1 : 0, 0, n < 5 ? 0 : n < 7 ? n-4 : n < 9 ? 2 : n-6], // S,H,E,A
+    triggers: [
+      'Act Unseen or Unheard +2; Get a Hold of Something +2; Hack or Fix +2; Lead or Inspire +2',
+      'Read a Situation +2','Get a Hold of Something +4','Hack or Fix +4',
+      'Read a Situation +4','Take Someone Out +2','Act Unseen or Unheard +4',
+      'Take Someone Out +4','Get a Hold of Something +6','Lead or Inspire +4',
+      'Read a Situation +6','Act Unseen or Unheard +6','Lead or Inspire +6'
+    ],
     plays: [
-      'Fielded kit: mark for the adjacent striker; turret follows allied hits. Hacker is not required.',
-      'Autopod replaces Hunter-Killer. Mark within 15; another character spends the mark for an automatic 3 Kinetic reaction.',
-      'Spotter III gives an adjacent ally an immediate quick action when you mark. Your Autopod needs their attack and your reaction.',
-      'Third mount returns Hunter-Killer. Leader commands and Autopod compete only if used on the same turn.',
-      'Give Overshield 1 with Dominion’s Breadth, or mark and trigger Autopod. Hold close for House Guard next level.',
-      'Shahnameh gives an ally Overshield 4 + GRIT and heat protection. House Guard I extends adjacency-based ally effects to Range 2.',
-      'Held Image can mark at an ally turn start; on that turn you cannot also spend a reaction on Autopod. Choose an existing mark instead.',
-      'Student-Class NHP is optional, not installed; ATHENA will occupy the AI slot. Keep protecting the striker.',
-      'ATHENA replaces H0R_OS II, Turret Drones and Personalizations. Technophile III keeps ATHENA from cascading unless you allow it.',
-      'Kidd I unlocks PEBCAC. Keep Lotus and ATHENA instead of spending an extra 2 SP yet.',
-      'Install PEBCAC. Field Analyst II builds its die only on turns without actions affecting a hostile character other than Scan; marking prevents charge.',
-      'Install Wandering Nightmare. It suppresses reactions inside its zone, including allies relying on reaction attacks.',
-      'Swap PEBCAC for Unhinge Chronology. Haste gives a teammate free Boost each round until damaged; Open Door boosts your Save Target.'
+      'Fixer background and four +2 triggers. Servant-Class NHP is installed at 0 SP; the Nexus pair and Missile Racks are the fielded weapons.',
+      'Broker Bond begins with Cosmocephalos (2/session). Autopod takes the Flex instead of the Missile Racks; the Nexus pair stays on Main/Aux.',
+      'H0R_OS II adds constructs. Drop Paint Job to fit it; the Servant NHP remains installed.',
+      'Replace Turret Drones with OSIRIS and replace Servant. Improved Armament adds a Flex to restore both Missile Racks.',
+      'Swap H0R_OS II for Lotus Projector; Paint Job fills the spare SP. Keep Jump Jets and both weapon groups.',
+      'Drop Paint Job and reinstall H0R_OS II. Retractable Profile remains unlocked but uninstalled.',
+      'Drop H0R_OS II and Personalizations for ATHENA. Lesson of Shaping lets it coexist with OSIRIS.',
+      'Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex. House Guard is deferred for Skirmisher I.',
+      'Kidd I unlocks Blackspot but it waits for LL9 SP. Keep the LL7 loadout and mounts.',
+      'Blackspot replaces Assault Rifle. Integrated Weapon adds a free Light Nexus shot once per round when another weapon fires; keep the rack pair.',
+      'Swap Lotus for Unhinge Chronology. Haste grants an ally a free Boost each round until they take damage.',
+      'Stasis Bolt fills the new SP. Charge it as a quick action for a contested ranged-attack defense of an ally within Range 5.',
+      'Monarch I unlocks Sharanga Missiles as an alternate print. Keep the two Missile Racks; Full Subjectivity Sync adds 2 Evasion.'
     ]
   },
   goblin: {
@@ -115,6 +122,12 @@ const paths = {
 };
 
 const weapon = (id,n) => {
+  if (id === 'chomolungma') {
+    if (n === 0) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: two Missile Racks';
+    if (n < 3) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: Autopod';
+    if (n < 7) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: Autopod; bonus Flex: two Missile Racks';
+    return `Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: ${n >= 9 ? 'Blackspot Targeting Laser' : 'Assault Rifle'}; bonus Flex: two Missile Racks${n >= 9 ? '; integrated: Light Nexus' : ''}`;
+  }
   if (n === 0) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: two Missile Racks';
   if (n < 3 || (id === 'goblin' && n === 2)) return id === 'goblin' && n === 2 ? 'Flex: Autopod (only mount)' : 'Main/Aux: Autopod + Light Nexus; Flex: two Missile Racks';
   if (id === 'goblin') return 'Flex: Autopod; bonus Flex: two Missile Racks';
@@ -122,12 +135,20 @@ const weapon = (id,n) => {
   return 'Main/Aux: Autopod + Light Nexus; Flex: two Missile Racks; bonus Flex: Hunter-Killer Nexus';
 };
 const grip = (id,n) => id === 'goblin' && n >= 2 ? 8 : id === 'swallowtail' && n >= 3 ? 6 : 7;
-const rows = Object.fromEntries(Object.entries(paths).map(([id,p]) => [id,p.licenses.map((license,n) => {
-  const [s,h,e,a] = p.hase(n);
-  const sp = grip(id,n) + Math.floor(s/2) + Math.ceil(n/2);
-  const installed = systems[id][n];
-  const used = installed.reduce((sum,item) => sum + Number(item.match(/ (\d+)$/)[1]),0);
-  return { license, talent:p.talents[n], core:p.cores[n] || 'No new bonus', hase:`H${h} / A${a} / S${s} / E${e}`,
-    sp, used, installed, weapon:weapon(id,n), play:p.plays[n], frame:n >= p.frameAt ? id === 'chomolungma' ? 'GMS Chomolungma' : id === 'goblin' ? 'HORUS Goblin' : 'SSC Swallowtail' : 'GMS Chomolungma' };
-})]));
+const rows = Object.fromEntries(Object.entries(paths).map(([id,p]) => {
+  const triggers = new Map();
+  return [id,p.licenses.map((license,n) => {
+    for (const gain of (p.triggers?.[n] || '').split('; ').filter(Boolean)) {
+      const [, name, rank] = gain.match(/^(.*) \+(\d+)$/);
+      triggers.set(name, rank);
+    }
+    const [s,h,e,a] = p.hase(n);
+    const sp = grip(id,n) + Math.floor(s/2) + Math.ceil(n/2);
+    const installed = systems[id][n];
+    const used = installed.reduce((sum,item) => sum + Number(item.match(/ (\d+)$/)[1]),0);
+    return { license, talent:p.talents[n], core:p.cores[n] || 'No new bonus', hase:`H${h} / A${a} / S${s} / E${e}`,
+      trigger:triggers.size ? [...triggers].map(([name,rank]) => `${name} +${rank}`).join('; ') : undefined,
+      sp, used, installed, weapon:weapon(id,n), play:p.plays[n], frame:n >= p.frameAt ? id === 'chomolungma' ? 'GMS Chomolungma' : id === 'goblin' ? 'HORUS Goblin' : 'SSC Swallowtail' : 'GMS Chomolungma' };
+  })];
+}));
 module.exports = rows;
