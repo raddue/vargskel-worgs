@@ -94,8 +94,16 @@ function abilityGroups(row, ll, ranks) {
   groups['On foot'][0] = ['Pilot movement and actions', `HP ${9 + Math.ceil(ll / 2)}, Armor 1, Evasion 8, E-Defense 8, Speed 4 (Assault Hardsuit). Share the mech’s action pool; Boost, Hide, Search, Activate, Skill Check, Disengage, Prepare, Mount and Overwatch remain available.`];
   const [h,a,s,e] = [...row.hase.matchAll(/[HASE](\d+)/g)].map(m => +m[1]);
   const grit = Math.ceil(ll/2);
+  const speed = 4 + Math.floor(a/2);
+  const tech = 1+s;
+  groups['Quick actions'][0][1] = `Move ${speed} spaces as a quick action. Your standard move also covers ${speed}; both together cover ${2*speed}.`;
+  groups['Quick actions'][2][1] = `Lock On, Bolster, Scan, or Invade within Sensors 15. Lock On and Invade need line of sight; Invade: +${tech} vs E-Defense, 2 Heat on hit plus an available invasion option.`;
+  groups['Quick actions'][3][1] = `Knock back or Prone a target, or hold one in a grapple. Mech attacks add +${grit} GRIT; saves use Save Target ${11+grit}.`;
+  groups['Protocols / free actions'][0][1] = `Move ${speed} spaces without spending a quick or full action.`;
+  groups['Full actions'][0][1] = `Fire two weapons at +${grit}, plus an eligible Aux on each fired mount. A pair of Aux weapons on the same mount can fire together; reload Loading weapons after use.`;
+  groups['Reactions'][0][1] = `1/round: Skirmish at +${grit} when a hostile starts movement within a weapon’s Threat (normally 1).`;
   groups['Passives'] = [
-    ['Mech profile', `HP ${10 + 2*h + grit + (row.installed.includes('Personalizations 1') ? 2 : 0)}, Evasion ${8+a+(ll>=12?2:0)}, E-Defense ${10+s}, Speed ${4+Math.floor(a/2)}, Heat Cap ${6+e}, Repair Cap ${4+Math.floor(h/2)}, Sensors 15, SP ${row.sp}.`],
+    ['Mech profile', `HP ${10 + 2*h + grit + (row.installed.includes('Personalizations 1') ? 2 : 0)}, Evasion ${8+a+(ll>=12?2:0)}, E-Defense ${10+s}, Speed ${speed}, Heat Cap ${6+e}, Repair Cap ${4+Math.floor(h/2)}, Sensors 15, SP ${row.sp}.`],
     ['Attack and save bonuses', `Weapon attacks +${grit}; tech attacks +${1+s}; Save Target ${11+grit}. Smart weapons attack E-Defense, but use weapon bonus, not tech attack.`],
     ['Brilliance / Data Siphon', '1/scene: free Quick Tech then free Bolster or Lock On. Tech attacks against hostiles also Scan them for free.'],
     ['Replaceable Parts', 'While resting, repair structure at 1 Repair per damage instead of 2.']
@@ -103,15 +111,18 @@ function abilityGroups(row, ll, ranks) {
   groups['Quick actions'].push(['Chomolungma Invade', 'Balance Control Lockout: push 2 and Prone (Immobilize if already Prone, 1/scene per target); System Crusher: 4 total Heat and 4 Burn if it overheats (1/scene per target).']);
   groups['Full actions'].push(['Wide-Area Code Pulse', 'Spend 1 Core Power to Invade any number of hostiles within Sensors, ignoring line of sight and Invisible; misses become Impaired.']);
   groups['Weapons'] = row.weapon.split('; ').map(m => [m.split(': ')[0], m.split(': ')[1]]);
-  groups['Weapons'].push(['Nexus stats', 'Hunter-Killer: Range 10, 1d6 Kinetic, Smart. Light Nexus: Range 10, 1d3 Kinetic, Smart.']);
-  if (row.weapon.includes('Missile Racks')) groups['Weapons'].push(['Missile Racks', 'Each: Range 10, Blast 1, 1d3+1 Explosive, Loading. Two Aux on one Flex can fire together.']);
-  if (row.weapon.includes('Assault Rifle')) groups['Weapons'].push(['Assault Rifle', 'Range 10, 1d6 Kinetic, Reliable 2.']);
-  if (row.weapon.includes('Blackspot')) groups['Weapons'].push(['Blackspot Targeting Laser', systems['Blackspot Targeting Laser'][1]]);
-  if (row.weapon.includes('integrated: Light Nexus')) groups['Weapons'].push(['Integrated Weapon', '1/round, fire the second Light Nexus as a free attack when you fire another weapon.']);
+  groups['Weapons'].push(['Nexus stats', `Hunter-Killer: +${grit} vs E-Defense · Range 10 · 1d6 Kinetic, Smart. Light Nexus: +${grit} vs E-Defense · Range 10 · 1d3 Kinetic, Smart.`]);
+  if (row.weapon.includes('Missile Racks')) groups['Weapons'].push(['Missile Racks', `Each: +${grit} vs Evasion · Range 10, Blast 1 · 1d3+1 Explosive, Loading. Two Aux on one Flex can fire together.`]);
+  if (row.weapon.includes('Assault Rifle')) groups['Weapons'].push(['Assault Rifle', `+${grit} vs Evasion · Range 10 · 1d6 Kinetic, Reliable 2.`]);
+  if (row.weapon.includes('Blackspot')) groups['Weapons'].push(['Blackspot Targeting Laser', `+${grit} vs Evasion · ${systems['Blackspot Targeting Laser'][1]}`]);
+  if (row.weapon.includes('integrated: Light Nexus')) groups['Weapons'].push(['Integrated Weapon', `1/round, fire the second Light Nexus as a free attack at +${grit} vs E-Defense · Range 10 · 1d3 Kinetic when you fire another weapon.`]);
   for (const item of row.installed) {
     const name = item.replace(/ \d+$/, '');
     if (!systems[name] || name === 'Blackspot Targeting Laser') continue;
     const card = [name, `${systems[name][0]}: ${systems[name][1]}`];
+    if (name === 'OSIRIS-Class NHP') card[1] = `Quick Tech: +${tech} vs E-Defense within Sensors 15. ${systems[name][1]}`;
+    if (name === 'H0R_OS System Upgrade I') card[1] = `Invade: +${tech} vs E-Defense within Sensors 15. ${systems[name][1]}`;
+    if (name === 'Stasis Bolt') card[1] = `${systems[name][0]}: contested ranged attack at +${grit}. ${systems[name][1]}`;
     const section = /Reaction/.test(systems[name][0]) ? 'Reactions' : /Protocol/i.test(systems[name][0]) ? 'Protocols / free actions' : /Passive|Boost|reroll/i.test(systems[name][0]) ? 'Passives' : 'Quick actions';
     groups[section].push(card);
   }
