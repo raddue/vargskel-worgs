@@ -204,7 +204,7 @@ function levelJourney(id, rows) {
     `<h4>Mounts</h4><ul>${r.weapon.split("; ").map(m => `<li>${esc(m)}</li>`).join("")}</ul></div>` +
     `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div></section>`;
   }).join("\n");
-  return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2><p>${id === 'chomolungma' ? 'Chosen Chomolungma progression. Each level shows the proposed pilot and mech print; confirm against COMP/CON before fielding.' : 'Older alternate chassis proposal, pending rebuild. Do not combine its levels with the chosen Chomolungma path.'}</p>${timeline}${levels}</div>`;
+  return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2>${timeline}${levels}</div>`;
 }
 
 function render() {
