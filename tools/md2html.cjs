@@ -410,6 +410,10 @@ if (process.argv.includes("--check")) {
     assert.ok(stats, `LL${ll} missing glance stats`);
     assert.ok(section.includes(`Boost</strong><p>Move ${stats[1]} spaces`), `LL${ll} Boost must show actual movement`);
     assert.ok(section.includes(`+${stats[2]} vs E-Defense`) && section.includes(`+${stats[3]} vs E-Defense`), `LL${ll} attacks must show bonuses`);
+    const card = title => (section.match(new RegExp('<strong>' + title.replace(/[/]/g, '\\/') + '</strong><p>([^<]*)</p>')) || [])[1] || '';
+    assert.ok(/Fire one weapon/.test(card('Skirmish')) && !/Invade/.test(card('Skirmish')), `LL${ll} Skirmish card has the wrong text`);
+    assert.ok(/Invade/.test(card('Quick Tech')) && !/Knock back/.test(card('Quick Tech')), `LL${ll} Quick Tech card has the wrong text`);
+    assert.ok(/Knock back/.test(card('Ram / Grapple')), `LL${ll} Ram / Grapple card has the wrong text`);
   }
   assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
   const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));

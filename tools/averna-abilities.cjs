@@ -96,12 +96,14 @@ function abilityGroups(row, ll, ranks) {
   const grit = Math.ceil(ll/2);
   const speed = 4 + Math.floor(a/2);
   const tech = 1+s;
-  groups['Quick actions'][0][1] = `Move ${speed} spaces as a quick action. Your standard move also covers ${speed}; both together cover ${2*speed}.`;
-  groups['Quick actions'][2][1] = `Lock On, Bolster, Scan, or Invade within Sensors 15. Lock On and Invade need line of sight; Invade: +${tech} vs E-Defense, 2 Heat on hit plus an available invasion option.`;
-  groups['Quick actions'][3][1] = `Knock back or Prone a target, or hold one in a grapple. Mech attacks add +${grit} GRIT; saves use Save Target ${11+grit}.`;
-  groups['Protocols / free actions'][0][1] = `Move ${speed} spaces without spending a quick or full action.`;
-  groups['Full actions'][0][1] = `Fire two weapons at +${grit}, plus an eligible Aux on each fired mount. A pair of Aux weapons on the same mount can fire together; reload Loading weapons after use.`;
-  groups['Reactions'][0][1] = `1/round: Skirmish at +${grit} when a hostile starts movement within a weapon’s Threat (normally 1).`;
+  const setCard = (group, title, text) => { const card = groups[group].find(c => c[0] === title); if (!card) throw new Error('missing card ' + title); card[1] = text; };
+  setCard('Quick actions', 'Boost', `Move ${speed} spaces as a quick action. Your standard move also covers ${speed}; both together cover ${2*speed}.`);
+  setCard('Quick actions', 'Quick Tech', `Lock On, Bolster, Scan, or Invade within Sensors 15. Lock On and Invade need line of sight; Invade: +${tech} vs E-Defense, 2 Heat on hit plus an available invasion option.`);
+  setCard('Quick actions', 'Skirmish', `Fire one weapon at +${grit} vs the target's defense, plus one other Aux on the same mount. Weapon attacks add GRIT, not Systems.`);
+  setCard('Quick actions', 'Ram / Grapple', `Knock back or Prone a target, or hold one in a grapple. Mech attacks add +${grit} GRIT; saves use Save Target ${11+grit}.`);
+  setCard('Protocols / free actions', 'Standard move', `Move ${speed} spaces without spending a quick or full action.`);
+  setCard('Full actions', 'Barrage', `Fire two weapons at +${grit}, plus an eligible Aux on each fired mount. A pair of Aux weapons on the same mount can fire together; reload Loading weapons after use.`);
+  setCard('Reactions', 'Overwatch', `1/round: Skirmish at +${grit} when a hostile starts movement within a weapon’s Threat (normally 1).`);
   groups['Passives'] = [
     ['Mech profile', `HP ${10 + 2*h + grit + (row.installed.includes('Personalizations 1') ? 2 : 0)}, Evasion ${8+a+(ll>=12?2:0)}, E-Defense ${10+s}, Speed ${speed}, Heat Cap ${6+e}, Repair Cap ${4+Math.floor(h/2)}, Sensors 15, SP ${row.sp}.`],
     ['Attack and save bonuses', `Weapon attacks +${grit}; tech attacks +${1+s}; Save Target ${11+grit}. Smart weapons attack E-Defense, but use weapon bonus, not tech attack.`],
