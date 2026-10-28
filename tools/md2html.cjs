@@ -244,8 +244,17 @@ function abilityPanel(row, prev, ll, talents) {
 }
 function levelJourney(id, rows) {
   const talents = new Map();
-  const timeline = `<nav class="level-timeline" aria-label="${id} level timeline">` +
-    rows.map((r, n) => `<a href="#${id}-ll${n}" title="${esc(r.license + ": " + r.talent)}"><b>LL${n}</b><span>${esc(r.license)}</span></a>`).join("") + `</nav>`;
+  const timeline = `<div class="hud-journey" data-journey="${id}">` +
+    `<div class="hud-heading"><span>LEVEL VECTOR</span><output class="hud-position" aria-label="Selected license level">LL0 / LL12</output></div>` +
+    `<p class="hud-help" hidden>SWIPE TO PREVIEW · OPEN BUILD BELOW</p>` +
+    `<div class="hud-shell"><nav class="level-timeline" aria-label="${id} level timeline">` +
+    rows.map((r, n) => `<a href="#${id}-ll${n}" data-level="${n}" title="${esc(r.license + ": " + r.talent)}"${r.core !== 'No new bonus' ? ' class="core-stop"' : ''}><b>LL${n}</b><span>${esc(r.license)}</span><small>${r.core !== 'No new bonus' ? 'CORE BONUS' : 'LICENSE'}</small></a>`).join("") +
+    `</nav><span class="hud-cursor" aria-hidden="true"></span></div>` +
+    `<div class="hud-preview" id="${id}-level-preview" hidden></div>` +
+    rows.map((r, n) => `<template id="${id}-preview-${n}"><div class="hud-preview-top"><h3>LL${n} · ${esc(r.license)}</h3>${r.core !== 'No new bonus' ? '<span class="hud-core">CORE UNLOCK</span>' : ''}</div>` +
+      `<dl><dt>TALENT GAINED</dt><dd>${esc(r.talent)}</dd>${r.core !== 'No new bonus' ? `<dt>CORE BONUS</dt><dd>${esc(r.core)}</dd>` : ''}` +
+      `<dt>CHASSIS</dt><dd>${esc(r.frame)}</dd><dt>HASE</dt><dd>${esc(r.hase)}</dd><dt>SYSTEM POINTS</dt><dd>${r.used} / ${r.sp} SP</dd></dl>` +
+      `<a class="hud-open" href="#${id}-ll${n}">Open full LL${n} build <span aria-hidden="true">↗</span></a></template>`).join('') + `</div>`;
   const levels = rows.map((r, n) => {
     const gained = n ? [r.talent] : r.talent.split(' / ');
     for (const talent of gained) talents.set(talent.replace(/ (?:I|II|III)$/, ''), talent);
@@ -336,6 +345,29 @@ function render() {
 .guide .level-timeline a:hover{border-color:var(--cyan);background:var(--holo-bg)}
 .guide .level-timeline b{display:block;color:var(--cyan);font:600 16px var(--mono)}
 .guide .level-timeline span{display:block;color:var(--text-soft);font:11px/1.35 var(--mono);margin-top:6px}
+.guide .hud-journey{margin:12px 0 24px;border:1px solid var(--line);background:var(--holo-bg);padding:14px;min-width:0}
+.guide .hud-heading{display:flex;justify-content:space-between;gap:8px;font:12px var(--mono);letter-spacing:.12em;color:var(--cyan)}
+.guide .hud-position{color:var(--lime)}.guide .hud-help{font:11px/1.5 var(--mono);color:var(--muted);margin:8px 0}
+.guide .hud-shell{position:relative;min-width:0}.guide .hud-cursor{display:none}
+.guide .level-timeline small{display:block;margin-top:6px;color:var(--muted);font:9px var(--mono);letter-spacing:.08em}
+.guide .level-timeline .core-stop small{color:var(--lime)}
+.guide .hud-enhanced .level-timeline{display:flex;gap:0;position:relative;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:calc(50% - 48px);padding:28px calc(50% - 48px) 10px;margin:0;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.guide .hud-enhanced .level-timeline a{flex:0 0 96px;min-width:0;text-align:center;scroll-snap-align:center;padding:20px 5px 10px;min-height:116px;border:0;border-top:2px solid var(--line);background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 12px) top/100% 8px no-repeat}
+.guide .hud-enhanced .level-timeline a[aria-current="step"]{border-top-color:var(--cyan);background-color:var(--panel);box-shadow:inset 0 -2px var(--cyan)}
+.guide .hud-enhanced .level-timeline a[aria-current="step"] b{color:var(--lime)}
+.guide .hud-enhanced .hud-cursor{display:block;pointer-events:none;position:absolute;top:8px;left:50%;width:2px;height:26px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.guide .hud-cursor::before{content:"";position:absolute;top:-1px;left:-5px;border:6px solid transparent;border-top-color:var(--cyan)}
+.guide .hud-preview{position:relative;margin-top:15px;padding:14px;border:1px solid var(--cyan);background:var(--panel);box-shadow:0 0 16px color-mix(in srgb,var(--cyan) 10%,transparent)}
+.guide .hud-preview::before{content:"";position:absolute;top:-16px;left:50%;height:15px;width:1px;background:var(--cyan)}
+.guide .hud-preview::after{content:"";pointer-events:none;position:absolute;inset:-2px;border:2px solid var(--cyan);clip-path:polygon(0 0,18px 0,18px 2px,2px 2px,2px 18px,0 18px,0 0,100% 100%,calc(100% - 18px) 100%,calc(100% - 18px) calc(100% - 2px),calc(100% - 2px) calc(100% - 2px),calc(100% - 2px) calc(100% - 18px),100% calc(100% - 18px),100% 100%)}
+.guide .hud-preview-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.guide .hud-preview-top h3{margin:0;font:600 17px var(--mono);letter-spacing:0;color:var(--text)}
+.guide .hud-core{font:10px var(--mono);color:var(--lime);border:1px solid var(--lime);padding:3px 6px}
+.guide .hud-preview dl{margin:0;display:grid;grid-template-columns:minmax(0,105px) minmax(0,1fr);gap:8px 12px}
+.guide .hud-preview dt{font:11px/1.4 var(--mono);color:var(--muted)}.guide .hud-preview dd{margin:0;font:14px/1.4 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.guide .hud-open{display:flex;align-items:center;justify-content:space-between;min-height:44px;margin-top:12px;padding:8px 0;border-top:1px solid var(--line);font:13px var(--mono);color:var(--cyan);text-decoration:none}
+.guide .hud-open:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.guide .hud-journey *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 .guide .level-entry{scroll-margin-top:15px;border-top:1px solid var(--line);padding:16px 0 22px}
 .guide .level-entry h3{margin:0 0 12px}
 .guide .level-synopsis,.guide .level-play{padding:15px 18px;border:1px solid var(--cyan);background:var(--holo-bg)}
@@ -396,6 +428,48 @@ ${panels.map(([id, , section], i) => `<section role="tabpanel" id="panel-${id}" 
 <footer class="footer"><span>VARGSKEL WORGS / TACTICAL DOCTRINE</span><span>GENERATED FROM averna-omniscient-overlord.md · REBUILD: node tools/md2html.cjs</span></footer>
 </div>
 <script>
+const journeys = new Map();
+document.querySelectorAll('[data-journey]').forEach(root => {
+  const id = root.dataset.journey, rail = root.querySelector('.level-timeline');
+  const stops = [...rail.querySelectorAll('a[data-level]')], preview = root.querySelector('.hud-preview');
+  let selected = 0, frame = 0;
+  function select(n) {
+    selected = n;
+    stops.forEach((link, i) => { if (i === n) link.setAttribute('aria-current', 'step'); else link.removeAttribute('aria-current'); });
+    preview.replaceChildren(document.getElementById(id + '-preview-' + n).content.cloneNode(true));
+    root.querySelector('.hud-position').textContent = 'LL' + n + ' / LL12';
+  }
+  function center(n, smooth = false) {
+    if (!rail.clientWidth) return;
+    const link = stops[n];
+    rail.scrollTo({left: link.offsetLeft + link.offsetWidth / 2 - rail.clientWidth / 2,
+      behavior: smooth && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant'});
+  }
+  root.classList.add('hud-enhanced');
+  root.querySelector('.hud-help').hidden = false;
+  preview.hidden = false;
+  select(0);
+  rail.addEventListener('scroll', () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      const midpoint = rail.scrollLeft + rail.clientWidth / 2;
+      let closest = 0, distance = Infinity;
+      stops.forEach((link, i) => { const d = Math.abs(link.offsetLeft + link.offsetWidth / 2 - midpoint); if (d < distance) { closest = i; distance = d; } });
+      if (selected !== closest) select(closest);
+    });
+  }, {passive:true});
+  stops.forEach((link, n) => {
+    link.addEventListener('click', e => { if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; e.preventDefault(); select(n); center(n, true); });
+    link.addEventListener('keydown', e => {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+      e.preventDefault();
+      const next = e.key === 'Home' ? 0 : e.key === 'End' ? stops.length - 1 : Math.max(0, Math.min(stops.length - 1, n + (e.key === 'ArrowRight' ? 1 : -1)));
+      stops[next].focus({preventScroll:true}); select(next); center(next);
+    });
+  });
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => center(selected)).observe(rail);
+  journeys.set(id, {activate(n) { if (Number.isInteger(n) && stops[n]) select(n); center(selected); }});
+});
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 function showBuild(id, focus = false) {
   tabs.forEach(tab => {
@@ -405,6 +479,7 @@ function showBuild(id, focus = false) {
     document.getElementById("panel-" + tab.dataset.build).hidden = !active;
     if (active && focus) tab.focus();
   });
+  journeys.get(id)?.activate();
 }
 tabs.forEach((tab, i) => {
   tab.addEventListener("click", () => showBuild(tab.dataset.build));
@@ -420,7 +495,12 @@ function openAnchor() {
   const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
   if (!target) return;
   const panel = target.closest('[role="tabpanel"]');
-  if (panel) showBuild(panel.id.slice(6));
+  if (panel) {
+    const id = panel.id.slice(6);
+    showBuild(id);
+    const level = target.id.match(/-ll(\\d+)$/);
+    if (level) journeys.get(id)?.activate(Number(level[1]));
+  }
   const details = target.closest("details");
   if (details) details.open = true;
 }
@@ -448,8 +528,14 @@ if (process.argv.includes("--check")) {
   for (const id of ["chomolungma", "goblin", "swallowtail"]) {
     assert.ok(page.includes(`id="panel-${id}"`) && page.includes(`id="tab-${id}"`), `missing ${id} tab`);
     assert.equal(LEVELS[id].length, 13, `${id} needs LL0–LL12`);
+    assert.ok(page.includes(`id="${id}-level-preview"`), `${id} needs a swipe-rail preview`);
+    assert.equal((page.match(new RegExp(`id="${id}-preview-\\d+"`, 'g')) || []).length, 13, `${id} needs 13 preview templates`);
+    assert.ok(!page.includes('<meter') && !page.includes('class="meter"'), 'SP must be text, not a bar');
     for (let ll = 0; ll <= 12; ll++) {
       assert.ok(page.includes(`href="#${id}-ll${ll}"`) && page.includes(`id="${id}-ll${ll}"`), `${id} LL${ll} timeline link`);
+      const preview = page.match(new RegExp(`<template id="${id}-preview-${ll}">([\\s\\S]*?)</template>`))?.[1];
+      const row = LEVELS[id][ll];
+      assert.ok(preview && preview.includes(esc(row.talent)) && preview.includes(`${row.used} / ${row.sp} SP`), `${id} LL${ll} preview must match build row`);
       const section = page.slice(page.indexOf(`id="${id}-ll${ll}"`), page.indexOf(`</section>`, page.indexOf(`id="${id}-ll${ll}"`)));
       assert.ok(section.includes(`PLAY PATTERN / LL${ll}`) && section.includes(LEVELS[id][ll].hase), `${id} LL${ll} content`);
     }
