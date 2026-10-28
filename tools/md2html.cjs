@@ -188,17 +188,59 @@ function glossary(toc) {
 
 const LEVELS = require("./averna-builds.cjs");
 const abilityGroups = require("./averna-abilities.cjs");
-function abilityPanel(row, ll, talents) {
+const STAT_DEFS = [["speed", "Speed", ""], ["tech", "Tech attack", "+"], ["weapon", "Weapon attack", "+"], ["sensors", "Sensors", ""],
+  ["evasion", "Evasion", ""], ["edef", "E-Defense", ""], ["hp", "HP", ""], ["heat", "Heat cap", ""]];
+function levelStats(row, ll) {
+  const n = k => +row.hase.match(new RegExp(k + "(\\d+)"))[1];
+  const h = n("H"), a = n("A"), s = n("S"), e = n("E"), grit = Math.ceil(ll / 2);
+  return { speed: 4 + Math.floor(a / 2), tech: 1 + s, weapon: grit, sensors: 15, evasion: 8 + a + (ll >= 12 ? 2 : 0),
+    edef: 10 + s, hp: 10 + 2 * h + grit + (row.installed.includes("Personalizations 1") ? 2 : 0), heat: 6 + e };
+}
+function gearNames(row) {
+  const names = new Set(row.installed.map(i => i.replace(/ \d+$/, "")));
+  for (const m of row.weapon.split("; ")) {
+    const [slot, items] = m.split(": ");
+    if (slot === "integrated") continue;
+    for (const it of items.split(" + ")) names.add(it);
+  }
+  return names;
+}
+function changeLog(row, prev, ll) {
+  if (!prev) return { items: [["START", "new", "Starting kit"]], news: new Set() };
+  const cur = gearNames(row), old = gearNames(prev), items = [], news = new Set();
+  const add = (tag, cls, text, key) => { items.push([tag, cls, text]); if (key) news.add(key); };
+  add("NEW", "new", "License \u00b7 " + row.license);
+  add("NEW", "new", "Talent \u00b7 " + row.talent, row.talent);
+  if (row.core !== "No new bonus") add("NEW", "new", "Core bonus \u00b7 " + row.core, row.core);
+  for (const g of cur) if (!old.has(g)) add("NEW", "new", g, g);
+  for (const g of old) if (!cur.has(g)) add("REMOVED", "rm", g + " (swapped out)");
+  return { items, news };
+}
+function abilityRow(title, detail, ctx, isNew) {
+  const facts = (abilityGroups.facts(title, ctx) || []).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+  let cue = detail.replace(/^[^:]{1,30}: /, "").split(/[.;]/)[0];
+  if (cue.length > 70) cue = cue.slice(0, 70).replace(/\s+\S*$/, "") + "\u2026";
+  return `<details class="ab-row" data-ability="${esc(title)}"><summary><span class="nm">${esc(title)}${isNew ? ' <span class="tag new">NEW</span>' : ""}` +
+    `<span class="cue">${esc(cue)}</span></span></summary><div class="body">${facts ? `<dl class="f">${facts}</dl>` : ""}<p>${esc(detail)}</p></div></details>`;
+}
+function abilityPanel(row, prev, ll, talents) {
   const ranks = [...talents].map(([name, value]) => [name, value.slice(name.length + 1)]);
   const groups = abilityGroups(row, ll, ranks);
-  const stats = groups.Passives[0][1];
-  const speed = stats.match(/Speed (\d+)/)[1];
-  const bonuses = groups.Passives[1][1];
-  return `<details class="level-abilities"><summary>Abilities <span aria-hidden="true">▸</span></summary>` +
-    `<div class="ability-glance">SPEED ${speed} · TECH ${bonuses.match(/tech attacks (\+\d+)/)[1]} · WEAPON ${bonuses.match(/Weapon attacks (\+\d+)/)[1]} · SENSORS 15</div><div class="ability-groups">` +
-    Object.entries(groups).map(([name, cards]) => `<section><h4>${esc(name)}</h4><div class="ability-cards">` +
-      cards.map(([title, detail]) => `<article><strong>${esc(title)}</strong><p>${esc(detail)}</p></article>`).join('') +
-      `</div></section>`).join('') + `</div></details>`;
+  const st = levelStats(row, ll), pst = prev ? levelStats(prev, ll - 1) : null;
+  const ctx = { speed: st.speed, tech: st.tech, grit: st.weapon };
+  const log = changeLog(row, prev, ll);
+  const sign = (k, v) => (STAT_DEFS.find(d => d[0] === k)[2]) + v;
+  const board = STAT_DEFS.map(([k, label, pre]) => `<div class="ab-stat" data-stat="${k}"><span class="k">${label}</span><span class="v">${pre}${st[k]}</span>` +
+    `<small>${pst && pst[k] !== st[k] ? `${st[k] > pst[k] ? "\u2191" : "\u2193"} from ${sign(k, pst[k])}` : ""}</small></div>`).join("");
+  const skip = new Set(["Mech profile", "Attack and save bonuses"]);
+  const body = Object.entries(groups).map(([name, cards]) => {
+    const rowsHtml = cards.filter(([t]) => !skip.has(t)).map(([t, d]) => abilityRow(t, d, ctx, log.news.has(t))).join("");
+    return rowsHtml ? `<h5 class="g">${esc(name)}</h5>${rowsHtml}` : "";
+  }).join("");
+  return `<details class="level-abilities"><summary>Abilities <span aria-hidden="true">\u25b8</span></summary>` +
+    `<div class="ab-stats">${board}</div>` +
+    `<section class="ab-log"><h4>${prev ? "SINCE LL" + (ll - 1) : "STARTING KIT"}</h4><ul>${log.items.map(([t, c, x]) => `<li><span class="tag ${c}">${t}</span><span>${esc(x)}</span></li>`).join("")}</ul></section>` +
+    `<div class="ab-body">${body}</div></details>`;
 }
 function levelJourney(id, rows) {
   const talents = new Map();
@@ -216,7 +258,7 @@ function levelJourney(id, rows) {
     `<h4>Installed systems and weapon SP (${r.used}/${r.sp})</h4><ul>${r.installed.map(item => `<li>${esc(item)}</li>`).join("")}</ul>` +
     `<h4>Mounts</h4><ul>${r.weapon.split("; ").map(m => `<li>${esc(m)}</li>`).join("")}</ul></div>` +
     `<div class="level-play"><span>PLAY PATTERN / LL${n}</span><p>${esc(r.play)}</p></div>` +
-    (id === 'chomolungma' ? abilityPanel(r, n, talents) : '') + `</section>`;
+    (id === 'chomolungma' ? abilityPanel(r, rows[n - 1], n, talents) : '') + `</section>`;
   }).join("\n");
   return `<div class="level-journey"><h2>LL0–LL12: ${id.toUpperCase()}</h2>${timeline}${levels}</div>`;
 }
@@ -313,12 +355,25 @@ function render() {
 .guide .level-abilities>summary::-webkit-details-marker{display:none}.guide .level-abilities>summary::marker{content:""}
 .guide .level-abilities>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .guide .level-abilities[open]>summary span{transform:rotate(90deg)}
-.guide .ability-glance{padding:10px 14px;color:var(--lime);font:12px/1.6 var(--mono);border-top:1px solid var(--line);overflow-wrap:anywhere}
-.guide .ability-groups{padding:4px 14px 16px;display:grid;gap:18px}
-.guide .ability-groups h4{margin:0 0 8px;color:var(--lime);font:12px var(--mono);letter-spacing:.12em}
-.guide .ability-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px}
-.guide .ability-cards article{min-width:0;border:1px solid var(--line);border-left:3px solid var(--cyan);background:var(--holo-bg);padding:10px 12px}
-.guide .ability-cards strong{font:600 13px var(--mono)}.guide .ability-cards p{font:13px/1.5 var(--sans);margin:5px 0 0;overflow-wrap:anywhere}
+.guide .ab-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px 4px}
+.guide .ab-stat{background:var(--holo-bg);border:1px solid var(--line);border-left:4px solid var(--cyan);padding:10px 12px}
+.guide .ab-stat .k{display:block;font:11px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.guide .ab-stat .v{display:block;margin-top:6px;font:600 28px/1 var(--mono);color:var(--lime)}
+.guide .ab-stat small{display:block;margin-top:6px;min-height:14px;font:11px var(--mono);color:var(--cyan)}
+.guide .ab-log{margin:10px 14px;background:var(--holo-bg);border:1px solid var(--line);border-left:4px solid var(--lime);padding:12px}
+.guide .ab-log h4{margin:0 0 8px;font:600 12px var(--mono);letter-spacing:.14em;color:var(--lime)}
+.guide .ab-log ul{list-style:none;margin:0;padding:0}.guide .ab-log li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line)}.guide .ab-log li:first-child{border:0}
+.guide .tag{font:11px var(--mono);letter-spacing:.1em;padding:2px 7px;border:1px solid currentColor;display:inline-block;min-width:74px;text-align:center}
+.guide .tag.new{color:var(--lime)}.guide .tag.rm{color:var(--rust-light)}
+.guide .ab-body{padding:0 14px 14px}.guide h5.g{margin:16px 0 6px;font:600 12px var(--mono);letter-spacing:.14em;color:var(--cyan)}
+.guide .ab-row{border:1px solid var(--line);background:var(--panel);margin-bottom:6px}
+.guide .ab-row>summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;cursor:pointer;list-style:none}
+.guide .ab-row>summary::-webkit-details-marker{display:none}.guide .ab-row>summary::after{content:"\\25B8";color:var(--muted)}.guide .ab-row[open]>summary::after{content:"\\25BE"}
+.guide .ab-row .nm{flex:1;font:600 14px var(--mono)}.guide .ab-row .cue{display:block;font:400 12px var(--sans);color:var(--muted)}
+.guide .ab-row .tag{min-width:0;margin-left:6px}
+.guide .ab-row .body{padding:0 12px 12px;border-top:1px solid var(--line)}
+.guide .ab-row .f{display:grid;grid-template-columns:78px 1fr;gap:3px 10px;margin:10px 0}.guide .ab-row .f dt{font:11px var(--mono);letter-spacing:.12em;color:var(--muted)}.guide .ab-row .f dd{margin:0;font:600 15px var(--mono);color:var(--lime)}
+.guide .ab-row .body p{margin:0;font:13px/1.5 var(--sans)}
 [hidden]{display:none!important}
 </style>
 <script src="${p("offline.js")}"></script>
@@ -406,14 +461,17 @@ if (process.argv.includes("--check")) {
     for (const label of ['Quick actions', 'Full actions', 'Reactions', 'On foot', 'Weapons', 'Passives'])
       assert.ok(section.includes(label), `LL${ll} missing ${label}`);
     assert.ok(!/<details class="level-abilities" open/.test(section), `LL${ll} abilities must start closed`);
-    const stats = section.match(/<div class="ability-glance">SPEED (\d+) · TECH \+(\d+) · WEAPON \+(\d+) · SENSORS 15<\/div>/);
-    assert.ok(stats, `LL${ll} missing glance stats`);
-    assert.ok(section.includes(`Boost</strong><p>Move ${stats[1]} spaces`), `LL${ll} Boost must show actual movement`);
-    assert.ok(section.includes(`+${stats[2]} vs E-Defense`) && section.includes(`+${stats[3]} vs E-Defense`), `LL${ll} attacks must show bonuses`);
-    const card = title => (section.match(new RegExp('<strong>' + title.replace(/[/]/g, '\\/') + '</strong><p>([^<]*)</p>')) || [])[1] || '';
-    assert.ok(/Fire one weapon/.test(card('Skirmish')) && !/Invade/.test(card('Skirmish')), `LL${ll} Skirmish card has the wrong text`);
-    assert.ok(/Invade/.test(card('Quick Tech')) && !/Knock back/.test(card('Quick Tech')), `LL${ll} Quick Tech card has the wrong text`);
-    assert.ok(/Knock back/.test(card('Ram / Grapple')), `LL${ll} Ram / Grapple card has the wrong text`);
+    const stat = k => +((section.match(new RegExp('data-stat="' + k + '"><span class="k">[^<]*</span><span class="v">\\+?(\\d+)')) || [])[1]);
+    assert.ok(stat("speed") && stat("tech") >= 0 && stat("sensors") === 15, `LL${ll} stat board missing values`);
+    assert.equal((section.match(/data-stat=/g) || []).length, 8, `LL${ll} stat board needs 8 tiles`);
+    assert.ok(ll ? section.includes(`SINCE LL${ll - 1}`) : section.includes("STARTING KIT"), `LL${ll} change log heading`);
+    const rowOf = t => (section.match(new RegExp('<details class="ab-row" data-ability="' + t.replace(/[/()]/g, '\\$&') + '"[\\s\\S]*?</details>')) || [''])[0];
+    assert.ok(rowOf('Boost').includes(`<dd>${stat("speed")} spaces</dd>`), `LL${ll} Boost must show actual movement`);
+    assert.ok(rowOf('Quick Tech').includes(`+${stat("tech")} vs E-Defense`), `LL${ll} Quick Tech must show the tech bonus`);
+    assert.ok(rowOf('Nexus stats').includes(`+${stat("weapon")} vs E-Defense`), `LL${ll} Nexus must show the weapon bonus`);
+    assert.ok(/Fire one weapon/.test(rowOf('Skirmish')) && !/Invade/.test(rowOf('Skirmish')), `LL${ll} Skirmish card has the wrong text`);
+    assert.ok(/Invade/.test(rowOf('Quick Tech')) && !/Knock back/.test(rowOf('Quick Tech')), `LL${ll} Quick Tech card has the wrong text`);
+    assert.ok(/Knock back/.test(rowOf('Ram / Grapple')), `LL${ll} Ram / Grapple card has the wrong text`);
   }
   assert.ok(page.includes('<details class="gsec" id="glossary">'), "the page must carry the generated glossary section");
   const unglossed = Object.keys(TERMS).filter(t => !page.includes(`<th>${esc(t)}</th>`));
