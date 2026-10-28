@@ -140,4 +140,22 @@ function abilityGroups(row, ll, ranks) {
   for (const [name,card] of Object.entries(cores)) if (ll >= ({'Improved Armament':3,'The Lesson of Shaping':6,'Integrated Weapon':9,'Full Subjectivity Sync':12})[name]) groups['Passives'].push([name,card[1]]);
   return groups;
 }
+
+abilityGroups.facts = (title, c) => ({
+  'Boost': [['MOVE', `${c.speed} spaces`], ['WITH STANDARD', `${2 * c.speed} spaces`]],
+  'Standard move': [['MOVE', `${c.speed} spaces`]],
+  'Quick Tech': [['ROLL', `+${c.tech} vs E-Defense`], ['RANGE', 'Sensors 15'], ['ON HIT', '2 Heat']],
+  'Skirmish': [['COST', 'Quick'], ['ROLL', `+${c.grit} vs defense`]],
+  'Barrage': [['COST', 'Full'], ['ROLL', `+${c.grit} per weapon`]],
+  'Overwatch': [['COST', 'Reaction'], ['ROLL', `+${c.grit}`], ['LIMIT', '1 / round']],
+  'OSIRIS-Class NHP': [['COST', 'Quick Tech'], ['ROLL', `+${c.tech} vs E-Defense`], ['RANGE', 'Sensors 15'], ['ON HIT', '2 Heat + next Gate'], ['LIMIT', '1 / round']],
+  'H0R_OS System Upgrade I': [['COST', 'Invade'], ['ROLL', `+${c.tech} vs E-Defense`], ['RANGE', 'Sensors 15']],
+  'ATHENA-Class NHP': [['COST', 'Quick'], ['RANGE', '50'], ['AREA', 'Blast 3']],
+  'Unstable NHP': [['COST', 'Quick'], ['RANGE', '3'], ['DAMAGE', '5 AP Energy'], ['LIMIT', '1 / round']],
+  'Blackspot Targeting Laser': [['ROLL', `+${c.grit} vs Evasion`], ['RANGE', '15'], ['DAMAGE', '1d3+1 Energy']],
+  'Autopod': [['COST', 'Reaction'], ['RANGE', '15'], ['DAMAGE', '3 Kinetic'], ['LIMIT', '1 / round']],
+  "Dominion's Breadth": [['COST', 'Quick Tech'], ['RANGE', 'Sensors 15'], ['GIVES', 'Overshield 1']],
+  'Lotus Projector': [['COST', 'Quick'], ['RANGE', 'Sensors 15'], ['AREA', 'Burst 2']],
+  'Stasis Bolt': [['COST', 'Reaction'], ['ROLL', `+${c.grit} contested`], ['RANGE', 'Ally within 5']]
+})[title];
 module.exports = abilityGroups;
