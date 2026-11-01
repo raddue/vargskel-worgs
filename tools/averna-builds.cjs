@@ -37,6 +37,20 @@ systems.goblin.push(
   ['H0R_OS System Upgrade I 2','Wandering Nightmare 1','Unhinge Chronology 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','OSIRIS-Class NHP 3','Autopod 1'],
   ['H0R_OS System Upgrade I 2','Wandering Nightmare 1','Unhinge Chronology 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','OSIRIS-Class NHP 3','Autopod 1'],
   ['H0R_OS System Upgrade I 2','Wandering Nightmare 1','Unhinge Chronology 2',"Dominion's Breadth 2",'Shahnameh 3','Lotus Projector 2','OSIRIS-Class NHP 3','Omnibus Plate 1','Autopod 1']);
+const gobBase = ['Personalizations 1','Rapid Burst Jump Jet System 2','H0R_OS System Upgrade I 2'];
+const gobAI = [...gobBase,'ATHENA-Class NHP 3','LB/OC Cloaking Field 4','Enlightenment-Class NHP 0'];
+systems.goblin = [
+  [...base,'Servant-Class NHP 0'],
+  ['Personalizations 1','Turret Drones 2','Rapid Burst Jump Jet System 2','Type-3 Projected Shield 2','H0R_OS System Upgrade I 2','Student-Class NHP 0'],
+  [...base,'H0R_OS System Upgrade I 2','Autopod 1','Student-Class NHP 0'],
+  [...gobBase,'Type-3 Projected Shield 2','Custom Paint Job 1','Autopod 1','OSIRIS-Class NHP 3','Enlightenment-Class NHP 0'],
+  [...gobBase,'Type-3 Projected Shield 2','Lotus Projector 2','Autopod 1','OSIRIS-Class NHP 3','Enlightenment-Class NHP 0'],
+  [...gobBase,'Lotus Projector 2','H0R_OS System Upgrade II 2','Retractable Profile 1','Autopod 1','OSIRIS-Class NHP 3','Enlightenment-Class NHP 0'],
+  [...gobAI,'Retractable Profile 1','Autopod 1'],
+  ...[7,8].map(() => [...gobAI,'Retractable Profile 1','Smartgun 2']),
+  ...[9,10].map(n => [...gobAI,'Viral Logic Suite 2','Smartgun 2',...(n === 10 ? ['Ammo Case 0'] : [])]),
+  ...[11,12].map(() => [...gobAI,'Viral Logic Suite 2','Law of Blades 2','Custom Paint Job 1','Ammo Case 0'])
+];
 systems.swallowtail.push(
   ['Lotus Projector 2','ATHENA-Class NHP 3',"Dominion's Breadth 2",'Shahnameh 3','H0R_OS System Upgrade I 2','Autopod 1'],
   ['Lotus Projector 2','ATHENA-Class NHP 3','Shahnameh 3','H0R_OS System Upgrade I 2','H0R_OS System Upgrade II 2','Autopod 1'],
@@ -77,24 +91,25 @@ const paths = {
   },
   goblin: {
     name: 'Tech control', frameAt: 2, baseSP: 8,
-    licenses: ['None','Goblin I','Goblin II','Goblin III','Lich I','Lich II','Emperor I','Emperor II','Swallowtail I','Swallowtail II','Swallowtail III','Kidd I','Kidd II'],
-    talents: ['Spotter I / Leader I / Drone Commander I','Spotter II','Spotter III','Leader II','Technophile I','Technophile II','Technophile III','Leader III','House Guard I','Field Analyst I','Field Analyst II','Sysop I','Sysop II'],
-    cores: {3:'Improved Armament',6:'The Lesson of the Held Image',9:'The Lesson of the Open Door',12:'Universal Compatibility'},
-    hase: n => [Math.min(6,2+n),Math.min(4,Math.max(0,n-4)),Math.min(4,Math.max(0,n-8)),0], // S,H,E,A
+    licenses: ['None','Goblin I','Goblin II','Goblin III','Swallowtail I','Swallowtail II','Swallowtail III','Pegasus I','Minotaur I','Minotaur II','Minotaur III','Lich I','Lich II'],
+    talents: ['Spotter I / Leader I / Technophile I','Technophile II','Leader II','Technophile III','Leader III','Spotter II','Spotter III','Black Thumb I','Black Thumb II','Black Thumb III','Walking Armory I','Walking Armory II','Walking Armory III'],
+    cores: {3:'The Lesson of the Held Image',6:'Full Subjectivity Sync',9:'The Lesson of the Open Door',12:'The Lesson of Disbelief'},
+    hase: n => [Math.min(6,2+n), n < 5 ? 0 : n < 6 ? 1 : n < 9 ? 2 : n < 10 ? 3 : 4, n < 7 ? 0 : n < 8 ? 1 : 2, n < 11 ? 0 : n-10],
+    triggers: ['Act Unseen or Unheard +2; Get a Hold of Something +2; Hack or Fix +2; Lead or Inspire +2','Read a Situation +2','Take Someone Out +2','Get a Hold of Something +4','Read a Situation +4','Act Unseen or Unheard +4','Get a Hold of Something +6','Read a Situation +6','Take Someone Out +4','Act Unseen or Unheard +6','Lead or Inspire +4','Hack or Fix +4','Lead or Inspire +6'],
     plays: [
-      'Fielded Chomolungma kit remains the LL0 starting point. Mark for adjacent allies.',
-      'Goblin I unlocks Autopod, not the frame. Mark within 15 for the ally-triggered reaction.',
-      'Print Goblin: Sensors 20 and +2 tech attack, but HP 6 and only one Flex. Keep Autopod; stow the racks.',
-      'Improved Armament gives a second Flex for the two racks. Hack or mark from cover; avoid direct fire.',
-      'Wandering Nightmare denies reactions in its zone. Keep allied reaction attackers outside it; Autopod can still fire from outside.',
-      'Unhinge Chronology grants Haste or Slow. Student-Class NHP gives a mech-skill reroll only if installed; this print leaves its AI slot empty.',
-      'Held Image and Autopod both require your reaction. Technophile III prevents cascade if you later install an AI; its optional Enlightenment NHP is not installed.',
-      'Shahnameh supplies Overshield and heat resistance; keep the low-HP Goblin behind the line.',
-      'Lotus Projector reveals hiding targets. You can mark at Sensors 20, while Autopod still reaches only 15.',
-      'OSIRIS supplies aggressive quick tech; Open Door improves its save pressure. Only OSIRIS occupies the AI slot.',
-      'Swallowtail III unlocks ATHENA as a swap, never a second installed NHP. Field Analyst I helps a missed ally attack.',
-      'Kidd I unlocks PEBCAC but it is not installed. House Guard extends adjacency effects to Range 2.',
-      'Omnibus Plate protects one drone or deployable and extends some of its effects. Goblin remains fragile: base HP 6 and Repairs 2.'
+      'Planned respec replaces Hacker I with Technophile I. Keep the fielded Chomolungma loadout as history.',
+      'Install H0R_OS I and Student. Eject Power Cores jams on a successful Invade.',
+      'Print Goblin and mount Autopod. Restore Custom Paint Job.',
+      'Install OSIRIS and Enlightenment. Held Image supplies Lock On at an ally turn start.',
+      'Replace Paint Job with Lotus Projector.',
+      'Replace Projected Shield with H0R_OS II and Retractable Profile.',
+      'Replace OSIRIS, Lotus and H0R_OS II with ATHENA and the Cloaking Field. The field costs 2 Heat.',
+      'Swap Autopod for Smartgun. Black Thumb I protects the dismounted pilot.',
+      'Minotaur I unlocks Viral Logic Suite. Keep the existing loadout.',
+      'Replace Retractable Profile with Viral Logic Suite. Banish punishes voluntary movement.',
+      'Law of Blades is unlocked. Walking Armory adds a 0-SP Ammo Case.',
+      'Swap Smartgun for Unraveler, install Law of Blades and restore Custom Paint Job. Smartgun is an alternate loadout.',
+      'Lich II unlocks Unhinge Chronology for an alternate loadout. The Lesson of Disbelief improves Systems checks and saves.'
     ]
   },
   swallowtail: {
@@ -129,7 +144,13 @@ const weapon = (id,n) => {
     return `Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: ${n >= 9 ? 'Blackspot Targeting Laser' : 'Assault Rifle'}; bonus Flex: two Missile Racks${n >= 9 ? '; integrated: Light Nexus' : ''}`;
   }
   if (n === 0) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: two Missile Racks';
-  if (n < 3 || (id === 'goblin' && n === 2)) return id === 'goblin' && n === 2 ? 'Flex: Autopod (only mount)' : 'Main/Aux: Autopod + Light Nexus; Flex: two Missile Racks';
+  if (id === 'goblin') {
+    if (n === 1) return 'Main/Aux: Hunter-Killer Nexus + Light Nexus; Flex: two Missile Racks';
+    if (n <= 6) return 'Flex: Autopod';
+    if (n <= 10) return 'Flex: Smartgun';
+    return 'Flex: Unraveler';
+  }
+  if (n < 3) return 'Main/Aux: Autopod + Light Nexus; Flex: two Missile Racks';
   if (id === 'goblin') return 'Flex: Autopod; bonus Flex: two Missile Racks';
   if (id === 'swallowtail') return 'Flex: Autopod; Aux/Aux: two Missile Racks; bonus Flex: Hunter-Killer Nexus';
   return 'Main/Aux: Autopod + Light Nexus; Flex: two Missile Racks; bonus Flex: Hunter-Killer Nexus';
