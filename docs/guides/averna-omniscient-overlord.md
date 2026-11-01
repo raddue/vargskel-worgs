@@ -16,15 +16,15 @@ Reprint and rebuild at Full Repair when changing loadout, subject to GM approval
 | **LL1** | Goblin I | Goblin I | Goblin I |
 | **LL2** | Goblin II | Goblin II | Swallowtail I |
 | **LL3** | Goblin III | Goblin III | Swallowtail II |
-| **LL4** | Swallowtail I | Lich I | Swallowtail III |
-| **LL5** | Swallowtail II | Lich II | Emperor I |
-| **LL6** | Swallowtail III | Emperor I | Emperor II |
-| **LL7** | Emperor I | Emperor II | Goblin II |
-| **LL8** | Kidd I | Swallowtail I | Goblin III |
-| **LL9** | Lich I | Swallowtail II | Kidd I |
-| **LL10** | Lich II | Swallowtail III | Kidd II |
-| **LL11** | Napoleon I | Kidd I | Lich I |
-| **LL12** | Monarch I | Kidd II | Lich II |
+| **LL4** | Swallowtail I | Swallowtail I | Swallowtail III |
+| **LL5** | Swallowtail II | Swallowtail II | Emperor I |
+| **LL6** | Swallowtail III | Swallowtail III | Emperor II |
+| **LL7** | Emperor I | Pegasus I | Goblin II |
+| **LL8** | Kidd I | Minotaur I | Goblin III |
+| **LL9** | Lich I | Minotaur II | Kidd I |
+| **LL10** | Lich II | Minotaur III | Kidd II |
+| **LL11** | Napoleon I | Lich I | Lich I |
+| **LL12** | Monarch I | Lich II | Lich II |
 
 - Lock On a target within Sensors and line of sight.
 - Adjacent striker attacks and consumes the mark; Spotter I lets them roll twice.
@@ -60,7 +60,9 @@ Mechanics checked against [Massif Press core player data](https://github.com/mas
 
 ## Goblin Build
 
-The tech-control tab prints Goblin at LL2. It trades Chomolungma's HP and mounts for better hacking. H0R_OS I adds Puppet System and Eject Power Cores; H0R_OS II adds constructs. Wandering Nightmare costs a Full Tech action and suppresses **all** reactions inside its zone, so keep it clear of allies relying on reaction attacks. Unhinge Chronology's Haste grants a free Boost 1/round until the beneficiary takes damage. OSIRIS is the late installed AI; ATHENA is unlocked at Swallowtail III but remains a swap, not a second AI. The build keeps Autopod on one Flex and adds a second Flex through Improved Armament.
+Averna changes to Goblin at LL2. The plan replaces the exported Hacker I with Technophile I as the LL1 reallocation; confirm the respec in COMP/CON. Held Image supports allied attacks, while ATHENA and the Cloaking Field arrive at LL6. Banish from Viral Logic Suite punishes voluntary movement; Puppet System's involuntary movement does not trigger it.
+
+At LL11 the Unraveler and Law of Blades loadout keeps Custom Paint Job. For a Smartgun alternate, replace Unraveler with Smartgun and remove Law of Blades. Both alternatives use 17 SP at LL11. Unraveler deals Reliable 2 unless its damage would destroy or structure the target. The Cloaking Field costs 2 Heat to activate. Enlightenment does not count against the AI limit.
 
 ## Swallowtail Build
 

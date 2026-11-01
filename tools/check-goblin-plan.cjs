@@ -1,0 +1,13 @@
+const assert = require('assert');
+const rows = require('./averna-builds.cjs').goblin;
+assert.equal(rows.length, 13);
+assert.deepEqual(rows.map(r => r.license), ['None','Goblin I','Goblin II','Goblin III','Swallowtail I','Swallowtail II','Swallowtail III','Pegasus I','Minotaur I','Minotaur II','Minotaur III','Lich I','Lich II']);
+assert.equal(rows[3].core, 'The Lesson of the Held Image');
+assert.equal(rows[6].core, 'Full Subjectivity Sync');
+assert.equal(rows[9].core, 'The Lesson of the Open Door');
+assert.equal(rows[12].core, 'The Lesson of Disbelief');
+assert(rows[9].installed.includes('Viral Logic Suite 2'));
+assert(rows[11].installed.includes('Law of Blades 2'));
+assert(rows[11].weapon.includes('Unraveler'));
+for (const row of rows) assert(row.used <= row.sp, `${row.license}: ${row.used}/${row.sp}`);
+console.log('Goblin progression checks passed');
