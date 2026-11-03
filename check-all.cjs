@@ -277,13 +277,11 @@ chomoLevels.forEach((level, ll) => {
   const ranks = [...level.trigger.matchAll(/\+(\d+)/g)].reduce((sum, match) => sum + Number(match[1]), 0);
   if (ranks !== 8 + 2 * ll) problems.push(`guide: LL${ll} trigger points are invalid`);
   const nhps = level.installed.filter(item => /(?:Class|Unstable) NHP/.test(item));
-  const expected = ll >= 7 ? ["OSIRIS-Class NHP 3", "ATHENA-Class NHP 3", "Enlightenment-Class NHP 0", "Unstable NHP 0"]
-    : ll >= 6 ? ["OSIRIS-Class NHP 3", "ATHENA-Class NHP 3", "Enlightenment-Class NHP 0"]
-    : ll >= 3 ? ["OSIRIS-Class NHP 3"] : ["Servant-Class NHP 0"];
+  const expected = ll >= 6 ? ['OSIRIS-Class NHP 3', 'ATHENA-Class NHP 3', 'Enlightenment-Class NHP 0', 'Unstable NHP 0']
+    : ll >= 3 ? ['OSIRIS-Class NHP 3', 'Enlightenment-Class NHP 0', 'Unstable NHP 0']
+    : ll === 2 ? ['Student-Class NHP 0', 'Unstable NHP 0'] : ['Servant-Class NHP 0', 'Unstable NHP 0'];
   if (nhps.length !== expected.length || expected.some(item => !nhps.includes(item)))
     problems.push(`guide: LL${ll} NHP print is invalid`);
-  if (ll >= 7 && level.talent !== `Iconoclast ${["I", "II", "III"][Math.min(ll - 7, 2)]}` && ll <= 9)
-    problems.push(`guide: LL${ll} Iconoclast progression is invalid`);
 });
 if (navPages.includes(guideRel)) {
   const guideSrc = fs.readFileSync(__dirname + "/" + guideRel, "utf8");
@@ -292,9 +290,10 @@ if (navPages.includes(guideRel)) {
   chomoPrints.forEach(([html, ll]) => {
     const talents = [...html.matchAll(/<li class="level-talent">([^<]+)(?: <span class="talent-gain">\+1<\/span>)?<\/li>/g)];
     const owned = new Set(chomoLevels.slice(0, Number(ll) + 1).flatMap((level, n) =>
-      (n ? [level.talent] : level.talent.split(' / ')).map(t => t.replace(/ (?:I|II|III)$/, ''))));
-    if (talents.length !== owned.size || (html.match(/class="talent-gain">\+1<\/span>/g) || []).length !== (Number(ll) ? 1 : 3))
-      problems.push(`guide: LL${ll} must show each owned talent on its own line and mark new ranks +1`);
+      (n ? [level.talent] : level.talent.split(' / ')).filter(t => t !== 'Talent unchosen').map(t => t.replace(/ (?:I|II|III)$/, ''))));
+    const expectedGains = Number(ll) ? (chomoLevels[Number(ll)].talent === 'Talent unchosen' ? 0 : 1) : 3;
+    if (talents.length !== owned.size || (html.match(/class="talent-gain">\+1<\/span>/g) || []).length !== expectedGains)
+      problems.push(`guide: LL${ll} must show owned talents and mark chosen ranks`);
   });
   const gsecs = guideSrc.split('<details class="gsec"').slice(1);
   const firstSec = gsecs[0] || "";

@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const rows = require('./averna-builds.cjs').chomolungma;
+assert.deepEqual(rows.slice(0, 7).map(r => r.talent), ['Leader I / Technophile I / Iconoclast I', 'Iconoclast II', 'Technophile II', 'Technophile III', 'Iconoclast III', 'Leader II', 'Leader III']);
+assert(rows[0].installed.includes('Servant-Class NHP 0'));
+assert(rows[2].installed.includes('Student-Class NHP 0'));
+for (const row of rows) assert(row.installed.includes('Unstable NHP 0'));
+for (const row of rows.slice(3)) assert(row.installed.includes('Enlightenment-Class NHP 0'));
+for (const row of rows) assert(row.used <= row.sp);
+const groups = require('./averna-abilities.cjs');
+const flatten = x => Object.values(x).flat().map(a => a.join(' ')).join('\n');
+assert.match(flatten(groups(rows[0], 0, [['Iconoclast','I']])), /3 AP Energy/);
+assert.match(flatten(groups(rows[6], 6, [['Iconoclast','III']])), /5 AP Energy/);
+assert.match(flatten(groups(rows[3], 3, [['Iconoclast','II']])), /Student|Enlightenment/);
+console.log('Early Iconoclast checks passed');
