@@ -38,6 +38,7 @@ const universal = {
 const systems = {
   'Turret Drones': ['Quick / reaction', 'Limited 3: deploy within Sensors and line of sight. 1/round per turret, an ally within Range 10 of it hits; turret deals 3 Kinetic to that target if it has line of sight.'],
   'Servant-Class NHP': ['Passive', '0 SP; installed AI can take control when you hand over the mech as a protocol.'],
+  'Student-Class NHP': ['Reroll', '0 SP; once per round reroll a mech skill check or save, keeping the new result.'],
   'Enlightenment-Class NHP': ['Reroll', '0 SP; does not count toward the AI limit. 1/round reroll a mech skill check or save, keeping the new result. Technophile III blocks cascade unless you allow it.'],
   'Type-3 Projected Shield': ['Protocol', 'Take 1 Heat (Self); choose a visible character. Ranged/melee attacks between you gain +2 Difficulty until your next turn.'],
   'Rapid Burst Jump Jet System': ['Boost', 'Fly during a Boost; end on a solid surface or fall.'],
@@ -49,7 +50,7 @@ const systems = {
   'OSIRIS-Class NHP': ['Quick Tech', 'Hurl Into the Duat, 1/round: tech attack within Sensors, 2 Heat on hit. Successful hits cycle: control next standard move; Slow/Impair; Stun; temporary allied NPC. The fourth effect ends if your side attacks, damages, heats or forces a save against the target. Resets after fourth hit or rest.'],
   'Lotus Projector': ['Quick action', 'Deploy an invisible scout drone within Sensors and line of sight. Its Burst 2 reveals stats and suppresses enemy Hidden/Invisible benefits; recall and redeploy as a quick action.'],
   'ATHENA-Class NHP': ['Quick action', 'Simulacrum: place or move one Blast 3 area within Range 50. Reveal occupant stats; hostiles lose cover and cannot Hide/become Invisible; those ending their turn inside gain Lock On. Visibility is not line of sight.'],
-  'Unstable NHP': ['Quick action', 'Memetic Spark, 1/round: 5 AP Energy within Range 3 while all four NHPs survive. Does not use a regular AI slot; can cascade.'],
+  'Unstable NHP': ['Quick action', 'Memetic Spark, 1/round, deals 1 AP Energy plus 1 per undestroyed NHP within Range 3. Does not use a regular AI slot; can cascade.'],
   "Dominion's Breadth": ['Quick Tech', 'Give a mech within Sensors and line of sight Overshield 1. When lost, a Burst 2 deals 2 AP Energy to hostiles and forces an Engineering save against Impaired.'],
   'Blackspot Targeting Laser': ['Weapon hit', 'Range 15, Main, 1d3+1 Energy. Hit: Drone, Seeking and Nexus attacks gain +1 Accuracy against that target until end of its next turn; crit adds Lock On.'],
   'Unhinge Chronology': ['Quick Tech', 'Haste: target within Sensors/line of sight gets a free Boost each round until damaged. Slow: Systems save or 2 Heat, Slowed and no reactions until damaged or saved out.'],
@@ -72,9 +73,9 @@ const talents = {
     ['Passive', 'Enlightenment does not count against AI limit; all installed AIs avoid cascade unless you allow it.']
   ],
   Iconoclast: [
-    ['Quick action', 'Unstable NHP grants Memetic Spark, 5 AP Energy within Range 3 with four NHPs aboard.'],
+    ['Quick action', 'Unstable NHP grants Memetic Spark: 1 AP Energy plus 1 per undestroyed NHP within Range 3.'],
     ['Free action', 'After an NHP-granted action, Transmuting Spark deals 2 AP Energy to chosen characters in Line 3; each NHP triggers once/round.'],
-    ['Passive', 'Repeated sparks trigger Transcension: through next turn, Memetic Spark deals 9 AP Energy at Range 8, plus Hover 1 and immunity to involuntary movement.']
+    ['Passive', 'Repeated Transmuting Sparks trigger Transcension: through next turn, Memetic Spark gains +4 damage and +5 Range, plus Hover 1 and immunity to involuntary movement.']
   ],
   Skirmisher: [
     ['Passive', 'Soft cover at turn start, lost if you attack or force a save.'],
@@ -125,6 +126,10 @@ function abilityGroups(row, ll, ranks) {
     if (name === 'OSIRIS-Class NHP') card[1] = `Quick Tech: +${tech} vs E-Defense within Sensors 15. ${systems[name][1]}`;
     if (name === 'H0R_OS System Upgrade I') card[1] = `Invade: +${tech} vs E-Defense within Sensors 15. ${systems[name][1]}`;
     if (name === 'Stasis Bolt') card[1] = `${systems[name][0]}: contested ranged attack at +${grit}. ${systems[name][1]}`;
+    if (name === 'Unstable NHP') {
+      const count = row.installed.filter(item => /^(Servant-Class NHP|Student-Class NHP|Enlightenment-Class NHP|Unstable NHP|OSIRIS-Class NHP|ATHENA-Class NHP) 0$/.test(item) || /^(OSIRIS-Class NHP|ATHENA-Class NHP) 3$/.test(item)).length;
+      card[1] = `Quick action: Memetic Spark deals ${1 + count} AP Energy within Range 3, once per round, while all ${count} installed NHPs remain undestroyed.`;
+    }
     const section = /Reaction/.test(systems[name][0]) ? 'Reactions' : /Protocol/i.test(systems[name][0]) ? 'Protocols / free actions' : /Passive|Boost|reroll/i.test(systems[name][0]) ? 'Passives' : 'Quick actions';
     groups[section].push(card);
   }
@@ -151,7 +156,7 @@ abilityGroups.facts = (title, c) => ({
   'OSIRIS-Class NHP': [['COST', 'Quick Tech'], ['ROLL', `+${c.tech} vs E-Defense`], ['RANGE', 'Sensors 15'], ['ON HIT', '2 Heat + next Gate'], ['LIMIT', '1 / round']],
   'H0R_OS System Upgrade I': [['COST', 'Invade'], ['ROLL', `+${c.tech} vs E-Defense`], ['RANGE', 'Sensors 15']],
   'ATHENA-Class NHP': [['COST', 'Quick'], ['RANGE', '50'], ['AREA', 'Blast 3']],
-  'Unstable NHP': [['COST', 'Quick'], ['RANGE', '3'], ['DAMAGE', '5 AP Energy'], ['LIMIT', '1 / round']],
+  'Unstable NHP': [['COST', 'Quick'], ['RANGE', '3'], ['DAMAGE', '1 + undestroyed NHPs AP Energy'], ['LIMIT', '1 / round']],
   'Blackspot Targeting Laser': [['ROLL', `+${c.grit} vs Evasion`], ['RANGE', '15'], ['DAMAGE', '1d3+1 Energy']],
   'Autopod': [['COST', 'Reaction'], ['RANGE', '15'], ['DAMAGE', '3 Kinetic'], ['LIMIT', '1 / round']],
   "Dominion's Breadth": [['COST', 'Quick Tech'], ['RANGE', 'Sensors 15'], ['GIVES', 'Overshield 1']],

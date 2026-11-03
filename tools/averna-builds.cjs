@@ -10,9 +10,9 @@ const chomoLL9 = [...chomoLL7,'Blackspot Targeting Laser 1'];
 const chomoLL10 = chomoLL9.map(item => item === 'Lotus Projector 2' ? 'Unhinge Chronology 2' : item);
 const systems = {
   chomolungma: [
-    [...base,'Servant-Class NHP 0'], [...relay,'Custom Paint Job 1','Servant-Class NHP 0'],
-    [...relay,'H0R_OS System Upgrade II 2','Servant-Class NHP 0'], chomoLL3,
-    chomoLL4, chomoLL5, chomoLL6, chomoLL7, chomoLL7,
+    [...base,'Servant-Class NHP 0','Unstable NHP 0'], [...relay,'Custom Paint Job 1','Servant-Class NHP 0','Unstable NHP 0'],
+    [...relay,'H0R_OS System Upgrade II 2','Student-Class NHP 0','Unstable NHP 0'], ...[chomoLL3,chomoLL4,chomoLL5].map(items => [...items,'Enlightenment-Class NHP 0','Unstable NHP 0']),
+    [...chomoLL6,'Unstable NHP 0'], chomoLL7, chomoLL7,
     chomoLL9, chomoLL10, [...chomoLL10,'Stasis Bolt 1'], [...chomoLL10,'Stasis Bolt 1'],
   ],
   goblin: [
@@ -63,7 +63,7 @@ const paths = {
   chomolungma: {
     name: 'Durable command', frameAt: 0, baseSP: 7,
     licenses: ['None','Goblin I','Goblin II','Goblin III','Swallowtail I','Swallowtail II','Swallowtail III','Emperor I','Kidd I','Lich I','Lich II','Napoleon I','Monarch I'],
-    talents: ['Spotter I / Leader I / Technophile I','Spotter II','Spotter III','Leader II','Leader III','Technophile II','Technophile III','Iconoclast I','Iconoclast II','Iconoclast III','Skirmisher I','Skirmisher II','Skirmisher III'],
+    talents: ['Leader I / Technophile I / Iconoclast I','Iconoclast II','Technophile II','Technophile III','Iconoclast III','Leader II','Leader III','Talent unchosen','Talent unchosen','Talent unchosen','Skirmisher I','Skirmisher II','Skirmisher III'],
     cores: {3:'Improved Armament',6:'The Lesson of Shaping',9:'Integrated Weapon',12:'Full Subjectivity Sync'},
     hase: n => [Math.min(6,2+n), n >= 8 ? 2 : n >= 7 ? 1 : 0, 0, n < 5 ? 0 : n < 7 ? n-4 : n < 9 ? 2 : n-6], // S,H,E,A
     triggers: [
@@ -74,19 +74,19 @@ const paths = {
       'Read a Situation +6','Act Unseen or Unheard +6','Lead or Inspire +6'
     ],
     plays: [
-      'Fixer background and four +2 triggers. Servant-Class NHP is installed at 0 SP; the Nexus pair and Missile Racks are the fielded weapons.',
-      'Broker Bond begins with Cosmocephalos (2/session). Autopod takes the Flex instead of the Missile Racks; the Nexus pair stays on Main/Aux.',
-      'H0R_OS II adds constructs. Drop Paint Job to fit it; the Servant NHP remains installed.',
-      'Replace Turret Drones with OSIRIS and replace Servant. Improved Armament adds a Flex to restore both Missile Racks.',
-      'Swap H0R_OS II for Lotus Projector; Paint Job fills the spare SP. Keep Jump Jets and both weapon groups.',
-      'Drop Paint Job and reinstall H0R_OS II. Retractable Profile remains unlocked but uninstalled.',
-      'Drop H0R_OS II and Personalizations for ATHENA. Lesson of Shaping lets it coexist with OSIRIS; Technophile III replaces Student with the 0-SP Enlightenment NHP, which does not count against the AI limit.',
-      'Iconoclast I installs the 0-SP Unstable NHP: four NHPs aboard. Memetic Spark costs a quick action, 1/round, for 5 AP Energy damage within Range 3. Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex.',
-      'Iconoclast II adds Transmuting Spark: after an OSIRIS or ATHENA action, project a Line 3 for 2 AP Energy as a free action. Each NHP can trigger it once per round. Kidd I unlocks Blackspot, but it waits for LL9 SP.',
-      'Iconoclast III charges Transcension with Transmuting Sparks. In the transcendent state, Memetic Spark deals 9 AP Energy at Range 8; it still costs a quick action and is 1/round. Blackspot replaces Assault Rifle; Integrated Weapon adds a Light Nexus.',
-      'Skirmisher I grants soft cover at the start of your turn until you attack or force a save. Swap Lotus for Unhinge Chronology; Haste grants an ally a free Boost until damaged.',
-      'Skirmisher II moves you 2 spaces before or after Skirmish without provoking reactions. Stasis Bolt fills the new SP for ranged-attack defense.',
-      'Skirmisher III makes the first reaction attack against you each round miss. Monarch I unlocks Sharanga as an alternate; keep the Missile Racks. Full Subjectivity Sync adds 2 Evasion.'
+      'Hypothetical LL0 respec: Leader I, Technophile I and Iconoclast I. Install Servant and Unstable; Memetic Spark deals 3 AP Energy within Range 3.',
+      'Iconoclast II adds Transmuting Spark after an NHP-granted action. Autopod replaces the Missile Racks on Flex.',
+      'Technophile II upgrades Servant to Student. H0R_OS II adds constructs; remove Paint Job.',
+      'Technophile III upgrades Student to Enlightenment. Install OSIRIS alongside Enlightenment and Unstable; Improved Armament restores both Missile Racks.',
+      'Iconoclast III unlocks Transcension. Swap H0R_OS II for Lotus Projector and restore Paint Job.',
+      'Leader II adds Leadership Dice and a reaction option. Remove Paint Job and reinstall H0R_OS II.',
+      'Leader III increases Leadership Dice to six. Replace H0R_OS II and Personalizations with ATHENA; Shaping permits it alongside OSIRIS.',
+      'Talent rank unchosen. Replace Autopod with Dominion’s Breadth; Assault Rifle takes its Flex.',
+      'Talent rank unchosen. Kidd I unlocks Blackspot, which waits for LL9 SP.',
+      'Talent rank unchosen. Blackspot replaces Assault Rifle; Integrated Weapon adds a Light Nexus.',
+      'Skirmisher I grants soft cover until you attack or force a save. Swap Lotus for Unhinge Chronology.',
+      'Skirmisher II moves you 2 spaces before or after Skirmish. Stasis Bolt fills the new SP.',
+      'Skirmisher III makes the first reaction attack against you each round miss. Full Subjectivity Sync adds 2 Evasion.'
     ]
   },
   goblin: {

@@ -257,7 +257,7 @@ function levelJourney(id, rows) {
       `<a class="hud-open" href="#${id}-ll${n}">Open full LL${n} build <span aria-hidden="true">↗</span></a></template>`).join('') + `</div>`;
   const levels = rows.map((r, n) => {
     const gained = n ? [r.talent] : r.talent.split(' / ');
-    for (const talent of gained) talents.set(talent.replace(/ (?:I|II|III)$/, ''), talent);
+    for (const talent of gained) if (talent !== 'Talent unchosen') talents.set(talent.replace(/ (?:I|II|III)$/, ''), talent);
     return `<section class="level-entry" id="${id}-ll${n}" aria-labelledby="${id}-ll${n}-title">` +
     `<h3 id="${id}-ll${n}-title">LL${n} · ${esc(r.frame)}</h3>` +
     `<div class="level-synopsis"><span>LICENSE / CORE</span><p>${esc(r.license)} · ${esc(r.core)}</p>` +
