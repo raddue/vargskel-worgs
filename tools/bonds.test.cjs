@@ -4,5 +4,7 @@ const expected = { daemon: ['The Broker', 'Perfect Little Universe'], dusty: ['T
 for (const [id, values] of Object.entries(expected)) {
   const html = mount('pilot.html', '#' + id).html('dossier');
   for (const value of values) assert.ok(html.includes(value), `${id}: missing ${value}`);
+  assert.ok(html.includes('BOND DETAILS'), `${id}: missing Bond details`);
+  assert.ok(html.includes(({ daemon: 'extra downtime action', dusty: 'without a roll', guillaume: 'escape route', danila: 'unmodified 20', spook: '2 Stress' })[id]), `${id}: missing power summary`);
 }
 assert.ok(!mount('pilot.html', '#sten').html('dossier').includes('BOND POWER'));

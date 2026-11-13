@@ -109,7 +109,7 @@ function detailPilot(p){const d=D();if(!d.talents&&!d.gear&&!d.skills)return "";
  const tal=dnames(p.talents).map(n=>{const key=talentName(n),t=(d.talents||{})[key];if(!t)return "";return dhead(key,pilotEntryId(p,"talent",key))+dnote(t.terse)+(t.ranks||[]).map(r=>rankNotes(r)).join("");}).join("");
  const sk=dnames(p.triggers).map(s=>{const n=triggerName(s),e=(d.skills||{})[n];return e?dhead(n,pilotEntryId(p,"trigger",n))+dnote(e.description):"";}).join("");
  const gear=dnames(p.gear).map(n=>{const g=(d.gear||{})[n];if(!g)return "";return dhead(n,pilotEntryId(p,"gear",n))+dnote([g.type,g.bonuses,g.tags].filter(Boolean).join(" · "))+dnote(g.effect);}).join("");
- return dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:11px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}
+ return (p.bondDescription?dsect("BOND DETAILS",dhead(p.bondPower)+dnote(p.bondDescription)):"")+dsect("TALENTS",tal)+dsect("TRIGGER SKILLS",sk)+dsect("GEAR",gear)+`<div class="muted" style="margin-top:10px;font:11px var(--mono)">RULES DATA © MASSIF PRESS (LANCER) · @MASSIF/LANCER-DATA 3.1.7 · GPL-3.0-OR-LATER</div>`;}
 function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  const items=ditems(mstr(m)).map(n=>[n,(d.weapons||{})[n]]).filter(x=>x[1]);
  const entrySeen=new Set();
