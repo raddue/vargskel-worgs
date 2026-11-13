@@ -12,7 +12,7 @@ if (process.argv.includes("--check") && (!fs.existsSync(LIB) || !fs.existsSync(S
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
 /* the supplement subset holds only what lancer-data lacks, so a concat cannot shadow an entry */
 const sup = f => fs.existsSync(path.join(SUPP, f)) ? JSON.parse(fs.readFileSync(path.join(SUPP, f), "utf8")) : [];
-const W = load("weapons.json"), S = load("systems.json"), F = load("frames.json").concat(sup("frames.json")), R = load("rules.json");
+const W = load("weapons.json").concat(sup("weapons.json")), S = load("systems.json").concat(sup("systems.json")), F = load("frames.json").concat(sup("frames.json")), R = load("rules.json");
 
 const sandbox = { window: {} };
 vm.createContext(sandbox);
@@ -48,7 +48,8 @@ const weapon = w => ({ mount: w.mount, sp: w.sp ?? 0, license: w.license || w.so
   damage: damage(w), bands: bands(w), tags: tags(w),
   profiles: (w.profiles || []).map(p => ({ name: p.name, damage: damage(p), bands: bands(p), tags: tags(p) })) });
 const system = s => ({ sp: s.sp ?? 0, license: s.license || s.source || "", license_level: s.license_level ?? null,
-  tg_unique: (s.tags || []).some(t => t.id === "tg_unique"), tg_ai: (s.tags || []).some(t => t.id === "tg_ai") });
+  tg_unique: (s.tags || []).some(t => t.id === "tg_unique"), tg_ai: (s.tags || []).some(t => t.id === "tg_ai"),
+  ...((s.bonuses || []).some(b => b.id === "ai_cap") ? { ai_cap: (s.bonuses || []).filter(b => b.id === "ai_cap").reduce((n, b) => n + b.val, 0) } : {}) });
 const frame = f => ({ mounts: f.mounts || [], sys: (f.stats && f.stats.sp) ?? null, license: f.source || "",
   license_level: f.license_level ?? null, mechtype: (f.mechtype || []).join("/") });
 
@@ -58,6 +59,7 @@ const wanted = new Set(), wantedFrames = new Set();
 for (const m of C.mechs) {
   for (const n of loadoutItems(m.loadout)) wanted.add(norm(n));
   for (const n of list(m.systems)) wanted.add(norm(n));
+  for (const n of (m.mounts || []).flatMap(x => x.weapons || [])) wanted.add(norm(n));
   wantedFrames.add(norm(m.frame));
 }
 const frameless = [];

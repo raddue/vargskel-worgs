@@ -59,7 +59,7 @@ function readBuild(mech) {
   const integratedSystems = names(lo.integratedSystems);
   const mounts = (lo.mounts || []).map(mo => ({
     slot: mo.mount_type || mo.slot || "",
-    weapons: (mo.slots || []).map(s => (s.weapon && (s.weapon.data ? s.weapon.data.name : s.weapon.name)) || "").filter(Boolean),
+    weapons: [...(mo.slots || []), ...(mo.extra || [])].map(s => (s.weapon && (s.weapon.data ? s.weapon.data.name : s.weapon.name)) || "").filter(Boolean),
   }));
   return { systems, integratedSystems, allSystems: systems.concat(integratedSystems), mounts };
 }

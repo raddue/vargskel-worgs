@@ -17,7 +17,7 @@
   };
   /* GMS is granted by rule rather than by a licence book, so it is always allowed. */
   const licenceOk = (pilot, w) => {
-    if (!w.license || w.license === "GMS") return true;
+    if (!w.license || w.license === "GMS" || w.license === "EXOTIC") return true;
     const lv = w.license_level == null ? 0 : w.license_level;
     return ((pilot && pilot.licences) || []).some(l => l.name === w.license && (l.rank || 0) >= lv);
   };
@@ -135,7 +135,7 @@
     const names = systems;
     const uniq = names.find((n, i) => (catalogue.systems[n] || {}).tg_unique && names.indexOf(n) !== i);
     if (uniq) return { ok: false, reason: "DUPLICATE UNIQUE ITEM" };
-    if (names.filter(n => (catalogue.systems[n] || {}).tg_ai).length > 1) return { ok: false, reason: "AI LIMIT" };
+    if (names.filter(n => (catalogue.systems[n] || {}).tg_ai).length > 1 + names.reduce((n, name) => n + ((catalogue.systems[name] || {}).ai_cap || 0), 0)) return { ok: false, reason: "AI LIMIT" };
     const chk = spCheck(next, frameOf(next, catalogue), catalogue, pilot);
     if (!chk.ok) return { ok: false, reason: "OVER SP CAP" };
     return { ok: true, reason: null, build: next };

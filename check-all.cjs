@@ -266,8 +266,8 @@ else {
    md2html.cjs, so the hover text and the table cannot drift; this pins the shape around it. */
 const daemon = C.pilots.find(p => p.id === "daemon");
 const averna = C.mechs.find(m => m.id === "averna");
-if (daemon?.talents !== "Technophile 1, Leader 1, Spotter 1" || !averna?.systems.includes("Servant-Class NHP"))
-  problems.push("live LL0 Averna must show Technophile I and Servant-Class NHP");
+if (daemon?.talents !== "Technophile 2, Leader 1, Iconoclast 1" || !averna?.systems.includes("Student-Class NHP") || !averna?.systems.includes("Unstable NHP"))
+  problems.push("live LL1 Averna must show Technophile II, Iconoclast I and both NHPs");
 const guideRel = "docs/guides/averna-omniscient-overlord.html";
 const chomoLevels = require("./tools/averna-builds.cjs").chomolungma;
 const chomoLicenses = ["None", "Goblin I", "Goblin II", "Goblin III", "Swallowtail I", "Swallowtail II", "Swallowtail III", "Emperor I", "Kidd I", "Lich I", "Lich II", "Napoleon I", "Monarch I"];
@@ -1075,10 +1075,10 @@ if (paletteSrc) {
       input.value = "nexus";
       input.fire("input");
       const hits = rows(), at = i => hits[i] || {};
-      if (hits.length !== 2) problems.push(`"nexus" must narrow the list to the two Nexus weapons, got ${hits.length}`);
+      if (hits.length !== 3) problems.push(`"nexus" must narrow the list to the two Nexus weapons, got ${hits.length}`);
       if (!at(0).active) problems.push("the first row of a narrowed list must start active, so Enter opens it");
       /* The pin names the record, so a row may not drift to a lookalike weapon that still resolves. */
-      if (at(0).href !== "mech.html#averna/mech-averna-weapon-nexus-hunter-killer")
+      if (at(0).href !== "mech.html#averna/mech-averna-weapon-nexus-light")
         problems.push(`the first Nexus row must open averna's weapon entry, got ${at(0).href}`);
       input.fire("keydown", { key: "ArrowDown" });
       const after = rows();
@@ -1568,7 +1568,8 @@ const mounted = Object.keys(RD.weapons || {}).filter(n => tw.mounts.flatMap(x =>
 if (mounted.length < 2) problems.push(`mech.html#${tw.id}: expected at least two built weapons in the loadout, found ${mounted.length}`);
 else {
   /* One blurb covers every weapon of a manufacturer: it prints once above the list, not per weapon. */
-  const shared = String((RD.weapons[mounted[0]] || {}).desc || "shared manufacturer blurb");
+  const shared = "shared manufacturer blurb fixture";
+  twPage.window.DETAIL.weapons[mounted[0]] = { ...twPage.window.DETAIL.weapons[mounted[0]], desc: shared };
   twPage.window.DETAIL.weapons[mounted[1]] = { ...twPage.window.DETAIL.weapons[mounted[1]], desc: shared };
   const once = twPage.window.UI.detailMech(tw).split(shared).length - 1;
   if (once !== 1) problems.push(`mech.html#${tw.id}: a description shared by two mounted weapons printed ${once} time(s), not once`);

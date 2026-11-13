@@ -207,7 +207,7 @@ if (core && cat) {
     const ai = n => { const w = cat.weapons[n]; if (w) return (w.tags || []).some(t => t.id === "tg_ai"); const s = cat.systems[n]; return !!(s && s.tg_ai); };
     const uniqNames = held.filter(uniq);
     if (new Set(uniqNames).size !== uniqNames.length) out.push(`duplicate unique item: ${uniqNames.join(", ")}`);
-    if (held.filter(ai).length > 1) out.push("more than one AI item");
+    if (held.filter(ai).length > 1 + held.reduce((n, name) => n + ((cat.systems[name] || {}).ai_cap || 0), 0)) out.push("more than one AI item");
     const locks = (rec.mounts || []).filter(m => m && m.locked === true);
     const heavies = (rec.mounts || []).map((m, i) => [i, ((m && m.weapons) || []).find(n => { const w = cat.weapons[n]; return w && w.mount === "Superheavy"; })]).filter(x => x[1]);
     if (locks.length !== (heavies.length ? 1 : 0)) out.push(`${locks.length} locked mount(s) with ${heavies.length} Superheavy`);
@@ -287,18 +287,18 @@ else {
     if (!/in band/i.test(readout)) errs.push("the readout must keep the Range 20 rifle in band at 15");
   }
   /* by hand the GM drops a weapon and picks one back into the seat it leaves */
-  const edit = mount("loadout.html", "#alba");
+  const edit = mount("loadout.html", "#tombstone");
   const dropBtn = edit.nodes["lo-drop-0-0"];
   if (!dropBtn) errs.push("a placed weapon needs a remove control (lo-drop-<slot>-<seat>)");
   else {
     dropBtn.fire("click");
-    if (/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("removing a weapon must take it out of the slot");
+    if (/lo-wep">Charged Blade/.test(edit.html("lo-slots"))) errs.push("removing a weapon must take it out of the slot");
     const picker = edit.nodes["lo-pick-0-0"];
     if (!picker) errs.push("an empty seat needs a weapon picker (lo-pick-<slot>-<seat>)");
     else {
-      picker.value = "Missile Rack";
+      picker.value = "Charged Blade";
       picker.fire("change");
-      if (!/lo-wep">Missile Rack/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
+      if (!/lo-wep">Charged Blade/.test(edit.html("lo-slots"))) errs.push("picking a weapon must place it in the seat");
     }
   }
 
@@ -520,19 +520,19 @@ else {
   if (/object-position/.test(plainHero)) errs.push("only a record with imgFocus may override the hero crop");
 
   /* the checklist seeds the record's printed systems as names, ticks one, and puts it back */
-  const sysPage = mount("loadout.html", "#averna");
+  const sysPage = mount("loadout.html", "#alba");
   const beforeSys = sysPage.html("lo-export");
   if (!/systems&quot;:\[/.test(beforeSys)) errs.push("the page must hand the core a systems list, not the record's printed string");
   const box = sysPage.nodes["lo-sys-0"];
   if (!box) errs.push("loadout.html needs a systems checklist (id lo-sys-<index>)");
   else {
-    box.checked = true; box.fire("change");
+    box.checked = false; box.fire("change");
     const ticked = sysPage.html("lo-export");
     if (ticked === beforeSys) errs.push("ticking a system must reach the build and the export");
     const boxAgain = sysPage.nodes["lo-sys-0"];
     if (!boxAgain) errs.push("the checklist must survive its own re-render");
     else {
-      boxAgain.checked = false; boxAgain.fire("change");
+      boxAgain.checked = true; boxAgain.fire("change");
       if (sysPage.html("lo-export") !== beforeSys) errs.push("unticking must put the build back");
     }
   }
@@ -540,7 +540,7 @@ else {
   /* the export block is the one thing the GM pastes back, so it has to carry the record's own plan */
   const expo = mount("loadout.html", "#alba").html("lo-export");
   if (!/LOADOUT/.test(expo)) errs.push("loadout.html must render the pasteable LOADOUT block in lo-export");
-  if (!/Missile Rack/.test(expo)) errs.push("the exported block must carry the record's own weapons");
+  if (!/Cyclone Pulse Rifle/.test(expo)) errs.push("the exported block must carry the record's own weapons");
 
   /* with a frame the catalogue does not hold, the cap must read unknown rather than 0 */
   const unknownFrame = mount("loadout.html", "", { __LOADOUT_FIXTURE: { mech: "tombstone", frame: "GMS NOPE", place: [] } }).html("lo-sp");

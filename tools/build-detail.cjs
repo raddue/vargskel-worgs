@@ -10,7 +10,7 @@ if (process.argv.includes("--check") && (!fs.existsSync(LIB) || !fs.existsSync(S
 const load = f => JSON.parse(fs.readFileSync(path.join(LIB, f), "utf8"));
 /* the supplement subset holds only what lancer-data lacks, so a concat cannot shadow an entry */
 const sup = f => fs.existsSync(path.join(SUPP, f)) ? JSON.parse(fs.readFileSync(path.join(SUPP, f), "utf8")) : [];
-const W = load("weapons.json"), S = load("systems.json"), T = load("talents.json").concat(sup("talents.json")),
+const W = load("weapons.json").concat(sup("weapons.json")), S = load("systems.json").concat(sup("systems.json")), T = load("talents.json").concat(sup("talents.json")),
   G = load("pilot_gear.json"), F = load("frames.json").concat(sup("frames.json")), SK = load("skills.json"), TG = load("tags.json");
 const tagName = id => (TG.find(t => t.id === id) || {}).name || id.replace(/^tg_/, "");
 

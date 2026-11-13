@@ -586,6 +586,125 @@ window.CATALOGUE = {
     }
    ],
    "profiles": []
+  },
+  "War Pike": {
+   "mount": "Main",
+   "sp": 0,
+   "license": "Nelson",
+   "license_level": 1,
+   "damage": [
+    {
+     "val": "1d6",
+     "type": "Kinetic"
+    }
+   ],
+   "bands": [
+    {
+     "kind": "Threat",
+     "value": 3
+    },
+    {
+     "kind": "Thrown",
+     "value": 5
+    }
+   ],
+   "tags": [
+    {
+     "id": "tg_knockback",
+     "val": 1
+    },
+    {
+     "id": "tg_thrown",
+     "val": 5
+    }
+   ],
+   "profiles": []
+  },
+  "Autopod": {
+   "mount": "Main",
+   "sp": 1,
+   "license": "Goblin",
+   "license_level": 1,
+   "damage": [
+    {
+     "val": 3,
+     "type": "Kinetic"
+    }
+   ],
+   "bands": [
+    {
+     "kind": "Range",
+     "value": 15
+    }
+   ],
+   "tags": [
+    {
+     "id": "tg_seeking",
+     "val": null
+    },
+    {
+     "id": "tg_unique",
+     "val": null
+    }
+   ],
+   "profiles": []
+  },
+  "Krakatoa Thermobaric Flamethrower": {
+   "mount": "Heavy",
+   "sp": 0,
+   "license": "Genghis",
+   "license_level": 1,
+   "damage": [
+    {
+     "val": 1,
+     "type": "Energy"
+    },
+    {
+     "val": 4,
+     "type": "Burn"
+    }
+   ],
+   "bands": [
+    {
+     "kind": "Cone",
+     "value": 5
+    }
+   ],
+   "tags": [],
+   "profiles": []
+  },
+  "XC-DPM Predator Nexus": {
+   "mount": "Main",
+   "sp": 0,
+   "license": "EXOTIC",
+   "license_level": 0,
+   "damage": [
+    {
+     "val": "1d6",
+     "type": "Kinetic"
+    }
+   ],
+   "bands": [
+    {
+     "kind": "Range",
+     "value": 10
+    }
+   ],
+   "tags": [
+    {
+     "id": "tg_accurate",
+     "val": null
+    },
+    {
+     "id": "tg_smart",
+     "val": null
+    },
+    {
+     "id": "tg_exotic",
+     "val": null
+    }
+   ],
+   "profiles": []
   }
  },
  "systems": {
@@ -694,19 +813,69 @@ window.CATALOGUE = {
    "tg_unique": true,
    "tg_ai": false
   },
-  "Ammo Case I": {
-   "sp": 0,
-   "license": "GMS",
-   "license_level": 0,
-   "tg_unique": false,
+  "Bulwark Mods": {
+   "sp": 1,
+   "license": "Nelson",
+   "license_level": 1,
+   "tg_unique": true,
    "tg_ai": false
   },
-  "Servant-Class NHP": {
+  "H0R_OS System Upgrade I": {
+   "sp": 2,
+   "license": "Goblin",
+   "license_level": 1,
+   "tg_unique": true,
+   "tg_ai": false
+  },
+  "Mesmer Charges": {
+   "sp": 2,
+   "license": "Minotaur",
+   "license_level": 1,
+   "tg_unique": true,
+   "tg_ai": false
+  },
+  "Viral Logic Suite": {
+   "sp": 2,
+   "license": "Minotaur",
+   "license_level": 1,
+   "tg_unique": true,
+   "tg_ai": false
+  },
+  "Explosive Vents": {
+   "sp": 2,
+   "license": "Genghis",
+   "license_level": 1,
+   "tg_unique": true,
+   "tg_ai": false
+  },
+  "Student-Class NHP": {
    "sp": 0,
    "license": "GMS",
    "license_level": 0,
    "tg_unique": true,
    "tg_ai": true
+  },
+  "Unstable NHP": {
+   "sp": 0,
+   "license": "GMS",
+   "license_level": 0,
+   "tg_unique": true,
+   "tg_ai": true,
+   "ai_cap": 1
+  },
+  "Armament Redundancy": {
+   "sp": 1,
+   "license": "GMS",
+   "license_level": 0,
+   "tg_unique": true,
+   "tg_ai": false
+  },
+  "Total Strength Suite I": {
+   "sp": 1,
+   "license": "Zheng",
+   "license_level": 1,
+   "tg_unique": false,
+   "tg_ai": false
   }
  },
  "frames": {
