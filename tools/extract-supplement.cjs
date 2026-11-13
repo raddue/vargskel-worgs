@@ -36,13 +36,19 @@ const packs = (archive.data && archive.data.data ? archive.data.data : [])
   .filter(c => c.collection === "content")
   .flatMap(c => (Array.isArray(c.items) ? c.items : Object.values(c.items || {})));
 
-const frames = [], talents = [], used = [];
+const frames = [], talents = [], weapons = [], systems = [], used = [];
+const wantedWeapons = new Set((C.mechs || []).flatMap(m => (m.mounts || []).flatMap(x => x.weapons || [])).map(norm));
+const wantedSystems = new Set((C.mechs || []).flatMap(m => m.systems || []).map(norm));
 const seenFrame = new Set(), seenTalent = new Set();
 for (const pack of packs) {
   const data = pack.data || {};
   const hitFrames = (data.frames || []).filter(f => wantedFrames.has(norm(`${f.source} ${f.name}`)));
   const hitTalents = (data.talents || []).filter(t => wantedTalents.has(norm(t.name)));
-  if (!hitFrames.length && !hitTalents.length) continue;
+  const hitWeapons = (data.weapons || []).filter(w => wantedWeapons.has(norm(w.name)));
+  const hitSystems = (data.systems || []).filter(s => wantedSystems.has(norm(s.name)));
+  if (!hitFrames.length && !hitTalents.length && !hitWeapons.length && !hitSystems.length) continue;
+  for (const w of hitWeapons) if (!weapons.some(x => norm(x.name) === norm(w.name))) weapons.push(w);
+  for (const s of hitSystems) if (!systems.some(x => norm(x.name) === norm(s.name))) systems.push(s);
   for (const f of hitFrames) if (!seenFrame.has(norm(f.name))) { seenFrame.add(norm(f.name)); frames.push(f); }
   for (const t of hitTalents) if (!seenTalent.has(norm(t.name))) { seenTalent.add(norm(t.name)); talents.push(t); }
   const m = pack.manifest || {};
@@ -53,6 +59,8 @@ fs.mkdirSync(OUT, { recursive: true });
 const write = (f, v) => fs.writeFileSync(path.join(OUT, f), JSON.stringify(v, null, 1) + "\n");
 write("frames.json", frames);
 write("talents.json", talents);
+write("weapons.json", weapons);
+write("systems.json", systems);
 write("packs.json", used.sort((a, b) => a.name.localeCompare(b.name)));
 
 console.log(`supplement: ${frames.length} frame(s) [${frames.map(f => f.name).join(", ") || "none"}], ` +
