@@ -131,6 +131,16 @@
       if (isOpen) close(); else open();
       return;
     }
+    if (isOpen && e.key === "Tab") {
+      var host = document.getElementById("palette");
+      var stops = host.querySelectorAll("input, a[href], button");
+      var first = stops[0], last = stops[stops.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
     if (e.key === "Escape") close();
   });
 })();

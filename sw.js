@@ -13,7 +13,7 @@
    check-all pins this list: every entry has to exist on disk (addAll is all-or-nothing, so one dead
    entry installs no shell at all), the pages, scripts, stylesheets, fonts and thumbnails all have to
    be present, and the total has to stay inside the install budget. */
-const CACHE = "vw-offline-v1";
+const CACHE = "vw-offline-v2";
 
 const PAGES = [
   "index.html",
@@ -62,6 +62,7 @@ const FONTS = [
 ];
 
 const THUMBS = [
+  "assets/unit-patch.webp",
   "assets/alba-thumb.webp",
   "assets/ambassador-bannerjee-thumb.webp",
   "assets/averna-thumb.webp",

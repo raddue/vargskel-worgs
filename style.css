@@ -117,12 +117,12 @@
 /* Frame strips: the breadcrumb is the way out (terminates at SYSTEM), the locator is the way across
    (the other principal bodies; the star chip is a label, the star has no file). Both are real
    buttons outside #holo-world, so the camera and the pinch never reach them. */
-.crumbs{display:flex;align-items:center;gap:6px;font:12px var(--mono);letter-spacing:.12em}
+.crumbs{display:flex;flex-wrap:wrap;min-width:0;align-items:center;gap:6px;font:12px var(--mono);letter-spacing:.12em}
 .crumb,.crumb-up,.loc-body{font:12px var(--mono);letter-spacing:.12em;padding:6px 12px;background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer}
 .crumb:hover,.crumb-up:hover,.loc-body:hover,.crumb:focus-visible,.crumb-up:focus-visible,.loc-body:focus-visible{color:var(--text);border-color:var(--cyan)}
 .crumb-sep{color:var(--muted)}
 .crumb-now{color:var(--cyan)}
-.sys-locator{display:flex;gap:6px;align-items:center}
+.sys-locator{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .loc-body.active{color:var(--cyan);border-color:var(--cyan)}
 .loc-body.cur{color:var(--lime);border-color:var(--lime)}
 .loc-star{font:12px var(--mono);letter-spacing:.12em;color:var(--muted);padding:6px 4px}
