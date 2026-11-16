@@ -4,6 +4,7 @@ assert.ok(fs.existsSync('holomap-view.js'),'presentation navigation module exist
 const N=b.UI.holoView,before=JSON.stringify(b.CAMPAIGN),orbit=N.scene('cressidium:orbit');
 assert.deepEqual(Array.from(orbit.bodies,b=>b.id).sort(),['cressidium','kessen','pell','rio']);
 assert.equal(new Set(orbit.bodies.map(b=>b.id)).size,4);
+assert.equal(orbit.bodies.find(b=>b.id==='pell').r,orbit.bodies.find(b=>b.id==='cressidium').r/6,'Pell visible radius is exactly one sixth of Cressidium');
 assert.equal(N.initial(''),'cressidium:orbit');assert.equal(N.initial('#map'),'cressidium:orbit');assert.equal(N.initial('#map/dock'),'industry');assert.equal(N.initial('#map/rio'),'elysia');
 assert.equal(N.action('cressidium:orbit','cressidium').view,'cressidium');assert.equal(N.action('cressidium','elysia').view,'elysia');assert.equal(N.action('elysia','industry').view,'industry');assert.equal(N.action('industry','dock').info,'dock');
 assert.equal(N.parent('cressidium'),'cressidium:orbit');assert.equal(N.parent('cressidium:orbit'),'SYSTEM');assert.equal(N.parent('elysia'),'cressidium');

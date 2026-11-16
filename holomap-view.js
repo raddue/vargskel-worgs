@@ -14,6 +14,9 @@
    const u=316/1024,v=235/512,phi=2*Math.PI*u,theta=Math.PI*v;
    pin.pos=[-g.r*Math.cos(phi)*Math.sin(theta),g.r*Math.cos(theta),g.r*Math.sin(phi)*Math.sin(theta)];pin.surface='cressidium';pin.r=.07;delete pin.orbit;s.sub='CRESSIDIUM · SURFACE';s.aria='Cressidium surface globe. Select Nov Elysia to enter the city. Pin position schematic, not surveyed.';
   }
+  // Requested visual ratio only; labels retain their independent accessible hit targets.
+  const planet=s.bodies.find(b=>b.id==='cressidium'),moon=s.bodies.find(b=>b.id==='pell');
+  if(planet&&moon)moon.r=planet.r/6;
   s.bodies.forEach(b=>b.descend=!!action(v,b.id).view);
   s.orbits=s.bodies.filter(b=>b.orbit&&!b.orbit.surface).map(b=>({parent:b.orbit.parent,child:b.id,radius:b.orbit.radius,y:b.pos[1]}));
   if(v==='cressidium'){s.reach=s.bodies.map(b=>({p:b.pos,r:b.r}));s.camera.target=[0,0,0];s.camera.maxPolar=2.9;}
