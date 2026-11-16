@@ -1,5 +1,30 @@
 # 3D holomap browser evidence
 
+## Procedural city iteration
+
+City and industrial views now use bounded deterministic parcels along three bent
+boulevards and diagonal connecting streets. Rectangular warehouses, L/U compounds
+and stepped towers share box geometry; roofs are solid, with restrained per-instance
+shade variation. Irregular parks reserve open space, and an unnamed curved shoreline
+borders the expanded table coverage. Raised POI pins retain canonical anchors. Art
+thumbnails remain in dossiers. Rio Grande is absent from city geometry but stays
+selectable in planetary orbit; its existing deep link still opens its dossier.
+
+`JAMMER SITE / CURRENT TARGET` is noninteractive text above a distinct tall
+commercial cluster near the industrial approach. It has no canonical ID, dossier
+or deep link. This is the approved current-encounter visibility boundary. No
+future encounter metadata or private source text was added. All invented street,
+building and shoreline bearings are explicitly schematic; campaign.js is unchanged.
+
+Fresh browser evidence: `corrected-{desktop,phone}-city.png` and
+`city-{desktop,phone}-industry.png`. Desktop/phone orbit, globe surface, city,
+industrial descent and leaf dossiers passed with reduced motion, no uncaught
+exceptions and no horizontal overflow. Context loss showed SVG; restoration
+returned to 3D. Offline reload followed by city navigation rendered procedural buildings
+without Rio. Layout tests enforce footprint/form/rotation diversity, broad extents,
+reserved parks and deterministic output rather than claiming visual realism. Forced no-WebGL load showed SVG. Device GPU performance, physical
+touch input and screen-reader speech remain untested.
+
 ## Corrected orbit-first interaction
 
 Fresh screenshots: `corrected-{desktop,phone}-{orbit,surface,city}.png`.

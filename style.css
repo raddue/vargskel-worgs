@@ -271,6 +271,8 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 .holo3d canvas{display:block;width:100%;outline-offset:-3px}
 .holo3d-labels{position:absolute;inset:0;pointer-events:none}
 .holo3d-tag{position:absolute;top:0;left:0;pointer-events:auto;max-width:180px;min-height:28px;padding:4px 7px;background:var(--holo-bg);color:var(--text);border:1px solid var(--line);font:11px var(--mono);letter-spacing:.06em;cursor:pointer}
+.holo-key.city-key{display:flex;flex-wrap:wrap;gap:10px 20px}
+.holo3d-target{position:absolute;left:0;top:0;max-width:210px;padding:4px 7px;color:var(--lime);background:var(--holo-bg);border:1px dashed var(--lime);font:10px var(--mono);pointer-events:none}
 .holo3d-zone-label{position:absolute;top:0;left:0;color:var(--muted);font:10px var(--mono);white-space:nowrap;pointer-events:none}
 .holo3d-tag:hover,.holo3d-tag.selected{border-color:var(--cyan);color:var(--cyan)}
 .holo3d :focus-visible{outline:2px solid var(--lime);outline-offset:2px}
