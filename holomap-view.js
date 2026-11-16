@@ -56,6 +56,8 @@
   // Requested visual ratio only; labels retain their independent accessible hit targets.
   const planet=s.bodies.find(b=>b.id==='cressidium'),moon=s.bodies.find(b=>b.id==='pell');
   if(planet&&moon)moon.r=planet.r/6;
+  const wreck=s.bodies.find(b=>b.id==='cairn');
+  if(wreck){wreck.debris=Array.from({length:32},(_,i)=>{const slot=i<6?i*6:(i*7)%32,a=-1.1+slot*.075,r=wreck.r*(.58+.16*Math.sin(i*2.7)),large=i<6;return {kind:large?['hull','rib','engine','plate'][i%4]:'fragment',pos:[Math.cos(a)*r-wreck.r*.38,Math.sin(i*4.1)*wreck.r*.24,Math.sin(a)*r],size:large?[.075,.045,.17]:[.012+(i%3)*.006,.008,.025],rotation:[i*.71,i*1.31,i*.43]}});}
   s.bodies.forEach(b=>b.descend=!!action(v,b.id).view);
   s.orbits=s.bodies.filter(b=>b.orbit&&!b.orbit.surface).map(b=>({parent:b.orbit.parent,child:b.id,radius:b.orbit.radius,y:b.pos[1]}));
   if(v==='cressidium'){s.reach=s.bodies.map(b=>({p:b.pos,r:b.r}));s.camera.target=[0,0,0];s.camera.maxPolar=2.9;}

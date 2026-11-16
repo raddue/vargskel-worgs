@@ -48,4 +48,10 @@ assert.match(renderer,/createElement\('span'\);target.className='holo3d-target'/
 assert.doesNotMatch(renderer.slice(renderer.indexOf("if(city.target){"),renderer.indexOf("hint.textContent='Drag",renderer.indexOf("if(city.target){"))),/target\.(?:dataset|tabIndex)|target\.addEventListener/,'annotation has no selection, focus or dossier route');
 assert.deepEqual(Array.from(cityView.bodies,b=>b.name).sort(),Array.from(b.CAMPAIGN.locations.filter(l=>['elysia','district','industry','dropzone','vsaf'].includes(l.id)),l=>l.name).sort(),'city delivers only existing player-known POIs');
 assert.deepEqual(Object.keys(cityView.city.target).sort(),['label','pos'],'current annotation carries no future encounter metadata');
+const graveyard=N.scene('SYSTEM').bodies.find(b=>b.id==='cairn');
+assert.ok(graveyard.debris,'Cairn has explicit debris description');
+assert.equal(JSON.stringify(graveyard.debris),JSON.stringify(N.scene('SYSTEM').bodies.find(b=>b.id==='cairn').debris),'debris deterministic');
+assert.ok(graveyard.debris.length>=20&&graveyard.debris.length<=45,'sparse bounded pieces');
+assert.ok(new Set(graveyard.debris.map(p=>p.kind)).size>=4,'distinct hull/rib/plate/engine forms');
+for(const p of graveyard.debris)assert.ok(Math.hypot(...p.pos)+Math.max(...p.size)/2<=graveyard.r*1.4,'debris bounded by field radius');
 assert.equal(JSON.stringify(b.CAMPAIGN),before);console.log('holomap navigation regressions OK');
