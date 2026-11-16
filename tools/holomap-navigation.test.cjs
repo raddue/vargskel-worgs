@@ -8,5 +8,9 @@ assert.equal(N.initial(''),'cressidium:orbit');assert.equal(N.initial('#map'),'c
 assert.equal(N.action('cressidium:orbit','cressidium').view,'cressidium');assert.equal(N.action('cressidium','elysia').view,'elysia');assert.equal(N.action('elysia','industry').view,'industry');assert.equal(N.action('industry','dock').info,'dock');
 assert.equal(N.parent('cressidium'),'cressidium:orbit');assert.equal(N.parent('cressidium:orbit'),'SYSTEM');assert.equal(N.parent('elysia'),'cressidium');
 const surface=N.scene('cressidium');assert.equal(surface.mode,'surface');assert.ok(surface.bodies.some(b=>b.shape==='globe'));const globe=surface.bodies.find(b=>b.id==='cressidium');for(const pin of surface.bodies.filter(b=>b.surface))assert.ok(Math.abs(Math.hypot(...pin.pos)-globe.r)<.001);
+// Prepared 1024×512 map: (316,235) sits on the land side of the eastern tan shoreline.
+const city=surface.bodies.find(b=>b.id==='elysia'),u=316/1024,v=235/512;
+const expected=[-Math.cos(2*Math.PI*u)*Math.sin(Math.PI*v),Math.cos(Math.PI*v),Math.sin(2*Math.PI*u)*Math.sin(Math.PI*v)];
+expected.forEach((x,i)=>assert.ok(Math.abs(city.pos[i]/globe.r-x)<1e-10,'shoreline pin uses SphereGeometry UV mapping'));
 assert.equal(N.clickAllowed(0,false,0),true);assert.equal(N.clickAllowed(6,false,0),false);assert.equal(N.clickAllowed(0,true,0),false);assert.equal(N.clickAllowed(0,false,2),false);
 assert.equal(JSON.stringify(b.CAMPAIGN),before);console.log('holomap navigation regressions OK');

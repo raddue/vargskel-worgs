@@ -9,7 +9,10 @@
   if(v==='cressidium:orbit'){
    s.bodies=s.bodies.filter(b=>b.id!=='elysia');const rio=U.scene3d('elysia',opts).bodies.find(b=>b.id==='rio');rio.pos=[-1.35,.35,-1.3];rio.r=.3;rio.orbit={parent:'cressidium',radius:Math.hypot(rio.pos[0],rio.pos[2]),phase:Math.atan2(rio.pos[2],rio.pos[0]),period:260};s.bodies.push(rio);s.sub='CRESSIDIUM · ORBIT';s.aria='Cressidium orbit. Cressidium, Pell, Kessen Relay and UNS Rio Grande. Select Cressidium to view its surface. Hardware positions schematic.';
   }else if(v==='cressidium'){
-   s.mode='surface';s.bodies=s.bodies.filter(b=>b.id==='cressidium'||b.id==='elysia');const g=s.bodies[0],pin=s.bodies[1];pin.pos=[g.r*.55,g.r*.25,g.r*Math.sqrt(1-.55**2-.25**2)];pin.surface='cressidium';pin.r=.07;delete pin.orbit;s.sub='CRESSIDIUM · SURFACE';s.aria='Cressidium surface globe. Select Nov Elysia to enter the city. Pin position schematic, not surveyed.';
+   s.mode='surface';s.bodies=s.bodies.filter(b=>b.id==='cressidium'||b.id==='elysia');const g=s.bodies[0],pin=s.bodies[1];// Presentation-only shoreline anchor in the prepared 1024×512 map, measured from top left.
+   // SphereGeometry uses x=-cos(phi), z=sin(phi); texture upload flips image Y.
+   const u=316/1024,v=235/512,phi=2*Math.PI*u,theta=Math.PI*v;
+   pin.pos=[-g.r*Math.cos(phi)*Math.sin(theta),g.r*Math.cos(theta),g.r*Math.sin(phi)*Math.sin(theta)];pin.surface='cressidium';pin.r=.07;delete pin.orbit;s.sub='CRESSIDIUM · SURFACE';s.aria='Cressidium surface globe. Select Nov Elysia to enter the city. Pin position schematic, not surveyed.';
   }
   s.bodies.forEach(b=>b.descend=!!action(v,b.id).view);
   s.orbits=s.bodies.filter(b=>b.orbit&&!b.orbit.surface).map(b=>({parent:b.orbit.parent,child:b.id,radius:b.orbit.radius,y:b.pos[1]}));
