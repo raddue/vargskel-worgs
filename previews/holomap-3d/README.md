@@ -1,5 +1,20 @@
 # 3D holomap browser evidence
 
+## Cairn Drift wreck-field revision
+
+`corrected-desktop-wreck.png` and `corrected-phone-wreck.png` show 32 deterministic
+pieces: six broken hull/rib/engine/plate sections and 26 small instanced fragments.
+Sections sit along a shallow arc with depth variation and negative space. Shared
+lit dark-metal material and restrained cyan edge lines replace the neon cube fill.
+No new ship identities or lore were introduced; Cairn selection and dossier remain.
+
+Desktop/phone browser probes: zero exceptions or horizontal overflow. Full checks
+include deterministic bounds, form counts, orbital heading and loading regressions.
+Loading success/failure, context loss/restoration, offline city and no-WebGL SVG
+were rechecked. Physical-device GPU performance remains untested; these are stylized
+low-poly wreck silhouettes, not identifiable ship models.
+
+
 ## Loading and orbital heading followup
 
 `loading.png` captures a deliberately stalled renderer-module request: themed

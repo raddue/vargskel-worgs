@@ -90,8 +90,17 @@ function boot(){
      hull.scale.setScalar(b.r*2);hull.rotation.set(b.pitch,b.yaw,b.roll);group.add(hull);if(b.id==='rio'){item.hull=hull;hull.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),N.rioHeading(b.orbit.phase+phase*2*Math.PI/b.orbit.period))}pendingAssets--;awake();
     },undefined,e=>{if(g===generation)fallback(e)});
    }else if(b.shape==='debris'){
-    const inst=new THREE.InstancedMesh(own(new THREE.BoxGeometry(.04,.03,.08)),material(palette.cyan),b.count);const dummy=new THREE.Object3D();
-    for(let i=0;i<b.count;i++){const a=i*2.39996,r=b.r*Math.sqrt((i+.5)/b.count);dummy.position.set(Math.cos(a)*r,Math.sin(i*31)*.14,Math.sin(a)*r);dummy.rotation.set(i,i*2,i*3);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix)}group.add(inst);own(inst);item.spin=inst;
+    const metal=own(new THREE.MeshPhongMaterial({color:0x435866,emissive:0x07151c,shininess:45,flatShading:true,side:THREE.DoubleSide}));
+    const edge=own(new THREE.LineBasicMaterial({color:palette.cyan,transparent:true,opacity:.38}));
+    const fragments=b.debris.filter(p=>p.kind==='fragment'),dummy=new THREE.Object3D();
+    const inst=own(new THREE.InstancedMesh(own(new THREE.TetrahedronGeometry(1)),metal,fragments.length));
+    fragments.forEach((p,i)=>{dummy.position.fromArray(p.pos);dummy.rotation.set(...p.rotation);dummy.scale.fromArray(p.size);dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix)});group.add(inst);
+    const hullGeometry=own(new THREE.CylinderGeometry(.3,.5,1,5,1,true)),plateGeometry=own(new THREE.BoxGeometry(1,.08,1)),engineGeometry=own(new THREE.CylinderGeometry(.4,.5,1,8,1,true)),ribGeometry=own(new THREE.TorusGeometry(.45,.035,4,7,Math.PI*1.6));
+    for(const p of b.debris.filter(p=>p.kind!=='fragment')){const section=new THREE.Group();section.position.fromArray(p.pos);section.rotation.set(...p.rotation);section.scale.fromArray(p.size);group.add(section);
+     const geometry=p.kind==='hull'?hullGeometry:p.kind==='engine'?engineGeometry:p.kind==='rib'?ribGeometry:plateGeometry;
+     section.add(new THREE.Mesh(geometry,metal));section.add(new THREE.LineSegments(own(new THREE.EdgesGeometry(geometry,25)),edge));
+     if(p.kind==='hull'){for(const y of [-.35,0,.35]){const rib=new THREE.Mesh(ribGeometry,metal);rib.rotation.x=Math.PI/2;rib.position.y=y;section.add(rib)}}
+    }
    }else{
     const marker=mesh(new THREE.OctahedronGeometry(b.r*.65),material(b.id==='vsaf'?palette.rust:b.cur?palette.lime:palette.cyan),group);
     if(description.city){marker.position.y=.72;const stem=mesh(new THREE.CylinderGeometry(.009,.009,.72,5),material(palette.cyan),group);stem.position.y=.36;}
