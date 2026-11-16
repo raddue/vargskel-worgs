@@ -1,0 +1,7 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+assert.ok(fs.existsSync('holomap-loading.js'),'bootstrap controller exists');
+function boot(){const classes=new Set(),attrs={},status={hidden:true},view={classList:{add:x=>classes.add(x),remove:x=>classes.delete(x)},setAttribute:(k,v)=>attrs[k]=v};let timeout;const b={window:{},document:{querySelector:()=>view,getElementById:()=>status},setTimeout:f=>(timeout=f,1),clearTimeout(){}};vm.runInNewContext(fs.readFileSync('holomap-loading.js','utf8'),b);return {c:b.window.holoLoading,classes,attrs,status,timeout:()=>timeout()}}
+let b=boot();assert.equal(b.classes.size,0,'no bootstrap means SVG untouched');b.c.begin();assert.ok(b.classes.has('holo-loading'));assert.equal(b.attrs['aria-busy'],'true');b.c.ready();assert.ok(!b.classes.has('holo-loading'));assert.equal(b.attrs['aria-busy'],'false');
+b=boot();b.c.begin();b.timeout();assert.equal(b.c.state,'failed');assert.ok(!b.classes.has('holo-loading'));b.c.ready();assert.equal(b.c.state,'failed','late import cannot revive timed out bootstrap');
+b=boot();b.c.begin();b.c.fail();assert.equal(b.c.state,'failed');
+const html=fs.readFileSync('intel.html','utf8');assert.match(html,/id="holo-loading-status"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden/);assert.ok(!/class="holo-view holo-loading"/.test(html),'no JS never hides SVG');console.log('holomap loading checks OK');

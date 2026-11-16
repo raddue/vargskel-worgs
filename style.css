@@ -283,3 +283,10 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 @media(max-width:600px){.holo3d{height:500px}.holo3d-tag{font-size:10px;max-width:135px}.holo3d-tools{bottom:76px}.holo3d-help{font-size:10px}}
 @media(pointer:coarse){.holo3d-tools button{min-height:40px;min-width:40px}}
 @media print{.holo3d{display:none!important}.holo-view.is-3d .holo-svg{display:block!important}}
+
+#tab-map .holo-view.holo-loading{min-height:560px}
+.holo-view.holo-loading .holo-svg{display:none}
+.holo-view.holo-loading .holo3d{visibility:hidden}
+#holo-loading-status{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:var(--holo-bg);color:var(--cyan);font:14px var(--mono);letter-spacing:.15em}
+#holo-loading-status[hidden]{display:none}
+@media(max-width:600px){#tab-map .holo-view.holo-loading{min-height:500px}}
