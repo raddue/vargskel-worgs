@@ -4,6 +4,7 @@
  const canonical=v=>v==='cressidium:orbit'?'cressidium':v;
  function initial(hash){if(!hash||hash==='#map')return 'cressidium:orbit';let id;try{id=decodeURIComponent(hash.replace(/^#map\//,''))}catch{return U.frameId()||'cressidium:orbit'}return L[id]?(L[id].frame||'SYSTEM'):(U.frameId()||'cressidium:orbit')}
  function parent(v){if(v==='cressidium')return 'cressidium:orbit';if(v==='cressidium:orbit')return 'SYSTEM';return v==='SYSTEM'?null:(L[v].frame||'SYSTEM')}
+ function direction(from,to){if(from===to)return 'none';let at=to;while(at){at=parent(at);if(at===from)return 'in'}return 'out'}
  function action(v,id){if(v==='cressidium:orbit'&&id==='cressidium')return {view:'cressidium'};if(id!==v&&U.members(id).length>1)return {view:id==='cressidium'?'cressidium:orbit':id};return {info:id}}
  // Decorative blocks are diagram symbols, not surveyed buildings or new campaign geography.
  function cityGeometry(s){
@@ -60,5 +61,5 @@
   if(v==='cressidium'){s.reach=s.bodies.map(b=>({p:b.pos,r:b.r}));s.camera.target=[0,0,0];s.camera.maxPolar=2.9;}
   return s;
  }
- U.holoView={canonical,initial,parent,action,scene,clickAllowed:(distance,multi,button)=>distance<5&&!multi&&button===0};
+ U.holoView={canonical,initial,parent,direction,action,scene,clickAllowed:(distance,multi,button)=>distance<5&&!multi&&button===0};
 })();

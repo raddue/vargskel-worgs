@@ -118,14 +118,16 @@ function boot(){
  function navigate(fid){requested=fid;UI.fitLevel(N.canonical(fid));requested=null;}
  function crumbs(){const chain=[];let f=frame;while(f){chain.unshift(f);f=N.parent(f)}document.getElementById('holo-crumbs').innerHTML=chain.map((v,i)=>i===chain.length-1?'<span aria-current="page">'+UI.esc(v==='cressidium:orbit'?'CRESSIDIUM ORBIT':v==='cressidium'?'CRESSIDIUM SURFACE':v==='SYSTEM'?'SYSTEM':UI.L[v].name)+'</span>':'<button type="button" class="crumb" data-view="'+v+'">'+UI.esc(v==='cressidium:orbit'?'CRESSIDIUM ORBIT':v==='cressidium'?'CRESSIDIUM SURFACE':v==='SYSTEM'?'SYSTEM':UI.L[v].name)+'</button>').join(' › ');document.getElementById('holo-sub').textContent=description.sub;}
 
- function moveFrame(fid){if(!fid||fid===frame||flight)return;history.replaceState({holoView:frame},'',location.href);history.pushState({holoView:fid},'','#map');interact();if(rm.matches){navigate(fid);return}
-  const target=objects.get(fid)?.group.position.clone()||controls.target.clone();flight={start:performance.now(),from:camera.position.clone(),to:target.clone().add(camera.position.clone().sub(controls.target).multiplyScalar(.35)),fid};awake();}
+ function moveFrame(fid,record=true){if(!fid||fid===frame||flight)return;if(record){history.replaceState({holoView:frame},'',location.href);history.pushState({holoView:fid},'','#map')}interact();if(rm.matches){navigate(fid);return}
+  const direction=N.direction(frame,fid),inward=direction==='in';
+  const target=inward?(objects.get(N.canonical(fid))?.group.position.clone()||controls.target.clone()):controls.target.clone();
+  flight={start:performance.now(),from:camera.position.clone(),to:target.clone().add(camera.position.clone().sub(controls.target).multiplyScalar(inward?.35:2)),fid,direction};awake();}
  function draw(now){raf=0;if(!mode()||document.hidden||panel.hidden||!visible)return;
   const dt=last?Math.min(.05,(now-last)/1000):0;last=now;const moving=!rm.matches&&!paused&&!held&&now>idleUntil;
   if(moving)phase+=dt;
   for(const o of objects.values()){const b=o.b;if(b.orbit){const p=objects.get(b.orbit.parent).group.position,a=b.orbit.phase+phase*2*Math.PI/b.orbit.period;o.group.position.set(p.x+Math.cos(a)*b.orbit.radius,b.pos[1],p.z+Math.sin(a)*b.orbit.radius)}if(o.spin)o.spin.rotation.y=phase*(b.spin||.015);if(b.surface){const globe=objects.get(b.surface);o.group.position.fromArray(b.pos).applyQuaternion(globe.spin.quaternion).add(globe.group.position);}if(o.card)o.card.quaternion.copy(camera.quaternion);}
   if(flight){controls.enabled=false;const t=Math.min(1,(now-flight.start)/800),e=t*t*(3-2*t);camera.position.lerpVectors(flight.from,flight.to,e);host.style.opacity=String(1-.75*Math.sin(t*Math.PI));if(t===1){const fid=flight.fid;flight=null;controls.enabled=true;host.style.opacity='';navigate(fid)}}
-  const changing=controls.update();renderer.render(scene,camera);
+  const changing=flight?false:controls.update();renderer.render(scene,camera);
   const placed=[];
   for(const o of objects.values()){projected.copy(o.group.position);projected.y+=(description.city?.72:(o.b.h||o.b.r))+.12;projected.project(camera);const w=o.tag.offsetWidth,h=o.tag.offsetHeight,cw=renderer.domElement.clientWidth;let x=Math.max(w/2+4,Math.min(cw-w/2-4,(projected.x*.5+.5)*cw)),y=Math.max(h+8,(-projected.y*.5+.5)*renderer.domElement.clientHeight);
    for(let i=0;i<objects.size;i++){if(!placed.some(p=>Math.abs(p.x-x)<(p.w+w)/2+3&&Math.abs(p.y-y)<h+3))break;y+=h+4}
@@ -154,7 +156,7 @@ function boot(){
  function action(a){interact();if(a==='in')controls.dollyIn(1.2);if(a==='out')controls.dollyOut(1.2);if(a==='left')controls.rotateLeft(.2);if(a==='right')controls.rotateLeft(-.2);if(a==='up')controls.pan(0,35);if(a==='down')controls.pan(0,-35);if(a==='panleft')controls.pan(35,0);if(a==='panright')controls.pan(-35,0);if(a==='descend'&&objects.get(selected)?.b.descend)select(selected);if(a==='info')info(selected);if(a==='back')moveFrame(description.ascend);if(a==='overview')moveFrame('SYSTEM');if(a==='pause'){paused=!paused;const b=toolbar.querySelector('[data-action="pause"]');b.setAttribute('aria-pressed',String(paused));b.textContent=paused?'RESUME MOTION':'PAUSE MOTION'}awake();}
  toolbar.addEventListener('click',e=>{if(e.target.dataset.action)action(e.target.dataset.action)});
  panel.addEventListener('click',e=>{if(host.hidden)return;const pv=e.target.closest('[data-view]');if(pv){e.stopImmediatePropagation();moveFrame(pv.dataset.view);return}const fr=e.target.closest('[data-frame]');if(fr){e.stopImmediatePropagation();moveFrame(fr.dataset.frame==='cressidium'?'cressidium:orbit':fr.dataset.frame)}if(e.target.closest('#holo-back')){e.stopImmediatePropagation();reset()}},true);
- UI.onFrame=(fid)=>{if(lost||failed)return;try{build(requested||fid)}catch(e){fallback(e)}};UI.onMark=mark;UI.holo3d={reset,active:()=>!host.hidden,view:()=>frame};
+ UI.onFrame=(fid)=>{if(lost||failed)return;try{build(requested||fid)}catch(e){fallback(e)}};UI.onMark=mark;UI.holo3d={reset,active:()=>!host.hidden,view:()=>frame,cameraState:()=>({distance:camera.position.distanceTo(controls.target),direction:flight?.direction||null})};
  renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();lost=true;flight=null;controls.enabled=true;stop();mode();UI.fitLevel(N.canonical(frame))});
  renderer.domElement.addEventListener("webglcontextrestored",()=>{lost=false;failed=false;try{build(frame)}catch(e){fallback(e)}});
  document.addEventListener('visibilitychange',()=>document.hidden?stop():awake());
@@ -164,7 +166,7 @@ function boot(){
  new MutationObserver(()=>{palette=colors();if(!lost&&!failed)build(frame)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
  rm.addEventListener('change',()=>{phase=0;const destination=flight?.fid;flight=null;controls.enabled=true;host.style.opacity='';if(destination)navigate(destination);awake()});
  window.addEventListener('pagehide',stop);window.addEventListener('pageshow',awake);
- window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#map/'))navigate(N.initial(location.hash));else if(history.state?.holoView)navigate(history.state.holoView);});
- window.addEventListener('popstate',()=>{if(history.state?.holoView)navigate(history.state.holoView);});
+ window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#map/'))moveFrame(N.initial(location.hash),false);else if(history.state?.holoView)moveFrame(history.state.holoView,false);});
+ window.addEventListener('popstate',()=>{if(history.state?.holoView)moveFrame(history.state.holoView,false);});
  try{host.hidden=false;navigate(N.initial(window.holoEntryHash));if(!window.holoEntryHash||window.holoEntryHash==='#map'){history.replaceState(null,'','#map');document.getElementById('record-detail').innerHTML='<div class="tag">CRESSIDIUM ORBIT</div><p>Select a world to enter. Select hardware to read its file. INFO opens the selected parent’s dossier.</p>';selected='';mark('loc','')}}catch(e){fallback(e)}
 }

@@ -1,5 +1,21 @@
 # 3D holomap browser evidence
 
+## Navigation direction correction
+
+Navigation now derives inward/outward movement from the presentation hierarchy,
+including separate Cressidium orbit and surface views. Ancestor and cross-branch
+moves pull away; descendant moves approach. UP, ancestor breadcrumbs, keyboard
+`[`/Escape and browser Back use the same flight path. Reduced motion still cuts.
+
+Chromium camera-distance probe (world units, sampled about 350 ms into flight):
+- Orbit to surface: 5.891 → 4.202, inward.
+- Surface UP to orbit: 2.753 → 3.937, outward.
+- Browser Back: 3.810 mid-flight, outward.
+- Keyboard UP: 3.848 mid-flight, outward.
+
+OrbitControls damping/clamps no longer overwrite the scripted camera during
+flight; the destination rebuild restores its normal fit and control limits.
+
 ## Procedural city iteration
 
 City and industrial views now use bounded deterministic parcels along three bent
