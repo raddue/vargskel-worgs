@@ -13,7 +13,7 @@
    check-all pins this list: every entry has to exist on disk (addAll is all-or-nothing, so one dead
    entry installs no shell at all), the pages, scripts, stylesheets, fonts and thumbnails all have to
    be present, and the total has to stay inside the install budget. */
-const CACHE = "vw-offline-v2";
+const CACHE = "vw-offline-v4";
 
 const PAGES = [
   "index.html",
@@ -29,6 +29,13 @@ const PAGES = [
 ];
 
 const CODE = [
+  "holomap-view.js",
+  "holomap3d.js",
+  "vendor/three/three.module.min.js",
+  "vendor/three/addons/controls/OrbitControls.js",
+  "vendor/three/addons/loaders/GLTFLoader.js",
+  "vendor/three/addons/utils/BufferGeometryUtils.js",
+  "vendor/three/addons/utils/SkeletonUtils.js",
   "campaign.js",
   "detail.js",
   "archive.js",
@@ -62,6 +69,12 @@ const FONTS = [
 ];
 
 const THUMBS = [
+  "assets/maps/cressidium.webp",
+  "assets/maps/pell.webp",
+  "assets/maps/tarn.webp",
+  "assets/models/kessen.glb",
+  "assets/models/harrow.glb",
+  "assets/models/rio.glb",
   "assets/unit-patch.webp",
   "assets/alba-thumb.webp",
   "assets/ambassador-bannerjee-thumb.webp",

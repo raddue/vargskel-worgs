@@ -263,3 +263,23 @@ html[data-compact="1"] .threads-table td{padding:4px 8px 4px 0}
 @media(prefers-reduced-motion:reduce){.chip.tip::after{transition:none}}
 
 #status-update th{text-align:left}#status-update td.lvl{font:15px var(--mono);letter-spacing:.1em}#status-update td.lvl-green{color:var(--lime)}#status-update td.lvl-yellow{color:#e8c547}#status-update td.lvl-red{color:#e5534b}#status-update td.lvl-black{color:var(--muted)}
+
+/* 3D is progressive: module failure leaves the existing SVG visible. */
+.holo-view.is-3d .holo-svg{display:none}
+.holo3d[hidden]{display:none}
+.holo3d{position:relative;height:560px;min-width:0;background:radial-gradient(ellipse at center,var(--panel2),var(--holo-bg));overflow:hidden}
+.holo3d canvas{display:block;width:100%;outline-offset:-3px}
+.holo3d-labels{position:absolute;inset:0;pointer-events:none}
+.holo3d-tag{position:absolute;top:0;left:0;pointer-events:auto;max-width:180px;min-height:28px;padding:4px 7px;background:var(--holo-bg);color:var(--text);border:1px solid var(--line);font:11px var(--mono);letter-spacing:.06em;cursor:pointer}
+.holo-key.city-key{display:flex;flex-wrap:wrap;gap:10px 20px}
+.holo3d-target{position:absolute;left:0;top:0;max-width:210px;padding:4px 7px;color:var(--lime);background:var(--holo-bg);border:1px dashed var(--lime);font:10px var(--mono);pointer-events:none}
+.holo3d-zone-label{position:absolute;top:0;left:0;color:var(--muted);font:10px var(--mono);white-space:nowrap;pointer-events:none}
+.holo3d-tag:hover,.holo3d-tag.selected{border-color:var(--cyan);color:var(--cyan)}
+.holo3d :focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.holo3d-tools{position:absolute;bottom:52px;left:8px;right:8px;display:flex;gap:5px;flex-wrap:wrap}
+.holo3d-tools button{min-width:32px;min-height:32px;padding:4px 8px;color:var(--cyan);background:var(--holo-bg);border:1px solid var(--line);font:11px var(--mono);cursor:pointer}
+.holo3d-tools button:disabled{opacity:.45;cursor:default}
+.holo3d-help{position:absolute;bottom:0;left:10px;right:10px;font:10px/1.4 var(--mono);color:var(--muted);margin:8px 0}
+@media(max-width:600px){.holo3d{height:500px}.holo3d-tag{font-size:10px;max-width:135px}.holo3d-tools{bottom:76px}.holo3d-help{font-size:10px}}
+@media(pointer:coarse){.holo3d-tools button{min-height:40px;min-width:40px}}
+@media print{.holo3d{display:none!important}.holo-view.is-3d .holo-svg{display:block!important}}

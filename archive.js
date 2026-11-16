@@ -129,7 +129,8 @@ function detailMech(m){const d=D();if(!d.weapons&&!d.systems)return "";
  return dsect("MOUNTED WEAPONS",blurb+wep)+dsect("SYSTEMS",sys)+dsect("FRAME",fr);}
 const opPill=o=>pill(o.status,/COMPLETED/.test(o.status)?"lime":"rust");
 const threadPill=t=>pill(t.status,t.status==="ESCALATING"?"rust":"lime");
-const mark=(k,v)=>document.querySelectorAll(".holo-svg .node").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));
+/* The 3D map draws its own bodies, so it is told the selection instead of reading SVG classes. */
+const mark=(k,v)=>{document.querySelectorAll(".holo-svg .node").forEach(e=>e.classList.toggle("sel",e.dataset[k]===v));if(UI.onMark)UI.onMark(k,v)};
 const panel=()=>el("record-detail");
 const animatePane=()=>{const p=panel();p.classList.remove("pane-in");void p.offsetWidth;p.classList.add("pane-in")};
 const showAtRecord=(host,id)=>{
@@ -293,9 +294,13 @@ function holomap(fid){
  /* Rings are orbits, so only things that orbit get one: a district does not orbit its city. An
     orbit ring takes its own child's radius, whether the parent is the frame's subject (rio over
     elysia) or a satellite (pell over cressidium). */
+ /* model: what this frame draws, as data. The 3D renderer (scene3d) reads it, so the two maps are
+    one layout and the markup below stays the SVG's own. */
+ const model={fid,isSys,scale,radius,nodes:[],rings:[],zones:[],legs:[],star:null};
  const orbitKinds=["MOON","STATION","ORBITAL"];
  const rings=mem.filter(l=>l.parent&&l.parent!==l.id&&orbitKinds.includes(l.kind)&&ids.has(l.parent)).map(l=>{
   const p=pos.get(l.parent),c=pos.get(l.id);
+  model.rings.push({parent:l.parent,child:l.id,r:Math.hypot(c.x-p.x,c.y-p.y)});
   return `<circle class="ring" data-ring="${esc(l.parent)}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${Math.hypot(c.x-p.x,c.y-p.y).toFixed(1)}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`}).join("");
  /* A zone is drawn where its own record says: zone.frame names the frame, and the zone's
     coordinates translate by the frame's subject offset like any other member's. A zone centred
@@ -303,7 +308,8 @@ function holomap(fid){
  const zones=C.factions.filter(f=>f.zone&&f.zone.frame===fid).map(f=>{const z=f.zone;
   const cx=isSys?z.x*10:CX+(z.x-subj.x)*10*scale,cy=isSys?z.y*4.8:CY+(z.y-subj.y)*4.8*scale;
   const rx=z.rx*scale,ry=z.ry*scale;
-  const nearZ=mem.some(l=>Math.hypot(l.x-z.x,l.y-z.y)<5);
+  const onZ=mem.find(l=>Math.hypot(l.x-z.x,l.y-z.y)<5),nearZ=!!onZ;
+  model.zones.push({id:f.id,name:f.name,c:z.c,cx,cy,rx,ry,on:onZ?onZ.id:null});
   return `<ellipse class="zone" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="var(--${esc(z.c)})" fill-opacity=".05" stroke="var(--${esc(z.c)})" stroke-opacity=".35" stroke-dasharray="2 5"/>`+(nearZ?"":`<text class="zl" x="${Math.min(910,Math.max(90,cx)).toFixed(1)}" y="${(cy+ry+14).toFixed(1)}" text-anchor="middle">${esc(f.name.toUpperCase())}</text>`)}).join("");
  /* Ops legs: the route is one list of sites, and a leg is drawn on exactly one frame — the
     deepest whose subject holds both ends — so it never appears twice. An end that is not drawn
@@ -321,6 +327,7 @@ function holomap(fid){
   const ra=rep(a),rb=rep(b);if(!ra||!rb||ra===rb)return "";
   drawnLegs.push(b);
   const pa=pos.get(ra),pb=pos.get(rb),plan=!L[b].visited;
+  model.legs.push({from:ra,to:rb,plan});
   return `<line class="leg" data-leg="${esc(a)}-${esc(b)}" x1="${pa.x.toFixed(1)}" y1="${pa.y.toFixed(1)}" x2="${pb.x.toFixed(1)}" y2="${pb.y.toFixed(1)}" stroke="var(${plan?"--muted":"--lime"})" stroke-width="1.5" stroke-dasharray="${plan?"4 6":"6 6"}" opacity=".7"/>`}).join("");
  /* The star: the one drawn thing here no record supports, so it is declared rather than
     smuggled in. It is not a location: no data-loc, not selectable, no file, and the key says
@@ -330,6 +337,7 @@ function holomap(fid){
     ponytail: an invented constant — no asset exists and none is wanted; upgrade to a record if
     the star ever needs a file. */
  const sbrad=STAR_BEARING*Math.PI/180,sx=CX+radius*Math.sin(sbrad),sy=CY-radius*Math.cos(sbrad);
+ if(isSys)model.star={x:sx,y:sy};
  const star=isSys?`<g class="star" role="img" data-x="${sx.toFixed(1)}" data-y="${sy.toFixed(1)}" aria-label="Cressidium, the system's primary star, drawn for orientation. It has no file." transform="translate(${sx.toFixed(1)} ${sy.toFixed(1)})">`+
   `<circle r="30" fill="var(--cyan)" opacity=".10"/><circle r="18" fill="var(--cyan)" opacity=".25"/><circle r="8" fill="var(--cyan)"/>`+
   [0,45,90,135,180,225,270,315].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);
@@ -369,7 +377,9 @@ function holomap(fid){
   const role=l.id===fid?"subject":"member",gm=bodyR(l,role),r=ART_KINDS.includes(l.kind)?gm*scale:gm;
   const labY=(l.ly!=null?l.ly:Math.max(r+14,l.kind==="PLANET"?36:30));
   const nameY=clear(p.x,p.y+labY,l.name,1)-p.y;
-  return `<g class="node${members(l.id).length>1?" body":""}${l.visited?"":" unv"}${curSet.has(l.id)?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(l.kind)} ${esc(l.name)}${l.visited?"":", unvisited"}${curSet.has(l.id)?", current operation":""}${bs.length?", "+esc(bs.map(b=>b.label).join(", ")):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}">`+
+  const aria=`${l.kind} ${l.name}${l.visited?"":", unvisited"}${curSet.has(l.id)?", current operation":""}${bs.length?", "+bs.map(b=>b.label).join(", "):""}${hosts.length?`, ${hosts.length} local site${hosts.length>1?"s":""}`:""}`;
+  model.nodes.push({id:l.id,x:p.x,y:p.y,r,role,cur:curSet.has(l.id),aria,badges:bs.map(b=>b.label),sites:hosts.map(h=>h.name)});
+  return `<g class="node${members(l.id).length>1?" body":""}${l.visited?"":" unv"}${curSet.has(l.id)?" cur":""}${bs.map(b=>" badge-"+b.role).join("")}" data-loc="${esc(l.id)}" data-x="${p.x.toFixed(1)}" data-y="${p.y.toFixed(1)}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" role="button" tabindex="0" aria-label="${esc(aria)}">`+
   `<circle r="${Math.max(28,r)}" fill="transparent"/>`+K.draw(l,r,fid)+
   `<text y="${nameY}" text-anchor="middle">${esc(l.name)}</text>`+
   hosts.map((h,i)=>{const y=clear(p.x,p.y+labY+12+i*12,h.name+" SITE",1)-p.y;return `<text class="site" y="${y}" text-anchor="middle">${esc(h.name)} SITE</text>`}).join("")+
@@ -399,8 +409,85 @@ function holomap(fid){
  const locator=isSys?"":`<div class="sys-locator" role="group" aria-label="System locator: open a principal body's frame">`+
   prins.map(id=>`<button type="button" class="loc-body${id===act?" active":""}${id===act&&curSet.has(id)?" cur":""}" data-frame="${esc(id)}"${id===act?' aria-current="true"':""}>${esc(L[id].name)}</button>`).join("")+
   `<span class="loc-star" title="The primary star is drawn for orientation and has no file">STAR</span></div>`;
- return {world:farGrid+zones+rings+lines+star+nodes,key,grid:M.grid,aria:ariaOut,head:M.head,sub:M.sub,crumbs,locator,viewR,scale};
+ return {world:farGrid+zones+rings+lines+star+nodes,key,grid:M.grid,aria:ariaOut,head:M.head,sub:M.sub,crumbs,locator,viewR,scale,model};
 }
+/* The 3D holomap's scene: one frame described for holomap3d.js, built from holomap(fid) so the
+   3D map is a renderer over this model and never a second one. Pure: no DOM and no three.js, so
+   check-all can read it. Units: 100 px of the flat map's 1000x480 frame is one world unit, x
+   across, z toward the viewer, y up; angles are radians, periods seconds.
+   The 3D-only numbers live in these tables and not on the records, so every record renders with
+   no new field. ponytail: per-kind constants; move one onto a record only when a body needs its
+   own (a ringed world, a retrograde moon). */
+const SHAPE3D={PLANET:"globe",MOON:"globe",STATION:"hull",ORBITAL:"hull","WRECK FIELD":"debris",CITY:"pin",DISTRICT:"pin",FOB:"pin",ZONE:"pin"};
+const GROUND_KINDS=["CITY","DISTRICT","FOB","ZONE"];
+/* The hull meshes came out of a generator at whatever attitude it chose, so each is turned here
+   and the files stay as made (assets/PROVENANCE.md). Read off the chromium probe. */
+const HULL_POSE={kessen:{yaw:0,pitch:0,roll:0},harrow:{yaw:0,pitch:0,roll:0},rio:{yaw:0,pitch:0,roll:0}};
+const GLOBE_TILT={cressidium:.24,pell:.05,tarn:.38};
+const DAY=260,PIN_R3=.16,PIN_H3=.62,DEBRIS_R3=.42,ORBIT_ALT=.9,FOV3=38;
+function scene3d(fid,opts){
+ const m=holomap(fid),M=m.model,reduced=!!(opts&&opts.reducedMotion);
+ const subj=M.isSys?null:L[fid],ground=!!subj&&GROUND_KINDS.includes(subj.kind);
+ const at=n=>[(n.x-500)/100,0,(n.y-240)/100];
+ const P=new Map(M.nodes.map(n=>[n.id,at(n)]));
+ const ringOf=new Map(M.rings.map(r=>[r.child,r]));
+ const bodies=M.nodes.map(n=>{
+  const l=L[n.id],shape=SHAPE3D[l.kind],pos=P.get(n.id),ring=ringOf.get(n.id);
+  const b={id:n.id,name:l.name,kind:l.kind,shape,role:n.role,pos,
+   r:shape==="pin"?PIN_R3:shape==="debris"?DEBRIS_R3:n.r/100,
+   thumb:thumbOf(l),visited:!!l.visited,cur:n.cur,aria:n.aria,badges:n.badges,sites:n.sites,
+   descend:n.id!==fid&&members(n.id).length>1};
+  if(shape==="globe"){b.map=`assets/maps/${l.id}.webp`;b.spin=2*Math.PI/DAY;b.tilt=GLOBE_TILT[l.id]||0}
+  if(shape==="hull"){b.model=`assets/models/${l.id}.glb`;Object.assign(b,HULL_POSE[l.id]||{yaw:0,pitch:0,roll:0})}
+  if(shape==="debris")b.count=260;
+  /* A ground site is a raised pin: a marker on the table and its art on a card above it. */
+  if(shape==="pin"&&ground)b.h=PIN_H3;
+  if(ring){const pp=P.get(ring.parent),radius=ring.r/100;
+   /* Over a ground frame an orbit is overhead, not on the table: the ring is lifted. */
+   if(ground)pos[1]=ORBIT_ALT;
+   /* A moon keeps its parent's day, so it stays over the ground it is recorded over (Pell is
+      tide-locked over the city) while the frame drifts; hardware keeps its own slower lane. */
+   b.orbit={parent:ring.parent,radius,phase:Math.atan2(pos[2]-pp[2],pos[0]-pp[0]),period:l.kind==="MOON"?DAY:90+radius*70}}
+  /* A cross-scale pin stands on its globe, so it rides the globe's spin. */
+  else if(!M.isSys&&n.id!==fid&&l.level!==subj.level){const pp=P.get(fid);
+   b.orbit={parent:fid,radius:Math.hypot(pos[0]-pp[0],pos[2]-pp[2]),phase:Math.atan2(pos[2]-pp[2],pos[0]-pp[0]),period:DAY,surface:true}}
+  return b});
+ const B=new Map(bodies.map(b=>[b.id,b]));
+ const zones=M.zones.map(z=>({id:z.id,name:z.name,label:z.on?null:z.name.toUpperCase(),c:z.c,center:[(z.cx-500)/100,(z.cy-240)/100],rx:z.rx/100,rz:z.ry/100,
+  /* A claim centred on a body rides with it: the Union's is round the Rio Grande, in orbit. */
+  on:z.on&&B.get(z.on)&&B.get(z.on).orbit?z.on:null}));
+ const star=M.star?{pos:at(M.star),r:.3}:null;
+ /* Light comes from the star: its place on the root, its declared bearing everywhere else. */
+ const sb=STAR_BEARING*Math.PI/180,sun={dir:[Math.sin(sb)*.94,.34,-Math.cos(sb)*.94]};
+ const sl=Math.hypot(...sun.dir);sun.dir=sun.dir.map(v=>v/sl);
+ /* Every point a body can reach, so the fit holds while it drifts round its ring. */
+ const reach=[];
+ bodies.forEach(b=>{if(!b.orbit){reach.push({p:b.pos,r:b.r});if(b.h)reach.push({p:[b.pos[0],b.h,b.pos[2]],r:b.r*1.4});return}
+  const c=B.get(b.orbit.parent).pos;
+  for(let i=0;i<24;i++){const a=b.orbit.phase+i*Math.PI/12;reach.push({p:[c[0]+b.orbit.radius*Math.cos(a),b.pos[1],c[2]+b.orbit.radius*Math.sin(a)],r:b.r})}});
+ if(star)reach.push({p:star.pos,r:star.r});
+ const radius=Math.max(...reach.map(q=>Math.hypot(q.p[0],q.p[2])+q.r));
+ const camera={fov:FOV3,target:[0,ground?.25:0,0],azimuth:ground?.5:.32,polar:ground?1.0:1.02,minPolar:.2,maxPolar:ground?1.42:1.9,
+  minDistance:Math.max(...bodies.map(b=>b.r))*(ground?5:1.9)+.35,maxZoomOut:1.7};
+ return {frame:fid,mode:ground?"ground":"space",aria:m.aria,head:m.head,sub:m.sub,grid:m.grid,
+  ascend:M.isSys?null:homeOf(subj),bodies,orbits:bodies.filter(b=>b.orbit&&!b.orbit.surface).map(b=>({parent:b.orbit.parent,child:b.id,radius:b.orbit.radius,y:b.pos[1]})),
+  zones,legs:M.legs,star,sun,radius,reach,camera,
+  motion:{drift:!reduced,flyMs:reduced?0:800,resumeMs:4000}};
+}
+/* The distance at which the whole frame sits inside a viewport of this aspect, from the scene's
+   default angle, with room left for the tags. Closed form: each reachable point needs
+   depth >= (its offset + its radius) / tan(half field), on both axes. */
+const FIT_FILL=.84;
+function fitDistance(s,aspect){
+ const c=s.camera,tv=Math.tan(c.fov*Math.PI/360)*FIT_FILL,th=tv*aspect;
+ const dir=[Math.sin(c.polar)*Math.sin(c.azimuth),Math.cos(c.polar),Math.sin(c.polar)*Math.cos(c.azimuth)],right=[Math.cos(c.azimuth),0,-Math.sin(c.azimuth)];
+ const up=[dir[1]*right[2]-dir[2]*right[1],dir[2]*right[0]-dir[0]*right[2],dir[0]*right[1]-dir[1]*right[0]];
+ const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],rel=q=>q.p.map((v,i)=>v-c.target[i]);
+ return Math.max(c.minDistance*1.05,...s.reach.map(q=>{const p=rel(q);return dot(p,dir)+Math.max((Math.abs(dot(p,right))+q.r)/th,(Math.abs(dot(p,up))+q.r)/tv)}));
+}
+/* The flat SVG map is the default and the fallback: the 3D map shows only once WebGL is known to
+   be up, and gives the page back when the context is lost or the module fails. */
+const holoRenderer=env=>env&&env.webgl&&!env.lost&&!env.failed?"3d":"svg";
 /* Pinch ratios are hysteretic: a gesture has to travel 1.35x or 0.74x before it counts as a zoom,
    so a sloppy two-finger tap, or a drift part-way through a gesture, fires nothing. */
 const pinchIntent=ratio=>ratio>=1.35?"in":ratio<=.74?"out":"";
@@ -414,7 +501,9 @@ function fitLevel(fid){
  const m=holomap(at),world=el("holo-world");   /* an unknown or cyclic frame throws before anything is touched */
  frame=at;
  stack.length=0;stack.push(...chainOf(at).slice().reverse());   /* [SYSTEM, ..., at] */
- if(!world)return m;          /* pages without a map still get the pane chips */
+ /* The 3D map follows every frame change, whichever control made it. */
+ const told=()=>{if(UI.onFrame)UI.onFrame(at,m);return m};
+ if(!world)return told();     /* pages without a map still get the pane chips */
  /* The frame swap is a cut, not a camera move: the world's transition rides with the zoom only. */
  world.style.transition="none";
  world.innerHTML=m.world;world.style.transform="";
@@ -432,7 +521,7 @@ function fitLevel(fid){
  /* The frame can also change from a chip in the reading pane, so the back control is synced here
     rather than only in the map's own click handlers. */
  if(UI.syncBack)UI.syncBack();
- return m;
+ return told();
 }
 function unitFile(id){const l=L[id];if(!l)return "";
  const here=filed.filter(o=>o.loc===id),sats=C.locations.filter(x=>x.parent===id);
@@ -729,7 +818,7 @@ function situation(){
   badges,op:{id:o.id,title:o.title,type:o.type,status:o.status},area:o.loc||"",missing:missing.map(p=>p.id)};
 }
 lightbox();
-return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,entryOwner,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,sessionCards,attendanceStrip,wireDossierActions,L,P,M,F};
+return {esc,byId,ops,filed,threadsOf,mechOps,pilotOps,stationed,entryOwner,el,th,table,chip,opLink,mechBtn,locBtn,pilotBtn,pill,mark,show,showAtMap,pilotDossier,mechDossier,detailPilot,detailMech,hpNow,ledgerPanel,campaignHead,pinchIntent,holomap,scene3d,fitDistance,holoRenderer,frameId:()=>frame,members,fitLevel,unitFile,personFile,personnelList,factionTable,situation,sessionBlock,sessionStep,sessionReview,sessionCards,attendanceStrip,wireDossierActions,L,P,M,F};
 })();
 
 const patrolCooldown = new WeakMap();
