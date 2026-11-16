@@ -198,7 +198,7 @@ else {
     if (imports["three/addons/"] !== "./vendor/three/addons/") bad(`intel.html: the import map must resolve "three/addons/" to the vendored addons`);
     Object.values(imports).forEach(u => { if (/^(https?:)?\/\//.test(u)) bad(`intel.html: the import map names a CDN (${u}); three.js is vendored so the map works offline`); });
   }
-  const mod = page.indexOf('<script type="module" src="holomap3d.js"></script>');
+  const mod = page.search(/<script type="module" src="holomap3d\.js"(?:\s[^>]*)?><\/script>/);
   if (mod < 0) bad("intel.html: must load holomap3d.js as a module script");
   else if (im && mod < im.index) bad("intel.html: the import map must come before the module that uses it");
   if (/<script[^>]+src="https?:/.test(page)) bad("intel.html: no script may come from another origin");

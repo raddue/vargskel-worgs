@@ -61,5 +61,6 @@
   if(v==='cressidium'){s.reach=s.bodies.map(b=>({p:b.pos,r:b.r}));s.camera.target=[0,0,0];s.camera.maxPolar=2.9;}
   return s;
  }
- U.holoView={canonical,initial,parent,direction,action,scene,clickAllowed:(distance,multi,button)=>distance<5&&!multi&&button===0};
+ // Rio GLB nose is local +Z. Increasing orbit phase has tangent (-sin(a),0,cos(a)).
+ U.holoView={canonical,initial,parent,direction,action,scene,rioHeading:phase=>-phase,clickAllowed:(distance,multi,button)=>distance<5&&!multi&&button===0};
 })();

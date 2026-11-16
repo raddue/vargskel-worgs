@@ -1804,3 +1804,5 @@ if (problems.length) {
 console.log(`campaign.js/index.html ok: ${C.locations.length} locations, ${C.pilots.length} pilots, ${C.mechs.length} mechs, ${C.ops.length} ops, ${C.threads.length} threads, ${C.events.length} events, ${C.factions.length} factions`);
 
 require("./tools/holomap-navigation.test.cjs");
+
+require("./tools/holomap-loading.test.cjs");

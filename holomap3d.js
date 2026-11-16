@@ -6,9 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const N=UI.holoView;
 const host=document.getElementById('holo3d'), view=host?.parentElement;
-if(host)boot();
+if(host&&window.holoLoading?.state!=='failed')boot();
 function boot(){
- let renderer,controls,scene,description,objects=new Map(),resources=new Set(),generation=0;
+ let renderer,controls,scene,description,objects=new Map(),resources=new Set(),generation=0,pendingAssets=0;
+ const loading=window.holoLoading;
  let raf=0,wakeTimer=0,last=0,phase=0,idleUntil=0,held=false,visible=true,lost=false,failed=false,paused=false,flight=null;
  let selected=document.querySelector('.holo-svg .node.sel')?.dataset.loc||'',hover='',frame='',fit=1;
  const rm=matchMedia('(prefers-reduced-motion: reduce)'), panel=document.getElementById('tab-map');
@@ -23,7 +24,7 @@ function boot(){
  const own=o=>(resources.add(o),o);
  const colors=()=>{const c=getComputedStyle(document.documentElement);return Object.fromEntries(['cyan','lime','rust','muted','line','holo-bg'].map(k=>[k,c.getPropertyValue('--'+k).trim()]));};
  let palette=colors();
- function mode(){const active=UI.holoRenderer({webgl:!!renderer,lost,failed})==='3d';host.hidden=!active;view.classList.toggle('is-3d',active);if(UI.syncBack)UI.syncBack();return active;}
+ function mode(){const active=loading?.state!=='failed'&&UI.holoRenderer({webgl:!!renderer,lost,failed})==='3d';host.hidden=!active;view.classList.toggle('is-3d',active);if(UI.syncBack)UI.syncBack();return active;}
  function stop(){cancelAnimationFrame(raf);clearTimeout(wakeTimer);raf=0;last=0;}
  function awake(){if(!raf&&!lost&&!failed&&!document.hidden&&!panel.hidden&&visible)raf=requestAnimationFrame(draw);}
  function interact(){idleUntil=performance.now()+4000;awake();}
@@ -31,7 +32,7 @@ function boot(){
  document.addEventListener('pointerdown',interact,{passive:true});
  document.addEventListener('keydown',interact);
  function dispose(){generation++;resources.forEach(r=>r.dispose());resources.clear();scene?.clear();objects.clear();labels.replaceChildren();}
- function fallback(error){failed=true;stop();mode();console.warn('3D holomap unavailable; SVG retained.',error);}
+ function fallback(error){failed=true;loading?.fail();stop();mode();console.warn('3D holomap unavailable; SVG retained.',error);}
  try{
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -45,9 +46,9 @@ function boot(){
  function mesh(geometry,mat,parent=scene){const m=new THREE.Mesh(own(geometry),mat);parent.add(m);return m;}
  function ring(radius,color,parent=scene,y=0){const points=Array.from({length:97},(_,i)=>new THREE.Vector3(Math.cos(i*Math.PI/48)*radius,y,Math.sin(i*Math.PI/48)*radius));const l=new THREE.Line(own(new THREE.BufferGeometry().setFromPoints(points)),own(new THREE.LineBasicMaterial({color,transparent:true,opacity:.5})));parent.add(l);return l;}
  function holo(map){return own(new THREE.ShaderMaterial({uniforms:{surface:{value:map},tint:{value:new THREE.Color(palette.cyan)},sun:{value:new THREE.Vector3(...description.sun.dir)}},vertexShader:'varying vec2 uv0; varying vec3 normal0; varying vec3 eye; void main(){uv0=uv; normal0=normalize(normalMatrix*normal); vec4 p=modelViewMatrix*vec4(position,1.);eye=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',fragmentShader:'uniform sampler2D surface; uniform vec3 tint; uniform vec3 sun; varying vec2 uv0; varying vec3 normal0; varying vec3 eye; void main(){vec3 n=normalize(normal0);float rim=pow(1.-max(dot(n,normalize(eye)),0.),2.5);float lit=.32+.68*max(dot(n,normalize(sun)),0.);vec3 art=texture2D(surface,uv0).rgb;float scan=.94+.06*sin(gl_FragCoord.y*1.7);gl_FragColor=vec4((mix(art,art*tint,.3)*lit+rim*tint*.65)*scan,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'}));}
- function texture(path,done){const g=generation;const t=own(new THREE.TextureLoader().load(path,()=>{if(g!==generation){t.dispose();return}done?.(t);awake()},undefined,e=>{if(g===generation)fallback(e)}));t.colorSpace=THREE.SRGBColorSpace;return t;}
+ function texture(path,done){const g=generation;pendingAssets++;const t=own(new THREE.TextureLoader().load(path,()=>{if(g!==generation){t.dispose();return}pendingAssets--;done?.(t);awake()},undefined,e=>{if(g===generation)fallback(e)}));t.colorSpace=THREE.SRGBColorSpace;return t;}
  function build(fid){
-  dispose();frame=fid;description=N.scene(fid,{reducedMotion:rm.matches});phase=0;
+  dispose();pendingAssets=0;frame=fid;description=N.scene(fid,{reducedMotion:rm.matches});phase=0;
   hint.textContent='Drag to rotate · scroll / pinch to zoom · arrows: targets · Enter: enter / file · INFO: dossier · [ / Escape: up. Positions schematic.';
   scene=new THREE.Scene();scene.add(new THREE.AmbientLight(palette.cyan,2));const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(-3,5,3);scene.add(light);
   renderer.domElement.setAttribute('aria-label',description.aria);host.setAttribute('aria-label',description.aria);
@@ -83,10 +84,10 @@ function boot(){
    const item={b,group,tag,spin:null};objects.set(b.id,item);
    if(b.shape==='globe'){const globe=mesh(new THREE.SphereGeometry(b.r,40,24),holo(texture(b.map)),group);globe.rotation.z=b.tilt;item.spin=globe;}
    else if(b.shape==='hull'){
-    const g=generation;new GLTFLoader().load(b.model,gltf=>{
+    const g=generation;pendingAssets++;new GLTFLoader().load(b.model,gltf=>{
      if(g!==generation){gltf.scene.traverse(o=>{o.geometry?.dispose();if(o.material)o.material.dispose()});return}
      const hull=gltf.scene;hull.traverse(o=>{if(o.isMesh){own(o.geometry);o.geometry.computeVertexNormals();o.material?.dispose();o.material=own(new THREE.MeshPhongMaterial({color:palette.muted,emissive:palette.line,shininess:60,flatShading:true}));}});
-     hull.scale.setScalar(b.r*2);hull.rotation.set(b.pitch,b.yaw,b.roll);group.add(hull);awake();
+     hull.scale.setScalar(b.r*2);hull.rotation.set(b.pitch,b.yaw,b.roll);group.add(hull);if(b.id==='rio'){item.hull=hull;hull.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),N.rioHeading(b.orbit.phase+phase*2*Math.PI/b.orbit.period))}pendingAssets--;awake();
     },undefined,e=>{if(g===generation)fallback(e)});
    }else if(b.shape==='debris'){
     const inst=new THREE.InstancedMesh(own(new THREE.BoxGeometry(.04,.03,.08)),material(palette.cyan),b.count);const dummy=new THREE.Object3D();
@@ -125,9 +126,10 @@ function boot(){
  function draw(now){raf=0;if(!mode()||document.hidden||panel.hidden||!visible)return;
   const dt=last?Math.min(.05,(now-last)/1000):0;last=now;const moving=!rm.matches&&!paused&&!held&&now>idleUntil;
   if(moving)phase+=dt;
-  for(const o of objects.values()){const b=o.b;if(b.orbit){const p=objects.get(b.orbit.parent).group.position,a=b.orbit.phase+phase*2*Math.PI/b.orbit.period;o.group.position.set(p.x+Math.cos(a)*b.orbit.radius,b.pos[1],p.z+Math.sin(a)*b.orbit.radius)}if(o.spin)o.spin.rotation.y=phase*(b.spin||.015);if(b.surface){const globe=objects.get(b.surface);o.group.position.fromArray(b.pos).applyQuaternion(globe.spin.quaternion).add(globe.group.position);}if(o.card)o.card.quaternion.copy(camera.quaternion);}
+  for(const o of objects.values()){const b=o.b;if(b.orbit){const p=objects.get(b.orbit.parent).group.position,a=b.orbit.phase+phase*2*Math.PI/b.orbit.period;o.group.position.set(p.x+Math.cos(a)*b.orbit.radius,b.pos[1],p.z+Math.sin(a)*b.orbit.radius)}if(o.hull&&b.id==='rio')o.hull.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),N.rioHeading(b.orbit.phase+phase*2*Math.PI/b.orbit.period));if(o.spin)o.spin.rotation.y=phase*(b.spin||.015);if(b.surface){const globe=objects.get(b.surface);o.group.position.fromArray(b.pos).applyQuaternion(globe.spin.quaternion).add(globe.group.position);}if(o.card)o.card.quaternion.copy(camera.quaternion);}
   if(flight){controls.enabled=false;const t=Math.min(1,(now-flight.start)/800),e=t*t*(3-2*t);camera.position.lerpVectors(flight.from,flight.to,e);host.style.opacity=String(1-.75*Math.sin(t*Math.PI));if(t===1){const fid=flight.fid;flight=null;controls.enabled=true;host.style.opacity='';navigate(fid)}}
   const changing=flight?false:controls.update();renderer.render(scene,camera);
+  if(pendingAssets===0)loading?.ready();
   const placed=[];
   for(const o of objects.values()){projected.copy(o.group.position);projected.y+=(description.city?.72:(o.b.h||o.b.r))+.12;projected.project(camera);const w=o.tag.offsetWidth,h=o.tag.offsetHeight,cw=renderer.domElement.clientWidth;let x=Math.max(w/2+4,Math.min(cw-w/2-4,(projected.x*.5+.5)*cw)),y=Math.max(h+8,(-projected.y*.5+.5)*renderer.domElement.clientHeight);
    for(let i=0;i<objects.size;i++){if(!placed.some(p=>Math.abs(p.x-x)<(p.w+w)/2+3&&Math.abs(p.y-y)<h+3))break;y+=h+4}

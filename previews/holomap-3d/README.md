@@ -1,5 +1,23 @@
 # 3D holomap browser evidence
 
+## Loading and orbital heading followup
+
+`loading.png` captures a deliberately stalled renderer-module request: themed
+LOADING status visible, SVG hidden, aria-busy true, viewport height reserved.
+Releasing the request produces state ready and aria-busy false only after assets
+load and the first scene render. Failing the request returns SVG and clears busy.
+A 12-second watchdog also restores SVG if bootstrap stalls. Controller tests cover
+success, failure, timeout, late completion and untouched markup before bootstrap.
+With JavaScript fully disabled this existing data-driven page still shows its
+noscript notice; it never enters loading or conceals anything additionally.
+
+`rio-heading.png` shows the hull aligned to its orbital tangent. Inspection of the
+GLB establishes +Z as its nose axis. Cardinal-phase regression tests check this
+axis against (-sin(phase), 0, cos(phase)); the quaternion is assigned afresh at
+model load and each tick, using the same phase as position. Pausing or reduced
+motion freezes both. No campaign or other-model orientation changed.
+
+
 ## Navigation direction correction
 
 Navigation now derives inward/outward movement from the presentation hierarchy,
