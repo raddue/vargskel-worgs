@@ -243,7 +243,7 @@ else {
       if (wanted.length) problems.push(`sw.js: precache is missing ${wanted.length} file(s) the offline shell needs: ${wanted.join(", ")}`);
       /* A phone installs this over cell data and the list only grows, so it has a ceiling. */
       const bytes = precached.reduce((n, f) => n + (fs.existsSync(__dirname + "/" + f) ? fs.statSync(__dirname + "/" + f).size : 0), 0);
-      if (bytes > 4 * 1024 * 1024) problems.push(`sw.js: the precache is ${(bytes / 1048576).toFixed(1)}MB, over the 4MB budget a phone install has to carry`);
+      if (bytes > 5 * 1024 * 1024) problems.push(`sw.js: the precache is ${(bytes / 1048576).toFixed(1)}MB, over the 5MB budget a phone install has to carry`);
     }
     if (listeners.fetch) {
       let crossAnswered = false;

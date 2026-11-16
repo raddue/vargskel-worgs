@@ -182,5 +182,80 @@ else {
   if (marks.join() !== "loc:pell") bad("mark must call UI.onMark(kind, id) so the 3D map shows the selection");
   UI.onFrame = UI.onMark = null; UI.fitLevel("SYSTEM"); UI.mark("loc", ""); }
 
+/* Offline and vendoring. three.js is vendored at one pinned release, loaded through an import map
+   with no CDN, and every file the 3D map needs is in the service worker's precache, so the map
+   works with no signal at the table. */
+{ const THREE_REV = "187";
+  const read = p => fs.readFileSync(path.join(root, p), "utf8");
+  const page = read("intel.html"), sw = read("sw.js");
+  const precached = new Set([...sw.matchAll(/^\s*"([^"]+)",?\s*$/gm)].map(m => m[1]));
+  const im = /<script type="importmap">([\s\S]*?)<\/script>/.exec(page);
+  let imports = null;
+  if (!im) bad("intel.html: no import map, so the 3D map cannot resolve three.js without a build step");
+  else { try { imports = JSON.parse(im[1]).imports; } catch (e) { bad("intel.html: the import map is not valid JSON: " + e.message); } }
+  if (imports) {
+    if (imports.three !== "./vendor/three/three.module.min.js") bad(`intel.html: the import map must resolve "three" to the vendored build, got ${imports.three}`);
+    if (imports["three/addons/"] !== "./vendor/three/addons/") bad(`intel.html: the import map must resolve "three/addons/" to the vendored addons`);
+    Object.values(imports).forEach(u => { if (/^(https?:)?\/\//.test(u)) bad(`intel.html: the import map names a CDN (${u}); three.js is vendored so the map works offline`); });
+  }
+  const mod = page.indexOf('<script type="module" src="holomap3d.js"></script>');
+  if (mod < 0) bad("intel.html: must load holomap3d.js as a module script");
+  else if (im && mod < im.index) bad("intel.html: the import map must come before the module that uses it");
+  if (/<script[^>]+src="https?:/.test(page)) bad("intel.html: no script may come from another origin");
+  /* The flat map stays in the DOM as the fallback, and the 3D host sits beside it, hidden until
+     WebGL is known to be up. */
+  if (!/<svg class="holo-svg"/.test(page)) bad("intel.html: the SVG holomap must stay in the DOM; it is the fallback");
+  if (!/<div class="holo3d" id="holo3d" hidden><\/div>/.test(page)) bad('intel.html: the 3D host <div class="holo3d" id="holo3d" hidden> must sit in .holo-view, hidden until the renderer is up');
+  const vendored = [];
+  const walk = d => fs.readdirSync(path.join(root, d), { withFileTypes: true }).forEach(e => e.isDirectory() ? walk(d + "/" + e.name) : vendored.push(d + "/" + e.name));
+  if (!exists("vendor/three")) bad("vendor/three is missing: three.js must be vendored, not fetched from a CDN");
+  else {
+    walk("vendor/three");
+    if (!vendored.includes("vendor/three/LICENSE")) bad("vendor/three/LICENSE is missing: the MIT text travels with the code");
+    const js = vendored.filter(f => f.endsWith(".js"));
+    if (!js.includes("vendor/three/three.module.min.js")) bad("vendor/three/three.module.min.js is missing");
+    js.forEach(f => { const src = read(f);
+      if (!precached.has(f)) bad(`sw.js: ${f} is vendored but not precached, so the 3D map breaks offline`);
+      if (!new RegExp(`^/\\* three\\.js r${THREE_REV} \\(npm three@0\\.${THREE_REV}\\.\\d+\\)`).test(src)) bad(`${f}: the header comment must pin three.js r${THREE_REV}`);
+      /* A vendored file may import the bare "three" or a sibling that is vendored too. */
+      for (const [, spec] of src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").matchAll(/(?:^import[^;]*?from|^\}\s*from)\s*["']([^"']+)["']/gm)) {
+        if (spec === "three") continue;
+        const to = path.posix.normalize(path.posix.dirname(f) + "/" + spec);
+        if (!spec.startsWith(".") || !js.includes(to)) bad(`${f} imports ${spec}, which is not vendored`);
+      } });
+    const core = js.includes("vendor/three/three.module.min.js") ? read("vendor/three/three.module.min.js") : "";
+    if (core && !new RegExp(`="${THREE_REV}"`).test(core)) bad(`vendor/three/three.module.min.js is not revision ${THREE_REV}`);
+    vendored.filter(f => !/\.js$|\/LICENSE$|\/README\.md$/.test(f)).forEach(f => bad(`${f}: only the build, the addons in use, LICENSE and README.md belong in vendor/three`));
+  }
+  if (!exists("holomap3d.js")) bad("holomap3d.js is missing: the 3D renderer");
+  else { const src = read("holomap3d.js");
+    if (!precached.has("holomap3d.js")) bad("sw.js: holomap3d.js must be precached");
+    for (const [, spec] of src.matchAll(/^import\s[^"']*["']([^"']+)["']/gm)) {
+      if (spec === "three") continue;
+      const m = /^three\/addons\/(.+)$/.exec(spec);
+      if (!m || !exists("vendor/three/addons/" + m[1])) bad(`holomap3d.js imports ${spec}, which the import map cannot resolve to a vendored file`);
+    }
+    /* Every vendored addon is one the renderer or another addon imports: nothing rides along. */
+    const reached = new Set(), follow = f => { if (reached.has(f) || !exists(f)) return; reached.add(f);
+      for (const [, spec] of read(f).matchAll(/(?:from|import)\s*["']([^"']+)["']/g)) if (spec.startsWith(".")) follow(path.posix.normalize(path.posix.dirname(f) + "/" + spec)); };
+    for (const [, spec] of src.matchAll(/^import\s[^"']*["']three\/addons\/([^"']+)["']/gm)) follow("vendor/three/addons/" + spec);
+    vendored.filter(f => f.includes("/addons/") && !reached.has(f)).forEach(f => bad(`${f} is vendored but nothing imports it`));
+    /* The harness cannot run WebGL, so these pin the shape of the clauses the brief names. */
+    [[/UI\.scene3d\(/, "must draw UI.scene3d(frame), the one model"], [/UI\.holoRenderer\(/, "must take the 3D-or-SVG decision from UI.holoRenderer"],
+     [/"webglcontextlost"/, "must handle webglcontextlost"], [/"webglcontextrestored"/, "must handle webglcontextrestored"],
+     [/setPixelRatio\(Math\.min\((?:window\.)?devicePixelRatio(?:\|\|1)?,2\)\)/, "must cap devicePixelRatio at 2"],
+     [/prefers-reduced-motion: reduce/, "must read prefers-reduced-motion"], [/visibilitychange/, "must stop rendering while the tab is hidden"],
+     [/IntersectionObserver/, "must stop rendering while the map is off screen or its tab is not the active one"],
+     [/\.dispose\(\)/, "must dispose what it built on a frame swap"]].forEach(([re, why]) => { if (!re.test(src)) bad("holomap3d.js " + why); });
+    if (/assets\/[\w-]+\.png/.test(src)) bad("holomap3d.js must not name a full PNG plate");
+    if (/https?:\/\//.test(src.replace(/\/\*[\s\S]*?\*\//g, ""))) bad("holomap3d.js must not fetch from another origin");
+  }
+  for (const dir of ["assets/maps", "assets/models"]) fs.readdirSync(path.join(root, dir)).forEach(f => { if (!precached.has(`${dir}/${f}`)) bad(`sw.js: ${dir}/${f} must be precached, or its body is blank offline`); });
+  const css = read("style.css");
+  if (!css.includes(".holo-view.is-3d .holo-svg{display:none}")) bad("style.css: the SVG map is hidden only while the 3D map is up (.holo-view.is-3d .holo-svg{display:none})");
+  if (!css.includes(".holo3d[hidden]{display:none}")) bad("style.css: a hidden 3D host must take no space (.holo3d[hidden]{display:none})");
+  if (!/@media print\{[^@]*\.holo3d\{display:none!important\}/.test(css)) bad("style.css: print must drop the canvas and print the SVG map");
+}
+
 if (problems.length) { console.error("holomap3d: " + problems.length + " problem(s)\n- " + [...new Set(problems)].slice(0, 40).join("\n- ")); process.exit(1); }
 console.log(`holomap3d ok: ${FRAMES.length} frames (${FRAMES.join(", ")}) described for the 3D renderer`);
