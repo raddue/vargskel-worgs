@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+const N=UI.holoView;
 const host=document.getElementById('holo3d'), view=host?.parentElement;
 if(host)boot();
 function boot(){
@@ -15,9 +16,9 @@ function boot(){
  const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),projected=new THREE.Vector3();
  const labels=document.createElement('div');labels.className='holo3d-labels';
  const toolbar=document.createElement('div');toolbar.className='holo3d-tools';
- toolbar.innerHTML='<button type="button" data-action="in" aria-label="Zoom in">+</button><button type="button" data-action="out" aria-label="Zoom out">−</button><button type="button" data-action="left" aria-label="Rotate left">↶</button><button type="button" data-action="right" aria-label="Rotate right">↷</button><button type="button" data-action="up" aria-label="Pan up">↑</button><button type="button" data-action="down" aria-label="Pan down">↓</button><button type="button" data-action="pause" aria-pressed="false">PAUSE MOTION</button><button type="button" data-action="descend" disabled>DESCEND</button>';
+ toolbar.innerHTML='<button type="button" data-action="in" aria-label="Zoom in">+</button><button type="button" data-action="out" aria-label="Zoom out">−</button><button type="button" data-action="left" aria-label="Rotate left">↶</button><button type="button" data-action="right" aria-label="Rotate right">↷</button><button type="button" data-action="up" aria-label="Pan up">↑</button><button type="button" data-action="down" aria-label="Pan down">↓</button><button type="button" data-action="pause" aria-pressed="false">PAUSE MOTION</button><button type="button" data-action="info" disabled>INFO</button><button type="button" data-action="back">UP</button><button type="button" data-action="overview">SYSTEM</button><button type="button" data-action="descend" disabled>DESCEND</button>';
  const hint=document.createElement('p');hint.className='holo3d-help';hint.id='holo3d-help';
- hint.textContent='Drag to rotate · scroll / pinch to zoom · right-drag to pan. Arrows: targets · Enter: file · Shift+Enter / ]: descend · [ / Escape: up. + / −: zoom · WASD: pan · Q / E: rotate. Positions schematic.';
+ hint.textContent='Drag to rotate · scroll / pinch to zoom · right-drag to pan. Arrows: targets · Enter: enter / file · Shift+Enter / ]: descend · [ / Escape: up. + / −: zoom · WASD: pan · Q / E: rotate. Positions schematic.';
  host.append(labels,toolbar,hint);
  const own=o=>(resources.add(o),o);
  const colors=()=>{const c=getComputedStyle(document.documentElement);return Object.fromEntries(['cyan','lime','rust','muted','line','holo-bg'].map(k=>[k,c.getPropertyValue('--'+k).trim()]));};
@@ -46,7 +47,7 @@ function boot(){
  function holo(map){return own(new THREE.ShaderMaterial({uniforms:{surface:{value:map},tint:{value:new THREE.Color(palette.cyan)},sun:{value:new THREE.Vector3(...description.sun.dir)}},vertexShader:'varying vec2 uv0; varying vec3 normal0; varying vec3 eye; void main(){uv0=uv; normal0=normalize(normalMatrix*normal); vec4 p=modelViewMatrix*vec4(position,1.);eye=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',fragmentShader:'uniform sampler2D surface; uniform vec3 tint; uniform vec3 sun; varying vec2 uv0; varying vec3 normal0; varying vec3 eye; void main(){vec3 n=normalize(normal0);float rim=pow(1.-max(dot(n,normalize(eye)),0.),2.5);float lit=.32+.68*max(dot(n,normalize(sun)),0.);vec3 art=texture2D(surface,uv0).rgb;float scan=.94+.06*sin(gl_FragCoord.y*1.7);gl_FragColor=vec4((mix(art,art*tint,.3)*lit+rim*tint*.65)*scan,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}'}));}
  function texture(path,done){const g=generation;const t=own(new THREE.TextureLoader().load(path,()=>{if(g!==generation){t.dispose();return}done?.(t);awake()},undefined,e=>{if(g===generation)fallback(e)}));t.colorSpace=THREE.SRGBColorSpace;return t;}
  function build(fid){
-  dispose();frame=fid;description=UI.scene3d(fid,{reducedMotion:rm.matches});phase=0;
+  dispose();frame=fid;description=N.scene(fid,{reducedMotion:rm.matches});phase=0;
   scene=new THREE.Scene();scene.add(new THREE.AmbientLight(palette.cyan,2));const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(-3,5,3);scene.add(light);
   renderer.domElement.setAttribute('aria-label',description.aria);host.setAttribute('aria-label',description.aria);
   const grid=new THREE.GridHelper(description.radius*2.5,24,palette.line,palette.line);own(grid.geometry);own(grid.material);grid.material.transparent=true;grid.material.opacity=.35;grid.position.y=-.22;scene.add(grid);
@@ -56,7 +57,7 @@ function boot(){
   }
   for(const b of description.bodies){
    const group=new THREE.Group();group.position.fromArray(b.pos);scene.add(group);
-   const tag=document.createElement('button');tag.type='button';tag.className='holo3d-tag';tag.dataset.loc=b.id;tag.setAttribute('aria-label',b.aria);tag.textContent=b.name+(b.descend?' ›':'');tag.title=[...b.badges,...b.sites].join(' · ');labels.append(tag);
+   const tag=document.createElement('button');tag.type='button';tag.className='holo3d-tag';tag.dataset.body=b.id;tag.addEventListener('click',()=>select(b.id));tag.setAttribute('aria-label',b.aria);tag.textContent=b.name+(b.descend?' ›':'');tag.title=[...b.badges,...b.sites].join(' · ');labels.append(tag);
    const item={b,group,tag,spin:null};objects.set(b.id,item);
    if(b.shape==='globe'){const globe=mesh(new THREE.SphereGeometry(b.r,40,24),holo(texture(b.map)),group);globe.rotation.z=b.tilt;item.spin=globe;}
    else if(b.shape==='hull'){
@@ -81,19 +82,24 @@ function boot(){
   for(const l of description.legs){const a=objects.get(l.from).group.position.clone(),b=objects.get(l.to).group.position.clone();a.y=b.y=.03;const line=new THREE.Line(own(new THREE.BufferGeometry().setFromPoints([a,b])),own(new THREE.LineDashedMaterial({color:l.plan?palette.muted:palette.lime,dashSize:.08,gapSize:.06})));line.computeLineDistances();scene.add(line)}
   for(const z of description.zones.filter(z=>z.label)){const tag=document.createElement('span');tag.className='holo3d-zone-label';tag.textContent=z.label;labels.append(tag);z.tag=tag;}
   if(description.star){const star=mesh(new THREE.SphereGeometry(.12,16,12),material(palette.cyan));star.position.fromArray(description.star.pos);ring(.3,palette.cyan,star);}
-  reset();mark('loc',selected);mode();awake();
+  reset();mark('loc',selected);crumbs();mode();awake();
  }
  function reset(){if(!description)return;const c=description.camera;camera.fov=c.fov;controls.target.fromArray(c.target);controls.cursor.copy(controls.target);controls.maxTargetRadius=description.radius*.65;controls.minDistance=c.minDistance;controls.minPolarAngle=c.minPolar;controls.maxPolarAngle=c.maxPolar;resize();fit=UI.fitDistance(description,camera.aspect);controls.maxDistance=fit*c.maxZoomOut;camera.position.set(Math.sin(c.polar)*Math.sin(c.azimuth),Math.cos(c.polar),Math.sin(c.polar)*Math.cos(c.azimuth)).multiplyScalar(fit).add(controls.target);controls.update();controls.saveState();interact();}
  function resize(){const w=host.clientWidth,h=Math.max(280,host.clientHeight-toolbar.offsetHeight-hint.offsetHeight);if(!w)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
- function mark(k,id){selected=k==='loc'?id:'';for(const [key,o]of objects){o.tag.classList.toggle('selected',key===selected);o.halo.visible=o.b.cur||key===selected||key===hover}toolbar.querySelector('[data-action="descend"]').disabled=!objects.get(selected)?.b.descend;awake();}
- function select(id){const o=objects.get(id);if(o)o.tag.click();}
- function moveFrame(fid){if(!fid||fid===frame)return;interact();if(rm.matches){UI.fitLevel(fid);return}
+ function mark(k,id){selected=k==='loc'?id:'';for(const [key,o]of objects){o.tag.classList.toggle('selected',key===selected);o.halo.visible=o.b.cur||key===selected||key===hover}toolbar.querySelector('[data-action="descend"]').disabled=!objects.get(selected)?.b.descend;toolbar.querySelector('[data-action="info"]').disabled=!objects.has(selected);awake();}
+ function info(id){if(!id)return;document.getElementById('record-detail').innerHTML=UI.unitFile(id);mark('loc',id);history.replaceState(null,'','#map/'+encodeURIComponent(id));}
+ function select(id){if(!objects.has(id)||flight)return;mark('loc',id);const next=N.action(frame,id);if(next.view)moveFrame(next.view);else info(next.info);}
+ let requested=null;
+ function navigate(fid){requested=fid;UI.fitLevel(N.canonical(fid));requested=null;}
+ function crumbs(){const chain=[];let f=frame;while(f){chain.unshift(f);f=N.parent(f)}document.getElementById('holo-crumbs').innerHTML=chain.map((v,i)=>i===chain.length-1?'<span aria-current="page">'+UI.esc(v==='cressidium:orbit'?'CRESSIDIUM ORBIT':v==='cressidium'?'CRESSIDIUM SURFACE':v==='SYSTEM'?'SYSTEM':UI.L[v].name)+'</span>':'<button type="button" class="crumb" data-view="'+v+'">'+UI.esc(v==='cressidium:orbit'?'CRESSIDIUM ORBIT':v==='cressidium'?'CRESSIDIUM SURFACE':v==='SYSTEM'?'SYSTEM':UI.L[v].name)+'</button>').join(' › ');document.getElementById('holo-sub').textContent=description.sub;}
+
+ function moveFrame(fid){if(!fid||fid===frame||flight)return;history.replaceState({holoView:frame},'',location.href);history.pushState({holoView:fid},'','#map');interact();if(rm.matches){navigate(fid);return}
   const target=objects.get(fid)?.group.position.clone()||controls.target.clone();flight={start:performance.now(),from:camera.position.clone(),to:target.clone().add(camera.position.clone().sub(controls.target).multiplyScalar(.35)),fid};awake();}
  function draw(now){raf=0;if(!mode()||document.hidden||panel.hidden||!visible)return;
   const dt=last?Math.min(.05,(now-last)/1000):0;last=now;const moving=!rm.matches&&!paused&&!held&&now>idleUntil;
   if(moving)phase+=dt;
-  for(const o of objects.values()){const b=o.b;if(b.orbit){const p=objects.get(b.orbit.parent).group.position,a=b.orbit.phase+phase*2*Math.PI/b.orbit.period;o.group.position.set(p.x+Math.cos(a)*b.orbit.radius,b.pos[1],p.z+Math.sin(a)*b.orbit.radius)}if(o.spin)o.spin.rotation.y=phase*(b.spin||.015);if(o.card)o.card.quaternion.copy(camera.quaternion);}
-  if(flight){controls.enabled=false;const t=Math.min(1,(now-flight.start)/800),e=t*t*(3-2*t);camera.position.lerpVectors(flight.from,flight.to,e);host.style.opacity=String(1-.75*Math.sin(t*Math.PI));if(t===1){const fid=flight.fid;flight=null;controls.enabled=true;host.style.opacity='';UI.fitLevel(fid)}}
+  for(const o of objects.values()){const b=o.b;if(b.orbit){const p=objects.get(b.orbit.parent).group.position,a=b.orbit.phase+phase*2*Math.PI/b.orbit.period;o.group.position.set(p.x+Math.cos(a)*b.orbit.radius,b.pos[1],p.z+Math.sin(a)*b.orbit.radius)}if(o.spin)o.spin.rotation.y=phase*(b.spin||.015);if(b.surface){const globe=objects.get(b.surface);o.group.position.fromArray(b.pos).applyQuaternion(globe.spin.quaternion).add(globe.group.position);}if(o.card)o.card.quaternion.copy(camera.quaternion);}
+  if(flight){controls.enabled=false;const t=Math.min(1,(now-flight.start)/800),e=t*t*(3-2*t);camera.position.lerpVectors(flight.from,flight.to,e);host.style.opacity=String(1-.75*Math.sin(t*Math.PI));if(t===1){const fid=flight.fid;flight=null;controls.enabled=true;host.style.opacity='';navigate(fid)}}
   const changing=controls.update();renderer.render(scene,camera);
   const placed=[];
   for(const o of objects.values()){projected.copy(o.group.position);projected.y+=(o.b.h||o.b.r)+.12;projected.project(camera);const w=o.tag.offsetWidth,h=o.tag.offsetHeight,cw=renderer.domElement.clientWidth;let x=Math.max(w/2+4,Math.min(cw-w/2-4,(projected.x*.5+.5)*cw)),y=Math.max(h+8,(-projected.y*.5+.5)*renderer.domElement.clientHeight);
@@ -104,32 +110,35 @@ function boot(){
   else if(!rm.matches&&!paused&&!held&&now<idleUntil){clearTimeout(wakeTimer);wakeTimer=setTimeout(awake,idleUntil-now+1);}
  }
  function hit(e){const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(pointer,camera);const hits=ray.intersectObjects([...objects.values()].map(o=>o.group),true);for(const h of hits){let obj=h.object;while(obj){const o=[...objects.values()].find(o=>o.group===obj);if(o)return o.b.id;obj=obj.parent}}return '';}
- let down=null;
- renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];interact()});
- renderer.domElement.addEventListener('click',e=>{if(down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])<5)select(hit(e))});
- renderer.domElement.addEventListener('dblclick',e=>{const id=hit(e);if(objects.get(id)?.b.descend)moveFrame(id)});
- renderer.domElement.addEventListener('pointermove',e=>{hover=hit(e);mark('loc',selected);interact()});
+ let down=null,maxDrag=0,multi=false;const pointers=new Set();
+ renderer.domElement.addEventListener('pointerdown',e=>{pointers.add(e.pointerId);multi=multi||pointers.size>1;if(pointers.size===1){multi=false;down=[e.clientX,e.clientY];maxDrag=0}interact()});
+ renderer.domElement.addEventListener('pointerup',e=>pointers.delete(e.pointerId));
+ renderer.domElement.addEventListener('pointercancel',()=>{down=null;pointers.clear();multi=true});
+ renderer.domElement.addEventListener('click',e=>{if(down&&N.clickAllowed(Math.max(maxDrag,Math.hypot(e.clientX-down[0],e.clientY-down[1])),multi,e.button))select(hit(e));down=null;});
+ renderer.domElement.addEventListener('pointermove',e=>{if(down)maxDrag=Math.max(maxDrag,Math.hypot(e.clientX-down[0],e.clientY-down[1]));hover=hit(e);mark('loc',selected);interact()});
  host.addEventListener('pointerdown',interact);host.addEventListener('keydown',e=>{
   interact();if(e.ctrlKey||e.metaKey||e.altKey)return;
-  const ids=[...objects.keys()],at=ids.indexOf(e.target.dataset.loc||selected);
+  const ids=[...objects.keys()],at=ids.indexOf(e.target.dataset.body||selected);
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const id=ids[(at+(e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:1)+ids.length)%ids.length];objects.get(id).tag.focus();mark('loc',id)}
   else if(e.key==='['||e.key==='Escape'){e.preventDefault();moveFrame(description.ascend)}
-  else if(e.key===']'||(e.key==='Enter'&&e.shiftKey)){e.preventDefault();if(objects.get(selected)?.b.descend)moveFrame(selected)}
+  else if(e.key===']'||(e.key==='Enter'&&e.shiftKey)){e.preventDefault();if(objects.get(selected)?.b.descend)select(selected)}
   else if(e.key==='Enter'&&e.target===renderer.domElement){e.preventDefault();select(selected||ids[0])}
   else if(e.target===renderer.domElement||e.target.classList.contains('holo3d-tag')){const keys={'+':'in','=':'in','-':'out',q:'left',e:'right',w:'up',s:'down',a:'panleft',d:'panright'};if(keys[e.key]){e.preventDefault();action(keys[e.key])}}
  });
- function action(a){interact();if(a==='in')controls.dollyIn(1.2);if(a==='out')controls.dollyOut(1.2);if(a==='left')controls.rotateLeft(.2);if(a==='right')controls.rotateLeft(-.2);if(a==='up')controls.pan(0,35);if(a==='down')controls.pan(0,-35);if(a==='panleft')controls.pan(35,0);if(a==='panright')controls.pan(-35,0);if(a==='descend'&&objects.get(selected)?.b.descend)moveFrame(selected);if(a==='pause'){paused=!paused;const b=toolbar.querySelector('[data-action="pause"]');b.setAttribute('aria-pressed',String(paused));b.textContent=paused?'RESUME MOTION':'PAUSE MOTION'}awake();}
+ function action(a){interact();if(a==='in')controls.dollyIn(1.2);if(a==='out')controls.dollyOut(1.2);if(a==='left')controls.rotateLeft(.2);if(a==='right')controls.rotateLeft(-.2);if(a==='up')controls.pan(0,35);if(a==='down')controls.pan(0,-35);if(a==='panleft')controls.pan(35,0);if(a==='panright')controls.pan(-35,0);if(a==='descend'&&objects.get(selected)?.b.descend)select(selected);if(a==='info')info(selected);if(a==='back')moveFrame(description.ascend);if(a==='overview')moveFrame('SYSTEM');if(a==='pause'){paused=!paused;const b=toolbar.querySelector('[data-action="pause"]');b.setAttribute('aria-pressed',String(paused));b.textContent=paused?'RESUME MOTION':'PAUSE MOTION'}awake();}
  toolbar.addEventListener('click',e=>{if(e.target.dataset.action)action(e.target.dataset.action)});
- panel.addEventListener('click',e=>{if(host.hidden)return;const fr=e.target.closest('[data-frame]');if(fr){e.stopImmediatePropagation();moveFrame(fr.dataset.frame)}if(e.target.closest('#holo-back')){e.stopImmediatePropagation();reset()}},true);
- UI.onFrame=(fid)=>{try{build(fid)}catch(e){fallback(e)}};UI.onMark=mark;UI.holo3d={reset,active:()=>!host.hidden};
- renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();lost=true;flight=null;stop();mode()});
- renderer.domElement.addEventListener("webglcontextrestored",()=>{lost=false;failed=false;try{build(UI.frameId())}catch(e){fallback(e)}});
+ panel.addEventListener('click',e=>{if(host.hidden)return;const pv=e.target.closest('[data-view]');if(pv){e.stopImmediatePropagation();moveFrame(pv.dataset.view);return}const fr=e.target.closest('[data-frame]');if(fr){e.stopImmediatePropagation();moveFrame(fr.dataset.frame==='cressidium'?'cressidium:orbit':fr.dataset.frame)}if(e.target.closest('#holo-back')){e.stopImmediatePropagation();reset()}},true);
+ UI.onFrame=(fid)=>{if(lost||failed)return;try{build(requested||fid)}catch(e){fallback(e)}};UI.onMark=mark;UI.holo3d={reset,active:()=>!host.hidden,view:()=>frame};
+ renderer.domElement.addEventListener("webglcontextlost",e=>{e.preventDefault();lost=true;flight=null;controls.enabled=true;stop();mode();UI.fitLevel(N.canonical(frame))});
+ renderer.domElement.addEventListener("webglcontextrestored",()=>{lost=false;failed=false;try{build(frame)}catch(e){fallback(e)}});
  document.addEventListener('visibilitychange',()=>document.hidden?stop():awake());
  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)awake();else stop()},{rootMargin:'120px'}).observe(view);
  new MutationObserver(()=>{if(panel.hidden)stop();else{resize();awake()}}).observe(panel,{attributes:true,attributeFilter:['hidden']});
  new ResizeObserver(()=>{resize();awake()}).observe(host);
  new MutationObserver(()=>{palette=colors();if(!lost&&!failed)build(frame)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
- rm.addEventListener('change',()=>{phase=0;flight=null;host.style.opacity='';awake()});
+ rm.addEventListener('change',()=>{phase=0;const destination=flight?.fid;flight=null;controls.enabled=true;host.style.opacity='';if(destination)navigate(destination);awake()});
  window.addEventListener('pagehide',stop);window.addEventListener('pageshow',awake);
- try{host.hidden=false;build(UI.frameId()||'SYSTEM')}catch(e){fallback(e)}
+ window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#map/'))navigate(N.initial(location.hash));else if(history.state?.holoView)navigate(history.state.holoView);});
+ window.addEventListener('popstate',()=>{if(history.state?.holoView)navigate(history.state.holoView);});
+ try{host.hidden=false;navigate(N.initial(window.holoEntryHash));if(!window.holoEntryHash||window.holoEntryHash==='#map'){history.replaceState(null,'','#map');document.getElementById('record-detail').innerHTML='<div class="tag">CRESSIDIUM ORBIT</div><p>Select a world to enter. Select hardware to read its file. INFO opens the selected parent’s dossier.</p>';selected='';mark('loc','')}}catch(e){fallback(e)}
 }

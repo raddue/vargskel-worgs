@@ -241,7 +241,7 @@ else {
     for (const [, spec] of src.matchAll(/^import\s[^"']*["']three\/addons\/([^"']+)["']/gm)) follow("vendor/three/addons/" + spec);
     vendored.filter(f => f.includes("/addons/") && !reached.has(f)).forEach(f => bad(`${f} is vendored but nothing imports it`));
     /* The harness cannot run WebGL, so these pin the shape of the clauses the brief names. */
-    [[/UI\.scene3d\(/, "must draw UI.scene3d(frame), the one model"], [/UI\.holoRenderer\(/, "must take the 3D-or-SVG decision from UI.holoRenderer"],
+    [[/N\.scene\(/, "must draw the presentation adapter over UI.scene3d(frame)"], [/UI\.holoRenderer\(/, "must take the 3D-or-SVG decision from UI.holoRenderer"],
      [/"webglcontextlost"/, "must handle webglcontextlost"], [/"webglcontextrestored"/, "must handle webglcontextrestored"],
      [/setPixelRatio\(Math\.min\((?:window\.)?devicePixelRatio(?:\|\|1)?,2\)\)/, "must cap devicePixelRatio at 2"],
      [/prefers-reduced-motion: reduce/, "must read prefers-reduced-motion"], [/visibilitychange/, "must stop rendering while the tab is hidden"],
