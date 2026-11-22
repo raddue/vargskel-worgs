@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vargskel Worgs | Intelligence</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | Intelligence">
+<meta property="og:description" content="Sector and theater holomap of the Cressidium contract, with faction relations and the sites it turns on.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/intel.html">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="previews/site-v2/hangar-site.css">
+  <script src="offline.js"></script>
+  <script src="palette.js"></script>
+  <script src="theme.js"></script>
+  <script src="compact.js"></script>
+</head>
+<body>
+<noscript><p style="max-width:1440px;margin:24px auto;padding:0 28px;color:#d17b59;font:13px/1.5 ui-monospace,monospace">This archive renders from <code>campaign.js</code> in the browser. JavaScript is off, so only this notice shows. The records themselves are plain data in <code>campaign.js</code>.</p></noscript>
+<div class="shell">
+  <div class="topline"><span>VW // INTELLIGENCE</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
+  <header class="brandrow">
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">INTELLIGENCE</div></div></div>
+    <nav class="nav"><a href="previews/site-v2/index.html#overview">OVERVIEW</a><a href="previews/site-v2/intel.html">INTEL</a><a href="previews/site-v2/campaign.html">CAMPAIGN</a><a href="previews/site-v2/pilots.html">PILOTS</a><a href="previews/site-v2/mechbay.html">MECHS</a></nav>
+    <div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
+    <button class="compact-toggle" id="compact-toggle" type="button" aria-pressed="false" title="Denser type and tighter tables">COMPACT</button><button class="palette-toggle" id="palette-toggle" type="button" title="Search every record (Ctrl-K)">SEARCH</button><button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Ice-blue palette from the unit logo">ICE</button>
+  </header>
+  <main>
+    <section class="hero"><div class="hero-copy"><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>INTELLIGENCE</h1><p>Holomap, faction ledger, and personnel files for the Cressidium contract.</p></div><div class="hero-art"><div class="plate plate-raw"><img class="hero-mech-img" src="assets/unit-patch.webp" fetchpriority="high" alt="Vargskel Worgs unit patch"></div></div></section>
+    <div class="pagebar">
+      <div class="tabs" role="tablist" aria-label="Intelligence sections">
+        <a class="tab" role="tab" id="tl-map" aria-controls="tab-map" aria-selected="true" href="#map" data-tab="map">MAP</a>
+        <a class="tab" role="tab" id="tl-relations" aria-controls="tab-relations" aria-selected="false" href="#relations" data-tab="relations">RELATIONS</a>
+        <a class="tab" role="tab" id="tl-personnel" aria-controls="tab-personnel" aria-selected="false" href="#personnel" data-tab="personnel">PERSONNEL</a>
+      </div>
+      <p class="tab-hint">Sector and theater holomap of the Cressidium contract. Tap a site to read its file.</p>
+    </div>
+    <section class="tabpanel" id="tab-map" role="tabpanel" aria-labelledby="tl-map"><div id="readout"></div><div class="maphead"><nav class="crumbs" id="holo-crumbs" aria-label="Frame breadcrumb"></nav><div id="holo-locator"></div></div><section id="holomap"></section></section>
+    <section class="tabpanel" id="tab-relations" role="tabpanel" aria-labelledby="tl-relations" hidden><div class="section-head"><h2>FACTION LEDGER</h2><span>RELATIONS</span></div><div class="card"><div class="card-pad" id="faction-list"></div></div></section>
+    <section class="tabpanel" id="tab-personnel" role="tabpanel" aria-labelledby="tl-personnel" hidden><div class="section-head"><h2>NOTABLE PERSONNEL</h2><span>PERSONNEL</span></div><div class="people" id="people-list"></div></section>
+  </main>
+  <footer class="footer"><span>VARGSKEL WORGS / INTELLIGENCE</span></footer>
+</div>
+<div id="palette" hidden></div>
+<script src="campaign.js"></script>
+<script src="detail.js"></script>
+<script src="archive.js"></script>
+<script src="holomap-view.js"></script>
+<script>window.holoEntryHash=location.hash;</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
+<script src="holomap-loading.js"></script>
+<script type="module" src="holomap3d.js" onerror="window.holoLoading?.fail()"></script>
+<script>
+(()=>{
+const L=UI.byId(CAMPAIGN.locations);
+const NO_SEL=`<div class="tag">SELECT A TARGET</div><h3 class="mission-title">NO SELECTION</h3><div class="muted">Select a location or chassis marker on the map to read its file.</div>`;
+
+document.getElementById("holomap").innerHTML=`<div class="section-head"><h2 id="route-heading">SECTOR HOLOMAP</h2><span id="holo-sub">CRESSIDIUM SYSTEM</span></div><div class="columns holo-split"><div class="primary"><div class="card patrol"><div class="holo"><div class="holo-view"><svg class="holo-svg" viewBox="0 0 1000 480" role="group" aria-label="Sector holomap. Select a location for unit-level details."><defs><pattern id="hg" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern><linearGradient id="hs"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".22"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs><g class="layer" id="holo-far"><rect x="-60" y="-40" width="1120" height="560" fill="url(#hg)"/><g class="sweep"><path d="M500 240L1100 222V258Z" fill="url(#hs)"/></g></g><g id="holo-world"></g><text class="zl" x="14" y="470" id="holo-grid">SECTOR GRID · 50 U</text></svg><div id="holo-loading-status" role="status" aria-live="polite" hidden>LOADING HOLOMAP…</div><div class="holo3d" id="holo3d" hidden></div><button class="holo-back" id="holo-back" type="button">RESET VIEW</button></div></div></div><ul class="holo-key" tabindex="0" aria-label="Map key"></ul></div><aside class="aside" id="holo-detail"><div class="holo-detail" id="record-detail" tabindex="-1" aria-live="polite">${NO_SEL}</div></aside></div>`;
+window.holoLoading?.begin();
+document.getElementById("readout").innerHTML=UI.situation().html;
+document.getElementById("people-list").innerHTML=UI.personnelList();
+UI.fitLevel();
+/* The console tabs. Map is the page's first read, so it starts selected; the map keeps its own
+   pinch and pointer handling either way. Touch or mouse only; no keyboard tab-strip in scope. */
+let currentLoc="";   /* the ground the pane is about, so a tab round trip puts it back in the URL */
+const tabs=[...document.querySelectorAll(".tab")];
+const pickTab=(n,push)=>{tabs.forEach(t=>{const on=t.dataset.tab===n;t.setAttribute("aria-selected",on?"true":"false");const p=document.getElementById("tab-"+t.dataset.tab);if(p)p.hidden=!on});const was=tabFromHash(),unresolved=!!locRaw()&&!L[locFromHash()]; /* URL names a ground we could not resolve: leave it as typed */
+if(n==="map"){if(!unresolved)setHash("map",currentLoc,!!push&&was!==n)}else if(was!==n)setHash(n,"",push)};   /* a chip that reveals MAP moves the URL with it, or a reload hides it again */
+/* archive.js calls this when a record opens, so its pane is not left in a hidden panel. */
+UI.pickTab=pickTab;
+/* The tab anchors carry a bare #map/#relations/#personnel href, and that default navigation
+ would follow our own write and override it with a bare #map, dropping the selected ground.
+ pickTab writes the URL itself (push on a tab change), so the anchor action is stopped. */
+document.querySelector(".tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(!t)return;e.preventDefault();pickTab(t.dataset.tab,true)});
+const box=document.querySelector("#holomap"),svg=box.querySelector("svg"),far=svg.querySelector("#holo-far"),rm=matchMedia("(prefers-reduced-motion: reduce)"),world=svg.querySelector("#holo-world"),Z=2.6;
+/* Centre the node where the frame actually placed it (data-x/data-y are placed frame coordinates,
+   not record coordinates: a descended frame recentres its subject). The far grid stays at 1x, so the
+   frame reads as instrumentation around the zoomed ground. A site the frame does not draw has no node
+   and no zoom. */
+const zoomTo=id=>{const n=world.querySelector(`[data-loc="${id}"]`);if(!n)return;const x=+n.dataset.x,y=+n.dataset.y;world.style.transform=`translate(${(500-Z*x).toFixed(1)}px,${(240-Z*y).toFixed(1)}px) scale(${Z})`};
+const resetView=()=>{world.style.transform=""};
+svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const t=e.target.closest("[data-loc]");if(!t)return;
+ e.preventDefault();currentLoc=t.dataset.loc;setHash("map",t.dataset.loc);UI.showAtMap("loc",t.dataset.loc);zoomTo(t.dataset.loc);syncBack()});
+svg.addEventListener("pointermove",e=>{if(rm.matches)return;const r=svg.getBoundingClientRect();
+ far.style.transform=`translate(${(-((e.clientX-r.left)/r.width-.5)*24).toFixed(1)}px,${(-((e.clientY-r.top)/r.height-.5)*14).toFixed(1)}px)`});
+svg.addEventListener("pointerleave",()=>{far.style.transform=""});
+/* One control for both ways out: clear the camera zoom first, and a second press backs the frame out. */
+const back=document.getElementById("holo-back");
+const zoomed=()=>!!(UI.holo3d&&UI.holo3d.active())||!!world.style.transform;
+/* Camera only: the frame has its own SYSTEM VIEW button in the map key, so this control never has to
+   describe which frame is showing, which is exactly what let its label go stale. */
+const syncBack=()=>{if(back)back.hidden=!zoomed()};
+const backOut=()=>{if(!zoomed())return;resetView();syncBack()};
+/* Two fingers on the map are a map zoom, not a page zoom: the svg claims the gesture in CSS. */
+let pd=0;
+const spread=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+const nearest=(x,y)=>{let best="",bd=1/0;svg.querySelectorAll("[data-loc]").forEach(n=>{const r=n.getBoundingClientRect(),d=Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2));if(d<bd){bd=d;best=n.dataset.loc}});return best};
+svg.addEventListener("touchstart",e=>{if(e.touches.length===2)pd=spread(e.touches)},{passive:true});
+svg.addEventListener("touchmove",e=>{if(e.touches.length!==2)return;
+ e.preventDefault();
+ if(!pd){pd=spread(e.touches);return}
+ const d=spread(e.touches),intent=UI.pinchIntent(d/pd);pd=d;
+ if(intent==="out")backOut();
+ else if(intent==="in"&&!zoomed()){const a=e.touches[0],b=e.touches[1],id=nearest((a.clientX+b.clientX)/2,(a.clientY+b.clientY)/2);if(id)zoomTo(id)}},{passive:false});
+svg.addEventListener("touchend",()=>{pd=0});
+/* Safari fires non-standard gesture events for a page pinch; the map owns its own pinch. */
+["gesturestart","gesturechange"].forEach(t=>svg.addEventListener(t,e=>e.preventDefault()));
+syncBack();
+/* Every frame move carries data-frame: the breadcrumb and system-locator strips sit in the map head
+   (outside #holomap) and the ENTER chip sits in the reading pane, so one delegate bound to the panel
+   covers all three. fitLevel clears the camera transform itself; syncBack hides the reset control. */
+document.getElementById("tab-map").addEventListener("click",e=>{const fr=e.target.closest("[data-frame]");if(fr){UI.fitLevel(fr.dataset.frame);syncBack();return}
+if(e.target.closest("#holo-back")){backOut();return}
+if(!e.target.closest("svg"))return;                       /* the reading pane has its own clicks */
+const t=e.target.closest("[data-loc]");if(t)zoomTo(t.dataset.loc);else resetView();syncBack()});
+UI.syncBack=syncBack;
+/* The hash is the state, matching the house convention (index.html#op-NNN): #map, #relations,
+   #personnel, and #map/<locId> for the ground being read. replaceState keeps the back button clean
+   and stays inside try/catch because file:// throws. */
+const TABS=["map","relations","personnel"];
+const hashOf=()=>(location.hash||"").replace(/^#/,"");
+const tabFromHash=()=>{const n=hashOf().split("/")[0];return TABS.includes(n)?n:"map"};
+const locRaw=()=>hashOf().indexOf("map/")===0?hashOf().slice(4):"";   /* ground as typed, even a malformed %-escape */
+const locFromHash=()=>{const r=locRaw();if(!r)return "";try{return decodeURIComponent(r)}catch(e){return ""}};   /* a malformed %-escape is not a crash path */
+const setHash=(n,id,push)=>{try{const u="#"+n+(n==="map"&&id?"/"+encodeURIComponent(id):"");if(u!==location.hash){const h=push?history.pushState:history.replaceState;h.call(history,null,"",u)}}catch(e){}};   /* a tab click pushes, a selection replaces */
+/* A ground the crew picks is shareable, so the pick is recorded before archive.js renders it. */
+document.addEventListener("click",e=>{const t=e.target.closest("[data-loc]");if(t&&!e.target.closest("a")){currentLoc=t.dataset.loc;setHash("map",currentLoc)}else if(e.target.closest("[data-person],[data-mech],[data-pilot]")){currentLoc="";setHash("map","")}},true);
+const resetPane=()=>{const d=document.getElementById("record-detail");if(d)d.innerHTML=NO_SEL};
+let selected=false,shownLoc="";   /* the ground already on screen: Back re-renders a hash the pane has drawn */
+const render=()=>{const raw=locRaw(),id=locFromHash(),loc=id&&L[id]?id:"";
+ if(loc)currentLoc=loc;else{shownLoc="";if(raw)currentLoc=""}   /* a tab with no ground keeps the one the pane still shows */
+ pickTab(tabFromHash(),false);
+ /* Back and forward land on a hash render() has already drawn, and the design keeps the level and
+    the camera transform across a tab switch: re-selecting would re-zoom and re-fit what the user set. */
+ if(loc){if(loc!==shownLoc){shownLoc=loc;selected=true;UI.showAtMap("loc",loc);zoomTo(loc)}syncBack();return}
+ if(raw){selected=true;UI.mark("loc","");resetPane();resetView();syncBack();return}   /* an unresolved ground is not a selection: no auto-select overrules it */
+ if(!selected&&tabFromHash()==="map"){const op=CAMPAIGN.ops[0],site=op&&(op.sites&&op.sites.insertion||op.loc);
+ if(site&&L[site]){selected=true;shownLoc=site;currentLoc=site;UI.showAtMap("loc",site);setHash("map",site)}}   /* the page opens as intelligence, not as a prompt */
+ syncBack()};
+window.addEventListener("hashchange",render);
+render();
+})();
+</script>
+</body>
+</html>

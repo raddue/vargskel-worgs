@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vargskel Worgs | Field Archive</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | Field Archive">
+<meta property="og:description" content="Independent contract operations: crew roster, chassis register, and Operation Solstice Rain.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="previews/site-v2/hangar-site.css">
+  <script src="offline.js"></script>
+  <script src="palette.js"></script>
+  <script src="theme.js"></script>
+  <script src="compact.js"></script>
+</head>
+<body class="home-study">
+<noscript><p style="max-width:1440px;margin:24px auto;padding:0 28px;color:#d17b59;font:13px/1.5 ui-monospace,monospace">This archive renders from <code>campaign.js</code> in the browser. JavaScript is off, so only this notice shows. The records themselves are plain data in <code>campaign.js</code>.</p></noscript>
+<div class="shell">
+  <div class="topline"><span>VW // INTERNAL FIELD ARCHIVE</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
+  <header class="brandrow">
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">INDEPENDENT CONTRACT OPERATIONS</div></div></div>
+    <nav class="nav"><a href="#overview">OVERVIEW</a><a href="previews/site-v2/intel.html">INTEL</a><a href="previews/site-v2/campaign.html">CAMPAIGN</a><a href="previews/site-v2/pilots.html">PILOTS</a><a href="previews/site-v2/mechbay.html">MECHS</a></nav>
+    <div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
+    <button class="compact-toggle" id="compact-toggle" type="button" aria-pressed="false" title="Denser type and tighter tables">COMPACT</button><button class="palette-toggle" id="palette-toggle" type="button" title="Search every record (Ctrl-K)">SEARCH</button><button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" title="Ice-blue palette from the unit logo">ICE</button>
+  </header>
+  <main>
+    <section class="hero" id="overview">
+      <div class="hero-copy"><div class="eyebrow">UNIT DOSSIER / VW-01</div><h1>Vargskel Worgs</h1><p id="hero-tagline">Operational record of contracts, deployments, and assigned personnel.</p><div class="hero-meta" id="hero-meta"></div></div>
+      <div class="hero-art"><div class="plate plate-raw"><img class="hero-mech-img" src="assets/unit-patch.webp" fetchpriority="high" alt="Vargskel Worgs unit patch"></div></div>
+    </section>
+    <section class="pilot-front" aria-labelledby="pilot-front-title"><div class="pilot-front-heading"><h2 id="pilot-front-title">The pilots</h2><a href="previews/hangar-v2/?v=2">Open hangar ↗</a></div><div class="pilot-front-grid" id="pilot-front-grid"></div></section>
+    <section id="unit-history"><div class="section-head"><h2>UNIT HISTORY</h2><span>BEFORE THE WORGS</span></div><div class="card"><div class="card-pad"><p>Rurik and Sten Vargskel served with Ironmark Services before founding the Worgs. They started on its ground crew, moved into technical work, and trained as mech pilots. An ambush following bad or incomplete intelligence killed Rurik’s mentor Mara Venn, fellow pilot Kade Orlov, and Ironmark’s other co-founder. The brothers suspect they were set up, but have no proof.</p><p>Ironmark was left with little equipment or money. With surviving crewmates Tala Neri and Vesper Korr still independent allies, the brothers took work in the Long Rim, saved for their own mechs, and built a small security and escort outfit from what remained.</p></div></div></section>
+    <section><div class="section-head"><h2>SORTIE READINESS</h2><span id="ready-count"></span></div><div class="card patrol"><div class="card-pad" id="readiness" tabindex="0" role="region" aria-label="Sortie readiness, scrollable"></div></div></section>
+    <section aria-label="Company statistics"><div class="section-head"><h2>COMPANY RECORD</h2><span>ROLLING SUMMARY</span></div><div class="stats" id="stats"></div></section>
+    <div class="columns">
+      <div class="primary">
+        <section id="missions"><div class="section-head"><h2>OPERATIONS</h2><span id="ops-count"></span></div>
+          <div id="ops"></div>
+          <article class="card"><div class="card-pad"><div class="tag">BETWEEN DEPLOYMENTS · DOWNTIME</div><h3 class="mission-title">CREW & LOGISTICS</h3><div class="muted">Repairs, resupply, contacts, and crew developments go here between operations. No active brief filed.</div></div></article>
+        </section>
+      </div>
+      <aside class="aside">
+        <section><div class="section-head"><h2>LOOSE THREADS</h2><span>OPEN THREADS</span></div><div class="card patrol"><div class="card-pad"><table class="threads-table"><thead><tr><th>THREAD</th><th>SEEDED</th><th>STATUS</th></tr></thead><tbody id="threads-body"></tbody></table></div></div></section>
+        <section><div class="section-head"><h2>DEEDS & DISPATCHES</h2><span>LOG</span></div><div class="card"><div class="card-pad"><div id="attendance-strip"></div><ol class="timeline" id="session-cards"></ol><ol class="timeline" id="timeline"></ol></div></div></section>
+      </aside>
+    </div>
+  </main>
+  <footer class="footer"><span>VARGSKEL WORGS / FIELD ARCHIVE</span></footer>
+</div>
+<div id="palette" hidden></div>
+<script src="campaign.js"></script>
+<script src="detail.js"></script>
+<script src="archive.js"></script>
+<script src="previews/site-v2/home-roster.js"></script>
+
+<script>
+/* Native <details> does not always open when it is the anchor target, and every
+   cross-link in this page points at #op-NNN. Open the record being navigated to. */
+(function(){
+  function openFromHash(){
+    var m=/^#op-([\w.-]+)$/.exec(location.hash); if(!m) return;
+    var d=document.getElementById("op-"+m[1]); if(d) d.open=true;
+  }
+  addEventListener("hashchange",openFromHash);
+  addEventListener("load",openFromHash);
+  openFromHash();
+})();
+</script>
+</body>
+</html>

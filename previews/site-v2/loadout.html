@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="../../">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOADOUT SANDBOX / VARGSKEL WORGS</title>
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#020d18">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vargskel Worgs | Chassis Dossier">
+<meta property="og:description" content="Chassis dossier: stat block, loadout, and mounted systems.">
+<meta property="og:url" content="https://raddue.github.io/vargskel-worgs/mech.html">
+<meta property="og:image" content="https://raddue.github.io/vargskel-worgs/assets/share-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="previews/site-v2/hangar-site.css">
+  <script src="offline.js"></script>
+  <script src="compact.js"></script>
+</head>
+<body>
+<div class="shell">
+  <div class="topline"><span>VW // CHASSIS DOSSIER</span><span>LOCAL RECORD · ACCESS: CREW</span></div>
+  <header class="brandrow">
+    <div class="brand"><div class="mark"><span>W</span></div><div><div class="brand-name">VARGSKEL WORGS</div><div class="brand-sub">CHASSIS DOSSIER</div></div></div>
+    <nav class="nav"><a href="previews/site-v2/index.html#overview">OVERVIEW</a><a href="previews/site-v2/intel.html">INTEL</a><a href="previews/site-v2/campaign.html">CAMPAIGN</a><a href="previews/site-v2/pilots.html">PILOTS</a><a href="previews/site-v2/mechbay.html">MECHS</a></nav>
+    <div class="status">● DEPLOYMENT STATUS: ACTIVE</div>
+    <button class="compact-toggle" id="compact-toggle" type="button" aria-pressed="false" title="Denser type and tighter tables">COMPACT</button>
+  </header>
+  <main class="panel">
+    <section>
+      <div class="section-head"><h2>LOADOUT SANDBOX</h2><span id="lo-sp"></span></div>
+      <div class="lo-pickrow"><label for="lo-pilot">PILOT</label><select class="lo-pick" id="lo-pilot" aria-label="pilot"></select></div>
+      <div class="lo-pickrow"><label for="lo-frame">FRAME</label><select class="lo-pick" id="lo-frame" aria-label="frame"></select><span class="lo-frame-note" id="lo-frame-note"></span></div>
+      <div id="lo-slots"></div>
+      <div class="section-head"><h2>SYSTEMS</h2><span>SP COUNTS THESE</span></div>
+      <div id="lo-systems"></div>
+      <div class="section-head"><h2>RANGE FINDER</h2><span>FIELD DETAIL</span></div>
+      <div class="lo-distrow"><input type="range" id="lo-dist" min="0" max="20" step="1" value="0"
+        aria-label="Distance in hexes"><span id="lo-dist-val">0</span><span class="lo-dist-unit">HEX</span></div>
+      <div id="lo-range"></div>
+      <div class="section-head"><h2>EXPORT</h2><span>PASTE BACK TO THE GM</span></div>
+      <div id="lo-export"></div>
+    </section>
+  </main>
+  <footer class="footer"><span>VARGSKEL WORGS / LOADOUT SANDBOX</span></footer>
+</div>
+<script src="campaign.js"></script>
+<script src="catalogue.js"></script>
+<script src="loadout.js"></script>
+<script>
+/* #26 glue: host nodes and innerHTML only. The render stub carries value/checked and records
+   listeners, so the page wires real controls and a check drives them with el.fire(type, ev).
+   window.__LOADOUT_FIXTURE still seeds a build for fixture-driven checks, and by hand the mech
+   id comes from the URL hash. */
+(function () {
+  const C = window.CAMPAIGN, CAT = window.CATALOGUE, LO = window.LOADOUT;
+  const el = id => document.getElementById(id);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const F = window.__LOADOUT_FIXTURE || null;
+  const want = (F && F.mech) || String(location.hash || "").replace(/^#/, "") || (C.mechs[0] || {}).id;
+  /* #30: the catalogue placeholder stays resolvable for display but no offer list presents it */
+  const offered = map => Object.keys(map).filter(n => n.indexOf("ERR: DATA NOT FOUND") < 0).sort();
+  const rec = (C.mechs || []).filter(m => m.id === want)[0];
+  if (!rec) { el("lo-slots").innerHTML = '<p class="muted">no record for ' + esc(want) + '</p>'; return; }
+  let frame = LO.frameOf({ frame: (F && F.frame) || rec.frame }, CAT);
+  const resolvePilot = id => (C.pilots || []).filter(p => p.id === id)[0] || null;
+  let pilot = resolvePilot(rec.pilot);
+  let build = { mech: rec.id, frame: rec.frame, pilot: rec.pilot, attackBonus: rec.attackBonus || 0,
+    sys: rec.sys || 0,
+    mounts: (rec.mounts || []).map(m => ({ slot: m.slot, weapons: (m.weapons || []).slice(), locked: !!m.locked })),
+    systems: (rec.systems || []).slice() };
+  /* fixture plumbing for the #30 pane pin: a seeded build may carry systems the record does not */
+  if (F && F.systems) build.systems = F.systems.slice();
+  const refused = {};
+  for (const a of (F && F.place) || []) {
+    const r = LO.place(pilot, build, a.slotIndex, a.seat, a.weapon, CAT, a);
+    if (r && r.ok) build = r.build; else refused[a.slotIndex] = (r && r.reason) || "REFUSED";
+  }
+  /* seats come from the core's own table: a Main/Aux mount is two seats even with one empty */
+  const seatCount = m => (LO.seats(m.slot, CAT.fittings) || []).length || (m.weapons || []).length;
+  const renderSlots = () => {
+    el("lo-slots").innerHTML = build.mounts.map((m, i) => {
+      const list = m.weapons || [], cells = [];
+      for (let s = 0; s < seatCount(m); s++) {
+        const w = list[s];
+        cells.push(w
+          ? '<span class="lo-wep">' + esc(w) + '</span><button class="lo-drop" id="lo-drop-' + i + "-" + s + '" aria-label="remove ' + esc(w) + '">\u2715</button>'
+          : '<select class="lo-pick" id="lo-pick-' + i + "-" + s + '" aria-label="weapon for ' + esc(m.slot) + '"><option value="">\u2014</option>' +
+            offered(CAT.weapons).map(n => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join("") + '</select>');
+      }
+      return '<div class="lo-slot"><span class="lo-slot-name">' + esc(m.slot) + '</span>' +
+        (cells.length ? cells.join("") : '<span class="lo-wep muted">EMPTY</span>') +
+        (m.locked ? '<span class="lo-lock">LOCKED</span>' : "") +
+        (refused[i] ? '<span class="lo-refusal">' + esc(refused[i]) + '</span>' : "") + '</div>';
+    }).join("");
+  };
+  const wireSlots = () => {
+    build.mounts.forEach((m, i) => {
+      /* every builder answers {ok, reason, build}, so a refusal lands beside the control that caused it */
+      const set = (r) => {
+        if (r && r.ok === false) refused[i] = r.reason || "REFUSED";
+        else if (r && r.build) { build = r.build; delete refused[i]; }
+        else refused[i] = "REFUSED";
+        render();
+      };
+      for (let s = 0; s < seatCount(m); s++) {
+        const drop = el("lo-drop-" + i + "-" + s);
+        if (drop) drop.addEventListener("click", () => set(LO.unplace(build, i, s, CAT)));
+        const pick = el("lo-pick-" + i + "-" + s);
+        if (pick) pick.addEventListener("change", () => set(LO.place(pilot, build, i, s, pick.value, CAT)));
+      }
+    });
+  };
+  const drawRange = d => {
+    el("lo-dist-val").innerHTML = String(d);
+    el("lo-range").innerHTML = LO.rangeReadout(build, d, CAT).map(r =>
+    '<div class="lo-rw"><span class="lo-wep">' + esc(r.weapon) + '</span>' +
+    '<span class="lo-acc">' + (r.accuracy.attackBonus >= 0 ? "+" : "") + r.accuracy.attackBonus +
+    (r.accuracy.dice > 0 ? " +1d6" : r.accuracy.dice < 0 ? " -1d6" : "") + '</span>' +
+    r.profiles.map(p => '<span class="lo-prof">' + (p.name ? esc(p.name) + ": " : "") +
+      Object.keys(p).filter(k => typeof p[k] === "string").map(k => esc(p[k])).join(" ") + '</span>').join("") +
+    '</div>').join("");
+  };
+  const sysNames = () => offered(CAT.systems);
+  const renderSystems = () => {
+    const chosen = build.systems || [];
+    el("lo-systems").innerHTML =
+      (sysRefusal ? '<p class="lo-refusal">' + esc(sysRefusal) + '</p>' : "") +
+      sysNames().map((n, i) => {
+        const sp = CAT.systems[n].sp;
+        return '<label class="lo-sys"><input type="checkbox" id="lo-sys-' + i + '"' +
+          (chosen.indexOf(n) >= 0 ? " checked" : "") + '> ' + esc(n) +
+          (sp ? '<span class="lo-sys-sp">' + sp + ' SP</span>' : '<span class="lo-sys-sp lo-free">FREE</span>') + '</label>';
+      }).join("");
+  };
+  const wireSystems = () => {
+    sysNames().forEach((n, i) => {
+      const box = el("lo-sys-" + i);
+      if (!box) return;
+      box.addEventListener("change", () => {
+        const list = (build.systems || []).slice();
+        const at = list.indexOf(n);
+        if (box.checked && at < 0) list.push(n);
+        else if (!box.checked && at >= 0) list.splice(at, 1);
+        const r = LO.setSystems(build, list, CAT, pilot);
+        if (r && r.ok) { build = r.build; sysRefusal = ""; } else sysRefusal = (r && r.reason) || "REFUSED";
+        render();
+      });
+    });
+  };
+  const renderSp = () => {
+    const sp = LO.spCheck(build, frame, CAT, pilot);
+    el("lo-sp").innerHTML = 'SP ' + sp.spend + ' / ' + (sp.cap == null ? "?" : sp.cap);
+  };
+  let sysRefusal = "";
+  let frameNote = "";
+  let pendingFrame = "";
+  let currentDistance = F ? (F.distance || 0) : 0;
+  const render = () => {
+    renderPilot(); renderFrame(); renderSlots(); wireSlots(); renderSystems(); wireSystems(); renderSp();
+    el("lo-export").innerHTML = '<pre class="muted">' + esc(LO.exportLoadout(build)) + '</pre>';
+    drawRange(currentDistance);
+  };
+  /* the pilot pick decides which licences the gate reads, so the refusal follows the pick */
+  const renderPilot = () => {
+    const pick = el("lo-pilot");
+    if (!pick) return;
+    pick.innerHTML = (C.pilots || []).map(p =>
+      '<option value="' + esc(p.id) + '"' + (p.id === build.pilot ? " selected" : "") + '>' + esc(p.name) + '</option>').join("");
+    pick.value = build.pilot;
+  };
+  const pilotPick = el("lo-pilot");
+  if (pilotPick) pilotPick.addEventListener("change", () => {
+    build.pilot = pilotPick.value;
+    pilot = resolvePilot(build.pilot);
+    render();
+  });
+  /* the frame pick only asks: a change that would drop mounted weapons renders the candidate and
+     lo-frame-confirm, and only the second click calls setFrame (design rev 11). */
+  const mountedWeapons = () => build.mounts.reduce((n, m) => n + (m.weapons || []).length, 0);
+  const applyFrame = name => {
+    const r = LO.setFrame(build, name, CAT, pilot);
+    if (r && r.ok) { build = r.build; frame = LO.frameOf(build, CAT); frameNote = ""; }
+    else frameNote = r && r.reason === "UNLICENSED"
+      ? "UNLICENSED: " + esc((pilot && pilot.name) || build.pilot) + " lacks the rank"
+      : esc((r && r.reason) || "REFUSED");
+  };
+  const renderFrame = () => {
+    const pick = el("lo-frame");
+    if (!pick) return;
+    /* a supplement frame is not in the catalogue, so appending the record's own name keeps the
+       control from sitting blank and says why the cap cannot be computed */
+    /* a record spells its frame its own way ("GMS CHOMOLUNGMA") while the catalogue spells it the
+       data's way ("GMS Chomolungma"), and a direct read of that key would render a frame that does
+       have data as NOT IN CATALOGUE. Resolve by normalised name, then adopt the catalogue's own
+       spelling so the selected option is one the list actually holds. */
+    const own = LO.frameOf({ frame: build.frame }, CAT);
+    const key = own && Object.keys(CAT.frames).find(n => CAT.frames[n] === own);
+    if (key) build.frame = key;
+    const names = offered(CAT.frames);
+    if (build.frame && names.indexOf(build.frame) < 0) names.push(build.frame);
+    pick.innerHTML = names.map(n =>
+      '<option value="' + esc(n) + '"' + (n === build.frame ? " selected" : "") + '>' + esc(n) +
+      (CAT.frames[n] ? "" : " (NOT IN CATALOGUE)") + '</option>').join("");
+    pick.value = build.frame;
+    const note = el("lo-frame-note");
+    if (!note) return;
+    note.innerHTML = pendingFrame
+      ? '<span class="lo-refusal">' + esc(pendingFrame) + ' empties ' + mountedWeapons() + ' mounted weapon' +
+        (mountedWeapons() === 1 ? "" : "s") + ' from ' + (build.mounts || []).filter(m => (m.weapons || []).length).map(m => String(m.slot).toUpperCase()).join(", ") + '</span><button class="lo-confirm" id="lo-frame-confirm">CHANGE FRAME</button>'
+      : frameNote;
+    const confirm = el("lo-frame-confirm");
+    if (confirm) confirm.addEventListener("click", () => { const go = pendingFrame; pendingFrame = ""; applyFrame(go); render(); });
+  };
+  const framePick = el("lo-frame");
+  if (framePick) framePick.addEventListener("change", () => {
+    const want = framePick.value;
+    if (want === build.frame) return;
+    if (mountedWeapons() > 0) { pendingFrame = want; render(); }
+    else { applyFrame(want); render(); }
+  });
+  const slider = el("lo-dist");
+  if (slider) {
+    slider.value = String(currentDistance);
+    slider.addEventListener("input", () => { currentDistance = Number(slider.value) || 0; drawRange(currentDistance); });
+  }
+  render();
+})();
+</script>
+</body>
+</html>
