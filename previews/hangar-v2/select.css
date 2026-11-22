@@ -32,8 +32,8 @@
 .proto-picker-highlight {
   position: absolute;
   top: 4px;
+  bottom: 4px;
   left: 0;
-  height: 28px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
 }
@@ -190,7 +190,14 @@
 .hangar .details{min-height:0;overflow-y:auto}
 .hangar .details>*{flex-shrink:0}
 .hangar .art{min-height:0;height:100%}
-@media(max-width:600px){.hangar .selection{height:960px;grid-template-rows:300px minmax(0,1fr)}.hangar .art{height:300px}.hangar .details{height:100%}}
+@media(max-width:700px){
+  .hangar .selection{height:auto;grid-template-columns:minmax(0,1fr)}
+  .hangar .art{height:clamp(220px,70vw,360px);padding:10px 0 0}
+  .hangar .details{padding:12px clamp(14px,5vw,24px) 20px;overflow:visible}
+  .hangar .details h2{font-size:clamp(2.1rem,1.45rem + 3vw,3.2rem)}
+  .hangar .stats dt{overflow-wrap:anywhere}
+  .hangar .actions a{font-size:12px}
+}
 /* Paired mini-card: 20% larger, same lower-left anchor, centered caption baseline. */
 .selection .art .counterpart{width:151px;height:178px}
 .selection .art .counterpart img{height:142px}
@@ -213,6 +220,29 @@
 @media(max-width:600px){.art-open-hint{bottom:12px;right:12px;font-size:9px}.art-viewer{width:100%;max-width:100%;max-height:100dvh}.art-viewer-image{max-height:calc(100dvh - 64px)}}
 .full-record{margin-top:42px;border-top:1px solid #44606a;padding:28px 0 32px}.record-header{display:flex;justify-content:space-between;align-items:end;gap:20px}.record-header h2{font-size:24px;letter-spacing:-.02em}.record-header a,.record-section a{color:#b4e8f5;text-decoration:underline;text-underline-offset:3px}.record-help,.record-credit{color:#a9bec7;font-size:12px;line-height:1.6;max-width:72ch}.record-help{margin:10px 0 24px}.record-section{padding:20px 0;border-top:1px solid #2d434d}.record-section h3{font-size:15px;margin:0 0 14px;color:#e5d3a7}.record-section p{max-width:72ch;line-height:1.65;margin:8px 0;color:#c3d4da}.record-items{display:flex;flex-wrap:wrap;gap:10px;align-items:start}.record-plain{padding:9px 12px;border:1px solid #3c5158;color:#d9e5e9;font-size:13px}.rule-card{position:relative;max-width:100%;border:1px solid #8b805e;background:#19252a;color:#eaf4f7}.rule-card summary{display:flex;gap:16px;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;padding:10px 12px;min-height:44px;font-size:13px;overflow-wrap:anywhere}.rule-card summary::-webkit-details-marker{display:none}.rule-card summary:focus-visible{outline:2px solid #b7f1ff;outline-offset:3px}.rule-card summary span{color:#d2c196}.rule-preview{display:none;position:absolute;bottom:calc(100% + 8px);left:0;z-index:12;width:min(340px,80vw);max-height:220px;overflow:auto;padding:14px;background:#07141d;border:1px solid #8daab5;box-shadow:0 8px 25px #0009;white-space:pre-wrap;font:12px/1.6 system-ui,sans-serif;color:#e2edf1;pointer-events:none}.rule-expanded{max-width:min(650px,80vw);padding:4px 14px 14px;white-space:pre-wrap;font:13px/1.6 system-ui,sans-serif;color:#d6e5ea}.rule-card[open] .rule-preview{display:none!important}@media(hover:hover) and (pointer:fine){.rule-card:not([open]):hover .rule-preview{display:block}}.rule-card:not([open]):focus-within .rule-preview{display:block}.record-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin:0}.record-stat-grid>div{border-bottom:1px solid #334953;padding:0 0 10px;min-width:0}.record-stat-grid dt{font:10px ui-monospace,monospace;color:#a4bbc4}.record-stat-grid dd{margin:6px 0 0;overflow-wrap:anywhere}.mount-card{flex:1 1 260px;padding:14px;border:1px solid #334953;min-width:0}.mount-card>strong{display:block;color:#b8cbd2;font-size:12px;margin-bottom:10px}.record-credit{margin-top:24px}
 @media(max-width:600px){.record-header{align-items:start;flex-direction:column}.record-items{gap:8px}.rule-card{max-width:100%}.rule-preview{left:0;width:min(300px,75vw)}}
+
+/* Give clipped controls an in-card focus ring. */
+.tile:focus-visible .selection-outline{display:block;color:#e8f9ff}
+.selection .art .counterpart:focus-visible .counterpart-outline polygon{stroke:#e8f9ff;stroke-width:3}
+.tile-name{right:7px;overflow-wrap:anywhere;text-shadow:0 1px 5px #000}
+.pairing strong,.pairing small,.record-plain,.record-section p,.rule-expanded{min-width:0;overflow-wrap:anywhere}
+@media(max-width:700px){
+  header,main{padding-inline:clamp(16px,4vw,28px)}
+  header{padding-block:4px;gap:6px 12px}
+  header>a,header label,.record-header a{display:inline-flex;align-items:center;min-height:44px}
+  main{padding-block:18px 36px}
+  .heading{align-items:center;flex-wrap:wrap;margin-bottom:10px;gap:10px}
+  .heading .eyebrow{font-size:10px}
+  .modes button,.proto-picker-item,.art-viewer-close{min-height:44px}
+  .proto-picker{position:relative;inset:auto;transform:none;width:max-content;max-width:100%;margin-bottom:16px;z-index:1}
+  .proto-picker-item{padding-inline:12px}
+  .record-header{gap:4px}
+  .rule-expanded{max-width:100%}
+}
+@media(max-width:360px){
+  .hangar .pairing{padding-inline:10px;column-gap:9px}
+  .hangar .actions{grid-template-columns:minmax(0,1fr)}
+}
 
 /* Blue-primary Hangar preview; gold remains a secondary accent. */
 .hangar .selection{background:radial-gradient(ellipse at 28% 65%,#173c50,#081824 68%);border-top-color:#87d3ec}.hangar .details h2{color:#c6efff}.hangar .primary{background:#b4e8f5;color:#081721}.hangar .actions .secondary{background:#d2c196;color:#081721}.hangar .tile.selected{color:#9be6ff}.hangar .selection .art .counterpart{background:#0b2534}.hangar .counterpart-outline polygon{stroke:#a1dbeb}.hangar .pairing{border-inline-start-color:#79c9e3;background:#77cbea0c}.hangar .stats>div,.hangar .stats>div:nth-child(even){border-bottom-color:#31515f}.hangar .stats dt{color:#9cc6d5}.hangar .orbital{border-color:#73cde277}.hangar .stats dd{color:#e2f4f9}

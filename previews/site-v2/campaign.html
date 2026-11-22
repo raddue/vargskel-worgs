@@ -65,5 +65,14 @@
 <script src="campaign.js"></script>
 <script src="detail.js"></script>
 <script src="archive.js"></script>
+<script>
+const ledgerScroll = document.querySelector('#ledger-body > div:has(> .threads-table)');
+if (ledgerScroll) {
+ ledgerScroll.tabIndex = 0;
+ ledgerScroll.setAttribute('role', 'region');
+ ledgerScroll.setAttribute('aria-label', 'Session ledger, scrollable');
+}
+</script>
+<script src="previews/site-v2/preview-links.js"></script>
 </body>
 </html>

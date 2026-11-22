@@ -48,7 +48,7 @@
  /* #19: a palette row names a record and the entry inside it, the way intel.html's #map/<loc>
     names two things. Land the reader on that entry instead of the top of the file. */
  const raw=decodeURIComponent(location.hash.slice(1)).split("/"),id=raw[0],entry=raw[1]||"";
- if(!id){location.replace("pilots.html");return;}
+ if(!id){location.replace("previews/site-v2/pilots.html");return;}
  document.getElementById("dossier").innerHTML=UI.pilotDossier(id);
  if(entry){const hit=document.getElementById(id+"-x")||document.getElementById(entry);if(hit&&hit.scrollIntoView)hit.scrollIntoView({block:"center"});}else if(!first)scrollTo(0,0);
  document.title="Vargskel Worgs | "+((window.CAMPAIGN.pilots.find(p=>p.id===id)||{}).name||id);
@@ -58,5 +58,6 @@
  addEventListener("hashchange",()=>render(false));
 })();
 </script>
+<script src="previews/site-v2/preview-links.js"></script>
 </body>
 </html>

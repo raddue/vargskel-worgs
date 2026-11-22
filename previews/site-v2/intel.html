@@ -56,7 +56,14 @@
 <script src="detail.js"></script>
 <script src="archive.js"></script>
 <script src="holomap-view.js"></script>
-<script>window.holoEntryHash=location.hash;</script>
+<script>
+window.holoEntryHash=location.hash;
+// Shared map writes hash-only URLs; resolve them against this page instead of <base>.
+for(const method of ["pushState","replaceState"]){
+ const write=history[method].bind(history);
+ history[method]=(state,title,url)=>write(state,title,typeof url==="string"&&url.startsWith("#")?new URL(url,location.href):url);
+}
+</script>
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js","three/addons/":"./vendor/three/addons/"}}</script>
 <script src="holomap-loading.js"></script>
 <script type="module" src="holomap3d.js" onerror="window.holoLoading?.fail()"></script>
@@ -151,5 +158,6 @@ window.addEventListener("hashchange",render);
 render();
 })();
 </script>
+<script src="previews/site-v2/preview-links.js"></script>
 </body>
 </html>
