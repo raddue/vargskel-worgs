@@ -13,12 +13,16 @@ jobs:
         with:
           node-version: 22
       - run: node check-all.cjs && node tools/render.cjs --selftest
+      # Upload before the job boundary so deploy does not race artifact discovery.
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          path: .
   deploy:
     needs: check
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       pages: write
       id-token: write
     environment:
@@ -28,9 +32,5 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
       - id: deploy
         uses: actions/deploy-pages@v4
