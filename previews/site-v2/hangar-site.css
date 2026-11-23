@@ -88,3 +88,6 @@ body{background:var(--bg)}
 .hero { border-top: 0; }
 /* Align Intel tabs to the reading edge at every viewport. */
 .pagebar .tabs{margin-inline:0}
+/* Match the archive's hover edge; keyboard focus receives the same cue. */
+@media(hover:hover) and (pointer:fine){.pilot-front-card:hover .pilot-card-outline polygon{stroke:var(--cyan);stroke-width:2}}
+.pilot-front-card:focus-within .pilot-card-outline polygon{stroke:var(--cyan);stroke-width:2}

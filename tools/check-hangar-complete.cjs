@@ -16,4 +16,5 @@ assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/pilot-c
 for(const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))){const s=fs.readFileSync(`previews/site-v2/${p}`,"utf8"); assert.doesNotMatch(s,/href="(?:previews\/site-v2\/index\.html)?#overview"/,`${p}: overview must start at page top`)}
 for(const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))){const s=fs.readFileSync(`previews/site-v2/${p}`,"utf8");if(s.includes("class=\"nav\"")){assert.match(s,/href="previews\/hangar-v2\/\?pilot=/,`${p}: pilot nav enters hangar`);assert.match(s,/href="previews\/hangar-v2\/\?mech=/,`${p}: mech nav enters hangar`)}}
 assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/\.hero\s*\{\s*border-top:\s*0/,"hero top rule removed consistently");
+assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/pilot-front-card:hover[^\n]*pilot-card-outline/,"profile card hover highlight");
 console.log("complete records checks passed");
