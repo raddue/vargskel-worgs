@@ -10,4 +10,5 @@ assert.match(fs.readFileSync("previews/sw-preview.js","utf8"),/ignoreSearch: tru
 assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/Long names|id="stress"/,"test-only long-name control must not appear");
 assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/proto-picker/,"chosen Hangar has no variant picker");
 for (const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))) assert.doesNotMatch(fs.readFileSync(`previews/site-v2/${p}`,"utf8"),/id="(?:compact|palette|theme)-toggle"|src="(?:compact|palette|theme)\.js"/,`${p}: removed header tools`);
+assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/hero-actions\s*\{\s*display\s*:\s*none/,"preview mech action bar hidden");
 console.log("complete records checks passed");
