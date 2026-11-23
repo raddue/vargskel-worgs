@@ -59,12 +59,9 @@ async function check(label, run) {
         await page.waitForURL('**/previews/site-v2/pilot.html#daemon');
       });
       await visit('hangar-v2/?v=2&pilot=daemon');
-      await check(`${width} Hangar long names and paired record`, async () => {
-        await page.locator('#stress').check();
-        assert.match(await page.locator('.identity').textContent(), /LONG RIM/);
-        assert.match(await page.locator('.counterpart').evaluate(a => a.pathname + a.hash), /\/previews\/site-v2\/mech\.html#averna$/);
+      await check(`${width} Hangar paired record`, async () => {
+        assert.match(await page.locator('.counterpart').evaluate(a => a.pathname + a.search), /\/previews\/hangar-v2\/\?mech=averna$/);
         if (width < 600) {
-          assert.ok(await page.locator('.proto-picker-item').first().evaluate(e => e.offsetHeight >= 44));
           assert.ok(await page.locator('.hangar .details').evaluate(e => e.scrollHeight <= e.clientHeight));
         }
       });

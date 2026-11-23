@@ -7,4 +7,6 @@ assert.match(s,/canonicalAssets/,"canonical artwork resolves from project root")
 for (const id of ["overview", "missions", "readiness"]) assert.ok(fs.readFileSync("previews/site-v2/index.html","utf8").includes(`id="${id}"`));
 assert.match(fs.readFileSync("previews/site-v2/preview-cache.js","utf8"),/hangar-preview-cache-v1/,"preview offline shell registered");
 assert.match(fs.readFileSync("previews/sw-preview.js","utf8"),/ignoreSearch: true/,"preview deep links work offline");
+assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/Long names|id="stress"/,"test-only long-name control must not appear");
+assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/proto-picker/,"chosen Hangar has no variant picker");
 console.log("complete records checks passed");
