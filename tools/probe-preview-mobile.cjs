@@ -52,12 +52,6 @@ async function check(label, run) {
         assert.equal(await page.locator('#tl-map').getAttribute('aria-selected'), 'true');
       });
       await visit('site-v2/');
-      await check(`${width} command-palette keyboard navigation stays in preview`, async () => {
-        await page.locator('#palette-toggle').click();
-        await page.locator('#palette-input').fill('Daemon');
-        await page.locator('#palette-input').press('Enter');
-        await page.waitForURL('**/previews/site-v2/pilot.html#daemon');
-      });
       await visit('hangar-v2/?v=2&pilot=daemon');
       await check(`${width} Hangar paired record`, async () => {
         assert.match(await page.locator('.counterpart').evaluate(a => a.pathname + a.search), /\/previews\/hangar-v2\/\?mech=averna$/);

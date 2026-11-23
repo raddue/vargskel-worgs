@@ -29,13 +29,4 @@
     }
   }).observe(document.body, { childList: true, subtree: true });
 
-  // The shared palette's Enter handler uses the unprefixed search index rather than the row URL.
-  document.addEventListener('keydown', event => {
-    if (event.key !== 'Enter' || event.target.id !== 'palette-input') return;
-    const row = document.querySelector('#palette .palette-row.active');
-    if (!row) return;
-    event.preventDefault();
-    event.stopPropagation();
-    row.click();
-  }, true);
 })();

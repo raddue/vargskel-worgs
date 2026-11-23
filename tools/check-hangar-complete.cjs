@@ -9,4 +9,5 @@ assert.match(fs.readFileSync("previews/site-v2/preview-cache.js","utf8"),/hangar
 assert.match(fs.readFileSync("previews/sw-preview.js","utf8"),/ignoreSearch: true/,"preview deep links work offline");
 assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/Long names|id="stress"/,"test-only long-name control must not appear");
 assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/proto-picker/,"chosen Hangar has no variant picker");
+for (const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))) assert.doesNotMatch(fs.readFileSync(`previews/site-v2/${p}`,"utf8"),/id="(?:compact|palette|theme)-toggle"|src="(?:compact|palette|theme)\.js"/,`${p}: removed header tools`);
 console.log("complete records checks passed");
