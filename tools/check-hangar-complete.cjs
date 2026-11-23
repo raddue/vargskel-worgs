@@ -1,0 +1,10 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const s=fs.readFileSync("previews/hangar-v2/select-records.js","utf8");
+assert.match(s,/UI\.pilotDossier/,"pilot full record must reuse canonical renderer");
+assert.match(s,/UI\.mechDossier/,"mech full record must reuse canonical renderer");
+assert.doesNotMatch(s,/Deployment and detailed history remain available/,"history must not be deferred to production");
+assert.match(s,/canonicalAssets/,"canonical artwork resolves from project root");
+for (const id of ["overview", "missions", "readiness"]) assert.ok(fs.readFileSync("previews/site-v2/index.html","utf8").includes(`id="${id}"`));
+assert.match(fs.readFileSync("previews/site-v2/preview-cache.js","utf8"),/hangar-preview-cache-v1/,"preview offline shell registered");
+assert.match(fs.readFileSync("previews/sw-preview.js","utf8"),/ignoreSearch: true/,"preview deep links work offline");
+console.log("complete records checks passed");

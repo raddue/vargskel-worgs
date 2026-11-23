@@ -6,6 +6,7 @@
 
   function rewrite(link) {
     const raw = link.getAttribute('href');
+    if (!raw) return;
     if (raw.startsWith('#')) {
       link.href = new URL(raw, here).href;
       return;
