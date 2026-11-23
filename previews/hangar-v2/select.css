@@ -258,3 +258,14 @@
 @media(max-width:600px){.hangar-header{padding:12px 5vw;gap:8px}.hangar-header nav{width:100%;justify-content:space-between;gap:8px;margin:0}.hangar-header nav a{font-size:11px}}
 /* Alba's tall rifle would dominate the paired tile; frame the chassis torso instead. */
 .selection .art .counterpart img.alba-focus{object-fit:cover;object-position:65% 68%}
+/* Reuse the archive masthead instead of a separate Hangar header. */
+.hangar-shell{max-width:1480px;margin:auto;padding-inline:clamp(16px,4vw,58px)}
+.hangar-shell .topline{height:32px;border-bottom:1px solid var(--line);color:var(--muted);font:10px var(--mono);display:flex;align-items:center;justify-content:space-between;letter-spacing:.08em}
+.hangar-shell .brandrow{display:flex;align-items:center;justify-content:space-between;padding:24px 0;gap:16px;flex-wrap:wrap;border:0}
+.hangar-shell .brand{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+.hangar-shell .mark{width:42px;height:42px;border:0;display:grid;place-items:center;color:var(--cyan);font:18px var(--mono);transform:none}.hangar-shell .mark span{transform:none}
+.hangar-shell .brand-name{font:700 16px var(--mono);letter-spacing:.04em}.hangar-shell .brand-sub{font:10px var(--mono);color:var(--muted);letter-spacing:.06em}
+.hangar-shell .nav{display:flex;gap:20px;color:var(--muted);font:13px var(--mono);letter-spacing:0}.hangar-shell .nav a:first-child{color:var(--cyan)}
+.hangar-shell .status{border:1px solid var(--line);padding:9px 12px;color:var(--lime);font:10px var(--mono);letter-spacing:.1em;text-align:center;white-space:nowrap;min-width:0}
+@media(max-width:850px){.hangar-shell .brand{flex-basis:45%}.hangar-shell .nav{order:3;flex-basis:100%;justify-content:space-between}.hangar-shell .status{margin-left:auto}}
+@media(max-width:620px){.hangar-shell .brandrow{gap:10px;padding-block:12px}.hangar-shell .brand-name{font-size:14px}.hangar-shell .brand-sub{font-size:9px}.hangar-shell .status{font-size:9px}.hangar-shell .nav{gap:4px;font-size:11px}.hangar-shell .nav a{min-height:44px;display:inline-flex;align-items:center}.hangar-shell .topline{height:auto;min-height:32px;gap:8px;font-size:9px}}
