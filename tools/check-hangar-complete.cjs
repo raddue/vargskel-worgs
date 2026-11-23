@@ -11,4 +11,9 @@ assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/Lon
 assert.doesNotMatch(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/proto-picker/,"chosen Hangar has no variant picker");
 for (const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))) assert.doesNotMatch(fs.readFileSync(`previews/site-v2/${p}`,"utf8"),/id="(?:compact|palette|theme)-toggle"|src="(?:compact|palette|theme)\.js"/,`${p}: removed header tools`);
 assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/hero-actions\s*\{\s*display\s*:\s*none/,"preview mech action bar hidden");
+assert.match(fs.readFileSync("previews/site-v2/index.html","utf8"),/src="assets\/unit-patch\.webp"[^>]*alt="Vargskel Worgs unit patch"/,"overview displays unit logo");
+assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/pilot-card-outline/,"clipped pilot cards have complete outline");
+for(const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))){const s=fs.readFileSync(`previews/site-v2/${p}`,"utf8"); assert.doesNotMatch(s,/href="(?:previews\/site-v2\/index\.html)?#overview"/,`${p}: overview must start at page top`)}
+for(const p of fs.readdirSync("previews/site-v2").filter(n=>n.endsWith(".html"))){const s=fs.readFileSync(`previews/site-v2/${p}`,"utf8");if(s.includes("class=\"nav\"")){assert.match(s,/href="previews\/hangar-v2\/\?pilot=/,`${p}: pilot nav enters hangar`);assert.match(s,/href="previews\/hangar-v2\/\?mech=/,`${p}: mech nav enters hangar`)}}
+assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/\.hero\s*\{\s*border-top:\s*0/,"hero top rule removed consistently");
 console.log("complete records checks passed");

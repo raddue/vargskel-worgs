@@ -79,3 +79,12 @@ body{background:var(--bg)}
 
 /* Dossier utility buttons are not part of the selected Hangar design. */
 .hero-actions { display: none; }
+/* Closed SVG outline follows each clipped edge at any card size. */
+.home-study .pilot-front-card{border:0;padding:0;background:var(--panel)}
+.pilot-card-outline{position:absolute;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
+.pilot-card-outline polygon{fill:none;stroke:#7195a2;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.home-study .hero-art .hero-mech-img{border-radius:0}
+/* Keep page headers consistent with Overview. */
+.hero { border-top: 0; }
+/* Align Intel tabs to the reading edge at every viewport. */
+.pagebar .tabs{margin-inline:0}

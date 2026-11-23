@@ -29,7 +29,7 @@ async function check(label, run) {
       });
       await check(`${width} overview stays in preview`, async () => {
         await page.locator('.nav a').first().click();
-        assert.match(page.url(), /\/previews\/site-v2\/(?:index\.html)?#overview$/);
+        assert.match(page.url(), /\/previews\/site-v2\/(?:index\.html)?$/);
       });
       await visit('site-v2/campaign.html');
       await check(`${width} operation order anchor stays in preview`, async () => {
