@@ -249,3 +249,7 @@
 /* Canonical full dossier stays available inside the Hangar rather than leaving preview. */
 .canonical-record{margin-top:32px;padding-top:20px;border-top:1px solid #36515f}.canonical-record .hero{display:none}.canonical-record .columns{display:flex;gap:20px;align-items:flex-start}.canonical-record .primary{display:block;background:transparent;color:inherit;padding:0;flex:1;min-width:0}.canonical-record .aside{flex:1;min-width:0}.canonical-record .section-head{padding:18px 0 12px}.canonical-record .section-head h2{font-size:17px}.canonical-record .card{background:#0d202a;border:1px solid #314b59}.canonical-record .card-pad{padding:18px}.canonical-record .threads-table{width:100%}.canonical-record .operation-table td{overflow-wrap:anywhere}.canonical-record .detail{white-space:normal}.canonical-record .chip{white-space:normal}.canonical-record a{color:#b4e8f5}.canonical-record .mech-thumb img{max-width:100%;height:auto}@media(max-width:800px){.canonical-record .columns{flex-direction:column}.canonical-record .primary,.canonical-record .aside{width:100%}.canonical-record .card-pad{overflow-x:auto}}
 .canonical-record>summary{cursor:pointer;padding:15px 12px;border:1px solid #527586;color:#c8eefa;font-weight:600;min-height:48px}.canonical-record>summary:focus-visible{outline:2px solid #b7f1ff;outline-offset:4px}
+
+/* Each roster tile has a complete cut-corner outline, including unselected states. */
+.hangar .tile .selection-outline{display:block;color:#54727c}
+.hangar .tile.selected .selection-outline{color:#dcc795}
