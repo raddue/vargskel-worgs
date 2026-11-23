@@ -2,7 +2,8 @@
 window.hangarRecords=(()=>{
  const D=window.DETAIL||{};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const plain=s=>String(s||'').replace(/<br\s*\/?>/gi,'\n').replace(/<li>/gi,'• ').replace(/<\/li>/gi,'\n').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
+ const plain=s=>String(s||'').replace(/<span\s+class=['\"]horus--subtle['\"]>([\s\S]*?)<\/span>/gi,(_,text)=>'\uE000'+text+'\uE001').replace(/<br\s*\/?>/gi,'\n').replace(/<li>/gi,'• ').replace(/<\/li>/gi,'\n').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
+ const ruleText=s=>esc(s).replace(/\uE000/g,'<span class="horus--subtle">').replace(/\uE001/g,'</span>');
  const split=s=>String(s||'').split(',').map(x=>x.trim()).filter(Boolean);
  const desc=(kind,record)=>{
   if(kind==='talents')return [record.terse,...(record.ranks||[]).map(r=>`Rank ${r.rank} · ${r.name}\n${plain(r.description)}`)].filter(Boolean).join('\n\n');
@@ -14,7 +15,7 @@ window.hangarRecords=(()=>{
  };
  const key=(kind,n)=>kind==='talents'?n.replace(/\s+\d+$/,''):kind==='skills'?n.replace(/\s*\([+-]\d+\)$/,''):n;
  const token=(kind,n)=>{const record=D[kind]?.[key(kind,n)],text=record&&desc(kind,record);if(!text)return `<span class="record-plain">${esc(n)}</span>`;
-  return `<details class="rule-card"><summary>${esc(n)} <span aria-hidden="true">↗</span></summary><div class="rule-preview" role="tooltip">${esc(text)}</div><div class="rule-expanded">${esc(text)}</div></details>`};
+  return `<details class="rule-card"><summary>${esc(n)} <span aria-hidden="true">↗</span></summary><div class="rule-preview" role="tooltip">${ruleText(text)}</div><div class="rule-expanded">${ruleText(text)}</div></details>`};
  const section=(title,items)=>`<section class="record-section"><h3>${esc(title)}</h3><div class="record-items">${items.length?items.join(''):'<p>Not recorded.</p>'}</div></section>`;
  const val=(label,value)=>`<div><dt>${esc(label)}</dt><dd>${esc(value??'Not recorded')}</dd></div>`;
  function render(p,m,mode){let content;

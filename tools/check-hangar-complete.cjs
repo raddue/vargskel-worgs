@@ -20,4 +20,5 @@ assert.match(fs.readFileSync("previews/site-v2/hangar-site.css","utf8"),/pilot-f
 assert.match(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/aria-label="Site navigation"/,"Hangar navigation exists");
 assert.match(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/class="brandrow"/,"Hangar uses shared site header");
 assert.match(fs.readFileSync("previews/hangar-v2/index.html","utf8"),/DEPLOYMENT STATUS/,"Hangar retains shared status");
+assert.match(fs.readFileSync("previews/hangar-v2/select-records.js","utf8"),/horus--subtle/,"Horus markup preserved safely");
 console.log("complete records checks passed");

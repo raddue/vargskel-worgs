@@ -269,3 +269,6 @@
 .hangar-shell .status{border:1px solid var(--line);padding:9px 12px;color:var(--lime);font:10px var(--mono);letter-spacing:.1em;text-align:center;white-space:nowrap;min-width:0}
 @media(max-width:850px){.hangar-shell .brand{flex-basis:45%}.hangar-shell .nav{order:3;flex-basis:100%;justify-content:space-between}.hangar-shell .status{margin-left:auto}}
 @media(max-width:620px){.hangar-shell .brandrow{gap:10px;padding-block:12px}.hangar-shell .brand-name{font-size:14px}.hangar-shell .brand-sub{font-size:9px}.hangar-shell .status{font-size:9px}.hangar-shell .nav{gap:4px;font-size:11px}.hangar-shell .nav a{min-height:44px;display:inline-flex;align-items:center}.hangar-shell .topline{height:auto;min-height:32px;gap:8px;font-size:9px}}
+/* COMP/CON subtle HORUS treatment, adapted from massif-press/compcon typography.css (GPL-3.0). */
+@media(prefers-reduced-motion:no-preference){.horus--subtle{animation:horus-subtle 5s infinite}}
+@keyframes horus-subtle{25%,30%,75%,80%{text-shadow:none}26%,78%{text-shadow:2px -1px #f00,-2px 3px #0ff}27%,77%{text-shadow:-2px -3px #f00,2px 1px #0ff}28%,79%{text-shadow:2px 1px #f00,-4px 1px #0ff}29%,76%{text-shadow:-4px 1px #f00,-2px -1px #0ff}}
